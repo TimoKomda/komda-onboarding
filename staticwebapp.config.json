@@ -1,0 +1,6 @@
+{
+  "navigationFallback": {
+    "rewrite": "/komda_onboarding_checklist.html",
+    "exclude": ["/api/*", "*.html", "*.pdf"]
+  }
+}
