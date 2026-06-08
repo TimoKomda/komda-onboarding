@@ -283,6 +283,8 @@
 // ═══════════════════════════════════════════════════════════════════
 //  URL-Parameter auslesen
 // ═══════════════════════════════════════════════════════════════════
+const API_URL       = 'https://gentle-stone-0c97b9310.7.azurestaticapps.net/api/status';
+const UPDATE_SECRET = '5838bff96f7347e7848c0610bb26baea';
 const params  = new URLSearchParams(window.location.search);
 const token   = params.get('token') || '';
 const kundeParam = params.get('kunde') || '';
@@ -492,16 +494,24 @@ function markUndone(id) {
 // Zurückschreiben in das interne Dashboard (localStorage + SharePoint-Sync-Key)
 function syncToParent(docId, value) {
   const custId = (() => { try { return atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch { return ''; } })();
-  // Demo-Modus: direkt in kd_onboarding schreiben
   try {
     const all = JSON.parse(localStorage.getItem('kd_onboarding') || '[]');
     const idx = all.findIndex(c => c.id === custId);
     if (idx >= 0) { all[idx].docs[docId] = value; localStorage.setItem('kd_onboarding', JSON.stringify(all)); }
   } catch {}
-  // SharePoint-Modus: Sync-Key setzen → Dashboard-Tab reagiert via storage-Event
   try {
     localStorage.setItem('kd_checklist_sync', JSON.stringify({ custId, docId, value, ts: Date.now() }));
   } catch {}
+  if (custId && !isPreview) {
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret: UPDATE_SECRET, custId, docId, value }),
+    })
+    .then(r => r.json())
+    .then(d => { if (!d.ok) console.warn('Backend-Sync Fehler:', d); else console.log('SharePoint aktualisiert:', docId, value); })
+    .catch(err => console.warn('Backend-Sync nicht erreichbar:', err));
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
