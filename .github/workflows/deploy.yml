@@ -19,5 +19,3 @@ jobs:
           app_location: "/"
           api_location: "api"
           output_location: ""
-          api_language: "python"
-          api_version: "3.11"
