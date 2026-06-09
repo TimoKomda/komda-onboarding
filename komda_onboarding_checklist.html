@@ -269,10 +269,24 @@
 
   if (isPreview) document.getElementById('preview-banner').classList.add('visible');
   if (kundeParam) {
-    var firmaDec = decodeURIComponent(kundeParam);
+    var firmaDec   = decodeURIComponent(kundeParam);
+    var anredeDec  = decodeURIComponent(params.get('anrede') || '');
+    var nameDec    = decodeURIComponent(params.get('name')   || '');
     document.title = 'Komda Onboarding - ' + firmaDec;
     var subEl = document.getElementById('header-subtitle');
-    if (subEl) subEl.textContent = 'Guten Tag, ' + firmaDec + '!';
+    if (subEl) {
+      var greeting = 'Guten Tag';
+      if (anredeDec && nameDec) {
+        if (anredeDec === 'SGDH') {
+          greeting = 'Sehr geehrte Damen und Herren';
+        } else {
+          greeting = 'Guten Tag, ' + anredeDec + ' ' + nameDec;
+        }
+      } else if (nameDec) {
+        greeting = 'Guten Tag, ' + nameDec;
+      }
+      subEl.textContent = greeting + '!';
+    }
   }
 
   var DOCS_META = [
