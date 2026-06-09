@@ -3,176 +3,163 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Komda · Ihr Onboarding</title>
+  <title>Komda &middot; Ihr Onboarding</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c41b1b'/%3E%3Cpolygon points='28,15 41,15 41,85 28,85' fill='white'/%3E%3Cpolygon points='41,15 70,15 70,27 53,50 41,50' fill='white'/%3E%3Cpolygon points='46,15 62,15 45,44 29,44' fill='%23c41b1b'/%3E%3Cpolygon points='41,50 53,50 70,85 57,85' fill='white'/%3E%3C/svg%3E">
   <style>
     :root {
-      --red:       #c41b1b;
-      --red-dark:  #9a1515;
-      --red-pale:  #fdeaea;
-      --bg:        #f3f1ee;
-      --card:      #ffffff;
-      --border:    #e5e2de;
-      --border-lt: #eeebe8;
-      --text:      #1a1917;
-      --muted:     #706b66;
-      --green:     #107c41;
-      --green-bg:  #e8f5ee;
-      --orange:    #c87400;
-      --orange-bg: #fff4e0;
-      --gray:      #8a8886;
-      --gray-bg:   #f3f2f1;
-      --radius-sm: 8px;
-      --radius-md: 14px;
-      --radius-lg: 20px;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
-      --shadow-md: 0 2px 8px rgba(0,0,0,0.06), 0 12px 32px rgba(0,0,0,0.09);
+      --red:#c41b1b; --red-dark:#9a1515; --red-pale:#fdeaea;
+      --bg:#f3f1ee; --card:#ffffff; --border:#e5e2de; --border-lt:#eeebe8;
+      --text:#1a1917; --muted:#706b66;
+      --green:#107c41; --green-bg:#e8f5ee;
+      --orange:#c87400; --orange-bg:#fff4e0;
+      --gray:#8a8886; --gray-bg:#f3f2f1;
+      --radius-sm:8px; --radius-md:14px; --radius-lg:20px;
+      --shadow-sm:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.06);
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); min-height: 100vh; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);min-height:100vh}
 
-    .page-header { background: var(--red); padding: 0; box-shadow: 0 2px 16px rgba(196,27,27,0.25); }
-    .header-inner { max-width: 1060px; margin: 0 auto; padding: 20px 24px; display: flex; align-items: center; gap: 16px; }
-    .logo-mark { background: white; border-radius: 10px; padding: 7px 14px; display: flex; align-items: center; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
-    .logo-mark img { height: 38px; width: auto; display: block; }
-    .header-text-wrap { flex: 1; }
-    .header-brand { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.75); letter-spacing: 0.5px; }
-    .header-title { font-size: 20px; font-weight: 700; color: white; margin-top: 2px; }
+    .page-header{background:var(--red);box-shadow:0 2px 16px rgba(196,27,27,.25)}
+    .header-inner{max-width:1060px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;gap:16px}
+    .logo-wrap{display:flex;align-items:center;flex-shrink:0}
+    .logo-wrap img{height:48px;width:48px;border-radius:50%;display:block;mix-blend-mode:screen}
+    .header-text-wrap{flex:1}
+    .header-title{font-size:20px;font-weight:700;color:#fff;margin-top:2px}
 
-    .preview-banner { background: #f5a500; color: white; text-align: center; padding: 8px; font-size: 13px; font-weight: 600; display: none; }
-    .preview-banner.visible { display: block; }
+    .preview-banner{background:#f5a500;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:600;display:none}
+    .preview-banner.visible{display:block}
 
-    .page-body { max-width: 1060px; margin: 0 auto; padding: 28px 24px 60px; }
+    .page-body{max-width:1060px;margin:0 auto;padding:28px 24px 60px}
 
-    /* Fortschritt */
-    .progress-card { background: var(--card); border-radius: var(--radius-lg); padding: 22px 28px; border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); margin-bottom: 24px; }
-    .progress-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 16px; }
-    .progress-label { font-size: 16px; font-weight: 700; color: var(--text); }
-    .progress-sub   { font-size: 13px; color: var(--muted); margin-top: 3px; }
-    .progress-pct   { font-size: 34px; font-weight: 800; color: var(--green); line-height: 1; white-space: nowrap; }
-    .progress-pct.partial { color: var(--orange); }
-    .progress-pct.zero    { color: var(--red); }
-    .progress-bar-outer { background: var(--border); border-radius: 10px; height: 10px; overflow: hidden; }
-    .progress-bar-inner { height: 100%; border-radius: 10px; background: var(--green); transition: width 0.5s; }
-    .progress-bar-inner.partial { background: var(--orange); }
-    .progress-bar-inner.zero    { background: var(--red-pale); }
+    /* Progress */
+    .progress-card{background:var(--card);border-radius:var(--radius-lg);padding:22px 28px;border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);margin-bottom:24px}
+    .progress-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:16px}
+    .progress-label{font-size:16px;font-weight:700;color:var(--text)}
+    .progress-sub{font-size:13px;color:var(--muted);margin-top:3px}
+    .progress-pct{font-size:34px;font-weight:800;color:var(--green);line-height:1;white-space:nowrap}
+    .progress-pct.partial{color:var(--orange)}
+    .progress-pct.zero{color:var(--red)}
+    .progress-bar-outer{background:var(--border);border-radius:10px;height:10px;overflow:hidden}
+    .progress-bar-inner{height:100%;border-radius:10px;background:var(--green);transition:width .5s}
+    .progress-bar-inner.partial{background:var(--orange)}
+    .progress-bar-inner.zero{background:var(--red-pale)}
 
-    /* Zwei-Spalten */
-    .two-col { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
-    @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+    /* Two-col */
+    .two-col{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+    @media(max-width:760px){.two-col{grid-template-columns:1fr}}
 
-    /* Linke Spalte */
-    .col-card { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); overflow: hidden; }
-    .col-card-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border-lt); display: flex; align-items: center; gap: 10px; }
-    .col-card-title { font-size: 15px; font-weight: 700; color: var(--text); }
-    .col-card-count { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--gray-bg); padding: 3px 10px; border-radius: 20px; }
+    /* Left col */
+    .col-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden}
+    .col-card-header{padding:18px 22px 14px;border-bottom:1px solid var(--border-lt);display:flex;align-items:center;gap:10px}
+    .col-card-title{font-size:15px;font-weight:700;color:var(--text)}
+    .col-card-count{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);background:var(--gray-bg);padding:3px 10px;border-radius:20px}
 
-    .check-item { display: flex; align-items: center; gap: 14px; padding: 16px 22px; border-bottom: 1px solid var(--border-lt); transition: background 0.15s; }
-    .check-item:hover { background: #fafaf9; }
-    .check-circle { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 2px solid var(--border); background: white; transition: all 0.2s; }
-    .check-circle.done { background: var(--green); border-color: var(--green); }
-    .check-circle.done::after { content: '✓'; color: white; font-size: 13px; font-weight: 700; }
-    .check-circle.open { border-color: var(--red); }
-    .check-icon { font-size: 22px; flex-shrink: 0; }
-    .check-text { flex: 1; min-width: 0; }
-    .check-name { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
-    .check-name.done { color: var(--muted); text-decoration: line-through; }
-    .check-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .check-btn { flex-shrink: 0; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid; transition: all 0.15s; white-space: nowrap; }
-    .check-btn.done-btn { background: var(--green-bg); color: var(--green); border-color: #c3e6d3; }
-    .check-btn.done-btn:hover { background: #c8ecd8; }
-    .check-btn.undo-btn { background: var(--gray-bg); color: var(--muted); border-color: var(--border); }
-    .check-btn.undo-btn:hover { background: var(--border); }
+    .check-item{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--border-lt);transition:background .15s}
+    .check-item:hover{background:#fafaf9}
+    .check-circle{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);background:#fff;transition:all .2s}
+    .check-circle.done{background:var(--green);border-color:var(--green)}
+    .check-circle.done::after{content:"\\2713";color:#fff;font-size:13px;font-weight:700}
+    .check-circle.open{border-color:var(--red)}
+    .check-icon{font-size:22px;flex-shrink:0}
+    .check-text{flex:1;min-width:0}
+    .check-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.3}
+    .check-name.done{color:var(--muted);text-decoration:line-through}
+    .check-desc{font-size:12px;color:var(--muted);margin-top:2px}
+    .check-btn{flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;white-space:nowrap}
+    .check-btn.done-btn{background:var(--green-bg);color:var(--green);border-color:#c3e6d3}
+    .check-btn.done-btn:hover{background:#c8ecd8}
+    .check-btn.undo-btn{background:var(--gray-bg);color:var(--muted);border-color:var(--border)}
+    .check-btn.undo-btn:hover{background:var(--border)}
 
-    .check-steps { background: #fafaf9; border-top: 1px solid var(--border-lt); }
-    .steps-toggle { padding: 10px 22px 10px 64px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; }
-    .steps-toggle:hover { color: var(--text); }
-    .steps-arrow { transition: transform 0.2s; font-size: 10px; }
-    .steps-arrow.open { transform: rotate(90deg); }
-    .steps-body { display: none; padding: 4px 22px 14px 64px; }
-    .steps-body.open { display: block; }
-    .step-list { list-style: none; }
-    .step-item { display: flex; gap: 10px; margin-bottom: 8px; font-size: 13px; color: var(--text); line-height: 1.5; }
-    .step-num { width: 20px; height: 20px; background: var(--red); color: white; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-top: 2px; }
+    .check-steps{background:#fafaf9;border-top:1px solid var(--border-lt)}
+    .steps-toggle{padding:10px 22px 10px 64px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+    .steps-toggle:hover{color:var(--text)}
+    .steps-arrow{transition:transform .2s;font-size:10px}
+    .steps-arrow.open{transform:rotate(90deg)}
+    .steps-body{display:none;padding:4px 22px 14px 64px}
+    .steps-body.open{display:block}
+    .step-list{list-style:none}
+    .step-item{display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:var(--text);line-height:1.5}
+    .step-num{width:20px;height:20px;background:var(--red);color:#fff;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:2px}
 
-    /* Rechte Spalte */
-    .doc-panel { display: flex; flex-direction: column; gap: 16px; }
+    /* Right col */
+    .doc-panel{display:flex;flex-direction:column;gap:16px}
 
-    .folder-box { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); padding: 20px 22px; }
-    .folder-box-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
-    .folder-box-sub   { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.4; }
-    .folder-btn-big { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 13px 20px; border-radius: var(--radius-md); background: var(--red); color: white; font-size: 14px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: background 0.15s; }
-    .folder-btn-big:hover { background: var(--red-dark); }
-    .folder-btn-big.disabled { background: var(--border); color: var(--muted); cursor: default; pointer-events: none; }
+    .folder-box{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);padding:20px 22px}
+    .folder-box-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+    .folder-box-sub{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.4}
+    .folder-btn-big{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px 20px;border-radius:var(--radius-md);background:var(--red);color:#fff;font-size:14px;font-weight:700;text-decoration:none;border:none;cursor:pointer;transition:background .15s}
+    .folder-btn-big:hover{background:var(--red-dark)}
+    .folder-btn-big.disabled{background:var(--border);color:var(--muted);cursor:default;pointer-events:none}
 
-    .files-box { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); overflow: hidden; }
-    .files-box-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border-lt); }
-    .files-box-title { font-size: 14px; font-weight: 700; color: var(--text); }
-    .files-box-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .files-box{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden}
+    .files-box-header{padding:16px 20px 12px;border-bottom:1px solid var(--border-lt)}
+    .files-box-title{font-size:14px;font-weight:700;color:var(--text)}
+    .files-box-sub{font-size:12px;color:var(--muted);margin-top:2px}
 
-    .file-row { display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--border-lt); }
-    .file-row:last-child { border-bottom: none; }
-    .file-row.done-row { opacity: 0.5; }
-    .file-icon-wrap { font-size: 20px; flex-shrink: 0; }
-    .file-info { flex: 1; min-width: 0; }
-    .file-name { font-size: 13px; font-weight: 600; color: var(--text); }
-    .file-name.done { text-decoration: line-through; color: var(--muted); }
-    .file-hint { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .file-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
-    .file-badge.done { background: var(--green-bg); color: var(--green); }
-    .file-badge.open { background: var(--red-pale); color: var(--red); }
+    .file-row{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border-lt)}
+    .file-row:last-child{border-bottom:none}
+    .file-row.done-row{opacity:.5}
+    .file-icon-wrap{font-size:20px;flex-shrink:0}
+    .file-info{flex:1;min-width:0}
+    .file-name{font-size:13px;font-weight:600;color:var(--text)}
+    .file-name.done{text-decoration:line-through;color:var(--muted)}
+    .file-hint{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .file-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700}
+    .file-badge.done{background:var(--green-bg);color:var(--green)}
+    .file-badge.open{background:var(--red-pale);color:var(--red)}
 
-    /* Zugangsdaten-Block */
-    .zugangsdaten-box { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); overflow: hidden; }
-    .zugangsdaten-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border-lt); background: #f8f5ff; }
-    .zugangsdaten-title { font-size: 14px; font-weight: 700; color: var(--text); }
-    .zugangsdaten-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .zd-row { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border-lt); }
-    .zd-row:last-child { border-bottom: none; }
-    .zd-icon { font-size: 20px; flex-shrink: 0; }
-    .zd-info { flex: 1; min-width: 0; }
-    .zd-name { font-size: 13px; font-weight: 600; color: var(--text); }
-    .zd-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .zd-btn { flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; background: #f0f0ff; color: #4a4ab8; border: 1.5px solid #d0d0f0; white-space: nowrap; transition: all 0.15s; }
-    .zd-btn:hover { background: #e0e0ff; }
-    .zd-btn.disabled { opacity: 0.4; pointer-events: none; cursor: default; }
+    /* Zugangsdaten */
+    .zd-box{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden}
+    .zd-header{padding:16px 20px 12px;border-bottom:1px solid var(--border-lt);background:#f8f5ff}
+    .zd-title{font-size:14px;font-weight:700;color:var(--text)}
+    .zd-sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .zd-row{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:1px solid var(--border-lt)}
+    .zd-row:last-child{border-bottom:none}
+    .zd-icon{font-size:20px;flex-shrink:0}
+    .zd-info{flex:1;min-width:0}
+    .zd-name{font-size:13px;font-weight:600;color:var(--text)}
+    .zd-hint{font-size:11px;color:var(--muted);margin-top:2px}
+    .zd-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;background:#f0f0ff;color:#4a4ab8;border:1.5px solid #d0d0f0;white-space:nowrap;transition:all .15s}
+    .zd-btn:hover{background:#e0e0ff}
+    .zd-btn.disabled{opacity:.4;pointer-events:none;cursor:default}
 
-    .upload-hint-box { background: var(--orange-bg); border: 1px solid #f5d99a; border-radius: var(--radius-md); padding: 14px 18px; }
-    .upload-hint-title { font-size: 13px; font-weight: 700; color: var(--orange); margin-bottom: 4px; }
-    .upload-hint-text  { font-size: 12px; color: #5a3e00; line-height: 1.5; }
+    .upload-hint-box{background:var(--orange-bg);border:1px solid #f5d99a;border-radius:var(--radius-md);padding:14px 18px}
+    .upload-hint-title{font-size:13px;font-weight:700;color:var(--orange);margin-bottom:4px}
+    .upload-hint-text{font-size:12px;color:#5a3e00;line-height:1.5}
 
-    .done-card { background: var(--green-bg); border: 1.5px solid #c3e6d3; border-radius: var(--radius-lg); padding: 28px; text-align: center; display: none; margin-bottom: 20px; }
-    .done-card.visible { display: block; }
-    .done-icon  { font-size: 48px; margin-bottom: 12px; }
-    .done-title { font-size: 20px; font-weight: 700; color: var(--green); margin-bottom: 6px; }
-    .done-sub   { font-size: 13px; color: #1e6e3a; }
+    .done-card{background:var(--green-bg);border:1.5px solid #c3e6d3;border-radius:var(--radius-lg);padding:28px;text-align:center;display:none;margin-bottom:20px}
+    .done-card.visible{display:block}
+    .done-icon{font-size:48px;margin-bottom:12px}
+    .done-title{font-size:20px;font-weight:700;color:var(--green);margin-bottom:6px}
+    .done-sub{font-size:13px;color:#1e6e3a}
 
-    .contact-card { background: var(--card); border-radius: var(--radius-md); padding: 18px 22px; border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); margin-top: 20px; display: flex; gap: 14px; align-items: center; }
-    .contact-icon  { font-size: 28px; flex-shrink: 0; }
-    .contact-title { font-size: 14px; font-weight: 700; color: var(--text); }
-    .contact-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .contact-links { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-    .contact-link { padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; transition: all 0.15s; border: 1.5px solid transparent; }
-    .contact-link.phone { background: var(--green-bg); color: var(--green); border-color: #c3e6d3; }
-    .contact-link.mail  { background: var(--red-pale); color: var(--red); border-color: #f5c0c0; }
+    .contact-card{background:var(--card);border-radius:var(--radius-md);padding:18px 22px;border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);margin-top:20px;display:flex;gap:14px;align-items:center}
+    .contact-icon{font-size:28px;flex-shrink:0}
+    .contact-title{font-size:14px;font-weight:700;color:var(--text)}
+    .contact-sub{font-size:12px;color:var(--muted);margin-top:2px}
+    .contact-links{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .contact-link{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:all .15s;border:1.5px solid transparent}
+    .contact-link.phone{background:var(--green-bg);color:var(--green);border-color:#c3e6d3}
+    .contact-link.mail{background:var(--red-pale);color:var(--red);border-color:#f5c0c0}
 
-    footer { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; opacity: 0.7; }
+    footer{text-align:center;color:var(--muted);font-size:12px;padding:20px;opacity:.7}
   </style>
 </head>
 <body>
 
 <div class="preview-banner" id="preview-banner">
-  👁 Vorschau-Modus – So sieht der Kunde die Seite |
-  <a href="javascript:window.close()" style="color:white;text-decoration:underline">Schließen</a>
+  Vorschau-Modus &ndash; So sieht der Kunde die Seite |
+  <a href="javascript:window.close()" style="color:#fff;text-decoration:underline">Schliessen</a>
 </div>
 
 <div class="page-header">
   <div class="header-inner">
-    <div class="logo-mark">
-      <img src="./komda_logo_horizontal.png" alt="Komda Software – Wir pflegen die Zukunft">
+    <div class="logo-wrap">
+      <img src="./komda_logo_icon.png" alt="Komda">
     </div>
     <div class="header-text-wrap">
-      <div class="header-title" id="header-title">Willkommen zu Ihrem Onboarding</div>
+      <div class="header-title" id="header-title">Willkommen zu Ihrem Komda&#174; Software Onboarding</div>
     </div>
   </div>
 </div>
@@ -183,7 +170,7 @@
     <div class="progress-top">
       <div>
         <div class="progress-label">Ihr Onboarding-Fortschritt</div>
-        <div class="progress-sub" id="progress-sub">Bitte schließen Sie die folgenden Schritte ab.</div>
+        <div class="progress-sub" id="progress-sub">Bitte schliessen Sie die folgenden Schritte ab.</div>
       </div>
       <div class="progress-pct zero" id="progress-pct">0%</div>
     </div>
@@ -193,56 +180,50 @@
   </div>
 
   <div class="done-card" id="done-card">
-    <div class="done-icon">🎉</div>
-    <div class="done-title">Onboarding vollständig!</div>
-    <div class="done-sub">Herzlichen Glückwunsch – alle Unterlagen sind eingegangen.<br>Unser Team meldet sich bei Ihnen zum weiteren Vorgehen.</div>
+    <div class="done-icon">&#127881;</div>
+    <div class="done-title">Onboarding vollstaendig!</div>
+    <div class="done-sub">Herzlichen Glueckwunsch &ndash; alle Unterlagen sind eingegangen.<br>Unser Team meldet sich bei Ihnen zum weiteren Vorgehen.</div>
   </div>
 
   <div class="two-col">
 
-    <!-- Links: Checkliste -->
     <div class="col-card">
       <div class="col-card-header">
-        <span style="font-size:18px">📋</span>
+        <span style="font-size:18px">&#128203;</span>
         <span class="col-card-title">Onboarding-Checkliste</span>
         <span class="col-card-count" id="check-count">0 / 0 erledigt</span>
       </div>
       <div id="checklist-items"></div>
     </div>
 
-    <!-- Rechts: Dokumente -->
     <div class="doc-panel">
 
-      <!-- Haupt-Ordner -->
       <div class="folder-box">
-        <div class="folder-box-title">📁 Ihre Dokumente</div>
-        <div class="folder-box-sub">Vorlagen herunterladen, ausfüllen, unterschreiben und wieder hochladen.</div>
+        <div class="folder-box-title">&#128193; Ihre Dokumente</div>
+        <div class="folder-box-sub">Vorlagen herunterladen, ausfuellen, unterschreiben und wieder hochladen.</div>
         <div id="folder-btn-wrap"></div>
       </div>
 
-      <!-- Dokumente im Überblick -->
       <div class="files-box">
         <div class="files-box-header">
-          <div class="files-box-title">Dokumente im Überblick</div>
-          <div class="files-box-sub">Herunterladen → Ausfüllen → Hochladen → Abhaken</div>
+          <div class="files-box-title">Dokumente im Ueberblick</div>
+          <div class="files-box-sub">Herunterladen &rarr; Ausfuellen &rarr; Hochladen &rarr; Abhaken</div>
         </div>
         <div id="files-list"></div>
       </div>
 
-      <!-- Zugangsdaten -->
-      <div class="zugangsdaten-box">
-        <div class="zugangsdaten-header">
-          <div class="zugangsdaten-title">🔑 Zugangsdaten</div>
-          <div class="zugangsdaten-sub">Ihre persönlichen Zugangsdaten zum Herunterladen</div>
+      <div class="zd-box">
+        <div class="zd-header">
+          <div class="zd-title">&#128273; Zugangsdaten</div>
+          <div class="zd-sub">Ihre persoenlichen Zugangsdaten zum Herunterladen</div>
         </div>
         <div id="zugangsdaten-list"></div>
       </div>
 
-      <!-- Upload-Hinweis -->
       <div class="upload-hint-box">
-        <div class="upload-hint-title">📤 So laden Sie hoch</div>
+        <div class="upload-hint-title">&#128228; So laden Sie hoch</div>
         <div class="upload-hint-text">
-          Öffnen Sie den Dokumente-Ordner, laden Sie das ausgefüllte Formular hoch
+          Oeffnen Sie den Dokumente-Ordner, laden Sie das ausgefuellte Formular hoch
           und haken Sie den Schritt in der Checkliste ab.
         </div>
       </div>
@@ -251,20 +232,20 @@
   </div>
 
   <div class="contact-card">
-    <div class="contact-icon">💬</div>
+    <div class="contact-icon">&#128172;</div>
     <div>
       <div class="contact-title">Fragen zum Onboarding?</div>
       <div class="contact-sub">Unser Support-Team hilft Ihnen gerne weiter.</div>
       <div class="contact-links">
-        <a class="contact-link phone" href="tel:+49000000000">📞 +49 xxx xxxxxxx</a>
-        <a class="contact-link mail"  href="mailto:support@komda.de">✉️ support@komda.de</a>
+        <a class="contact-link phone" href="tel:+49000000000">&#128222; +49 xxx xxxxxxx</a>
+        <a class="contact-link mail" href="mailto:support@komda.de">&#9993;&#65039; support@komda.de</a>
       </div>
     </div>
   </div>
 
 </div>
 
-<footer>Komda · Zapf Systemhaus GmbH · Ihr IT-Partner</footer>
+<footer>Komda &middot; Zapf Systemhaus GmbH &middot; Ihr IT-Partner</footer>
 
 <script>
 'use strict';
@@ -279,51 +260,55 @@ const isPreview  = params.get('preview') === '1';
 
 if (isPreview) document.getElementById('preview-banner').classList.add('visible');
 if (kundeParam) {
-  document.getElementById('header-title').textContent = `Willkommen, ${decodeURIComponent(kundeParam)}`;
-  document.title = `Komda Onboarding · ${decodeURIComponent(kundeParam)}`;
+  document.getElementById('header-title').textContent = 'Willkommen zu Ihrem Komda® Software Onboarding';
+  document.title = 'Komda® Software Onboarding - ' + decodeURIComponent(kundeParam);
 }
 
-// Nur Dokumente (kein Zugangsdaten-Item mehr)
 const DOCS_META = [
   {
-    id: 'fernwartung', name: 'Einverständniserklärung Fernwartung', icon: '🖥️',
+    id: 'fernwartung',
+    name: 'Einverstaendniserklaerung Fernwartung',
+    icon: '💻',
     desc: 'Schriftliche Einwilligung zur Fernwartung durch unsere Techniker.',
-    fileName: 'EinverständniserklärungZurFernwartungAntwortformular.pdf', hasUpload: true,
+    fileName: 'Einverstaendniserklaerung_Fernwartung.pdf',
     steps: [
-      'Öffnen Sie Ihren Dokumente-Ordner über den Button rechts.',
-      'Laden Sie die Datei „EinverständniserklärungZurFernwartungAntwortformular.pdf" herunter.',
-      'Füllen Sie das Formular aus und unterschreiben Sie es.',
-      'Laden Sie das ausgefüllte Dokument zurück in den Ordner hoch.',
+      'Oeffnen Sie Ihren Dokumente-Ordner ueber den Button rechts.',
+      'Laden Sie die Datei herunter.',
+      'Fuellen Sie das Formular aus und unterschreiben Sie es.',
+      'Laden Sie das ausgefuellte Dokument zurueck in den Ordner hoch.',
       'Haken Sie diesen Schritt ab.',
     ],
   },
   {
-    id: 'sepa', name: 'SEPA-Firmenlastschrift-Mandat', icon: '🏦',
-    desc: 'Unterzeichnetes SEPA-Mandat für die monatlichen Lastschriften.',
-    fileName: 'Erteilung_eines_SEPA-Firmenlastschrift-Mandats_Komda_Software_GmbH.pdf', hasUpload: true,
+    id: 'sepa',
+    name: 'SEPA-Firmenlastschrift-Mandat',
+    icon: '🏦',
+    desc: 'Unterzeichnetes SEPA-Mandat fuer die monatlichen Lastschriften.',
+    fileName: 'SEPA_Firmenlastschrift_Mandat.pdf',
     steps: [
-      'Öffnen Sie Ihren Dokumente-Ordner über den Button rechts.',
+      'Oeffnen Sie Ihren Dokumente-Ordner ueber den Button rechts.',
       'Laden Sie die SEPA-Mandats-Datei herunter.',
-      'Füllen Sie Ihre Bankverbindung vollständig aus und unterschreiben Sie.',
-      'Laden Sie das ausgefüllte Dokument zurück in den Ordner hoch.',
+      'Fuellen Sie Ihre Bankverbindung vollstaendig aus und unterschreiben Sie.',
+      'Laden Sie das ausgefuellte Dokument zurueck in den Ordner hoch.',
       'Haken Sie diesen Schritt ab.',
     ],
   },
   {
-    id: 'email_rechnung', name: 'E-Mail für Rechnungsversand', icon: '📬',
-    desc: 'E-Mail-Adresse für den digitalen Rechnungsversand.',
-    fileName: 'EMailAdresseFürDenDigitalenRechnungsversandAntwortformular.pdf', hasUpload: true,
+    id: 'email_rechnung',
+    name: 'E-Mail fuer Rechnungsversand',
+    icon: '📬',
+    desc: 'E-Mail-Adresse fuer den digitalen Rechnungsversand.',
+    fileName: 'EMail_Rechnungsversand_Antwortformular.pdf',
     steps: [
-      'Öffnen Sie Ihren Dokumente-Ordner über den Button rechts.',
+      'Oeffnen Sie Ihren Dokumente-Ordner ueber den Button rechts.',
       'Laden Sie das Antwortformular herunter.',
-      'Tragen Sie die gewünschte Rechnungs-E-Mail-Adresse ein.',
-      'Laden Sie das ausgefüllte Formular zurück in den Ordner hoch.',
+      'Tragen Sie die gewuenschte Rechnungs-E-Mail-Adresse ein.',
+      'Laden Sie das ausgefuellte Formular zurueck in den Ordner hoch.',
       'Haken Sie diesen Schritt ab.',
     ],
   },
 ];
 
-// Zugangsdaten-Ordner (eigene Links pro Kunde)
 const ZUGANGSDATEN = [
   {
     id: 'zd_cloud',
@@ -342,142 +327,175 @@ const ZUGANGSDATEN = [
 ];
 
 function loadStatus() {
-  try { return JSON.parse(localStorage.getItem('kd_checklist_' + token) || '{}'); } catch { return {}; }
+  try { return JSON.parse(localStorage.getItem('kd_checklist_' + token) || '{}'); } catch(e) { return {}; }
 }
 function saveStatus(s) {
   localStorage.setItem('kd_checklist_' + token, JSON.stringify(s));
 }
 function loadFromParent() {
   try {
-    const all = JSON.parse(localStorage.getItem('kd_onboarding') || '[]');
+    var all = JSON.parse(localStorage.getItem('kd_onboarding') || '[]');
     if (!token) return null;
-    const id = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '='));
-    return all.find(c => c.id === id) || null;
-  } catch { return null; }
+    var id = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '='));
+    return all.find(function(c){ return c.id === id; }) || null;
+  } catch(e) { return null; }
 }
 
-let status = {};
-const parentCustomer = loadFromParent();
-if (parentCustomer?.docs) { status = { ...parentCustomer.docs }; }
-else { status = loadStatus(); }
+var status = {};
+var parentCustomer = loadFromParent();
+if (parentCustomer && parentCustomer.docs) {
+  status = Object.assign({}, parentCustomer.docs);
+} else {
+  status = loadStatus();
+}
 
 function render() {
-  const done = DOCS_META.filter(d => status[d.id]).length;
-  const pct  = Math.round((done / DOCS_META.length) * 100);
-  const spUrl      = parentCustomer?.spUrl      || params.get('spUrl')      || '';
-  const spUrlCloud  = parentCustomer?.spUrlCloud  || params.get('spUrlCloud')  || spUrl;
-  const spUrlMobile = parentCustomer?.spUrlMobile || params.get('spUrlMobile') || spUrl;
+  var done = DOCS_META.filter(function(d){ return !!status[d.id]; }).length;
+  var pct  = Math.round((done / DOCS_META.length) * 100);
+  var spUrl       = (parentCustomer && parentCustomer.spUrl)       || params.get('spUrl')       || '';
+  var spUrlCloud  = (parentCustomer && parentCustomer.spUrlCloud)  || params.get('spUrlCloud')  || spUrl;
+  var spUrlMobile = (parentCustomer && parentCustomer.spUrlMobile) || params.get('spUrlMobile') || spUrl;
 
-  // Fortschritt
-  const pctEl = document.getElementById('progress-pct');
-  const barEl = document.getElementById('progress-bar');
+  var pctEl = document.getElementById('progress-pct');
+  var barEl = document.getElementById('progress-bar');
   pctEl.textContent = pct + '%';
-  const cls = pct === 100 ? '' : pct > 0 ? ' partial' : ' zero';
+  var cls = pct === 100 ? '' : pct > 0 ? ' partial' : ' zero';
   pctEl.className   = 'progress-pct' + cls;
   barEl.style.width = pct + '%';
   barEl.className   = 'progress-bar-inner' + cls;
   document.getElementById('progress-sub').textContent = pct === 100
-    ? '✅ Alle Schritte abgeschlossen – vielen Dank!'
-    : `Noch ${DOCS_META.length - done} offene Aufgabe${DOCS_META.length - done !== 1 ? 'n' : ''}`;
-  document.getElementById('check-count').textContent = `${done} / ${DOCS_META.length} erledigt`;
+    ? 'Alle Schritte abgeschlossen - vielen Dank!'
+    : 'Noch ' + (DOCS_META.length - done) + ' offene Aufgabe' + (DOCS_META.length - done !== 1 ? 'n' : '');
+  document.getElementById('check-count').textContent = done + ' / ' + DOCS_META.length + ' erledigt';
   document.getElementById('done-card').classList.toggle('visible', pct === 100);
 
-  // Checkliste (links)
-  document.getElementById('checklist-items').innerHTML = DOCS_META.map(doc => {
-    const isDone = !!status[doc.id];
-    return `
-      <div>
-        <div class="check-item">
-          <div class="check-circle ${isDone ? 'done' : 'open'}"></div>
-          <div class="check-icon">${doc.icon}</div>
-          <div class="check-text">
-            <div class="check-name ${isDone ? 'done' : ''}">${doc.name}</div>
-            <div class="check-desc">${doc.desc}</div>
-          </div>
-          ${isDone
-            ? `<button class="check-btn undo-btn" onclick="markUndone('${doc.id}')">↩ Rückgängig</button>`
-            : `<button class="check-btn done-btn" onclick="markDone('${doc.id}')">✓ Erledigt</button>`}
-        </div>
-        <div class="check-steps">
-          <div class="steps-toggle" onclick="toggleSteps('${doc.id}')">
-            <span class="steps-arrow" id="arrow-${doc.id}">▶</span>
-            Schritt-für-Schritt-Anleitung
-          </div>
-          <div class="steps-body" id="steps-${doc.id}">
-            <ul class="step-list">
-              ${doc.steps.map((s, i) => `<li class="step-item"><span class="step-num">${i+1}</span><span>${s}</span></li>`).join('')}
-            </ul>
-          </div>
-        </div>
-      </div>`;
+  // Checkliste
+  document.getElementById('checklist-items').innerHTML = DOCS_META.map(function(doc) {
+    var isDone = !!status[doc.id];
+    var stepsHtml = doc.steps.map(function(s, i) {
+      return '<li class="step-item"><span class="step-num">' + (i+1) + '</span><span>' + s + '</span></li>';
+    }).join('');
+    var btn = isDone
+      ? '<button class="check-btn undo-btn" onclick="markUndone(\'' + doc.id + '\')">&#8617; Rueckgaengig</button>'
+      : '<button class="check-btn done-btn" onclick="markDone(\'' + doc.id + '\')">&#10003; Erledigt</button>';
+    return '<div>'
+      + '<div class="check-item">'
+      + '<div class="check-circle ' + (isDone ? 'done' : 'open') + '"></div>'
+      + '<div class="check-icon">' + doc.icon + '</div>'
+      + '<div class="check-text">'
+      + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
+      + '<div class="check-desc">' + doc.desc + '</div>'
+      + '</div>'
+      + btn
+      + '</div>'
+      + '<div class="check-steps">'
+      + '<div class="steps-toggle" onclick="toggleSteps(\'' + doc.id + '\')">'
+      + '<span class="steps-arrow" id="arrow-' + doc.id + '">&#9654;</span>'
+      + ' Schritt-fuer-Schritt-Anleitung'
+      + '</div>'
+      + '<div class="steps-body" id="steps-' + doc.id + '">'
+      + '<ul class="step-list">' + stepsHtml + '</ul>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
   }).join('');
 
-  // Ordner-Button
+  // Folder button
   document.getElementById('folder-btn-wrap').innerHTML = spUrl
-    ? `<a class="folder-btn-big" href="${spUrl}" target="_blank">📁 Dokumente-Ordner öffnen</a>`
-    : `<span class="folder-btn-big disabled">📁 Dokumente-Ordner öffnen</span>`;
+    ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">&#128193; Dokumente-Ordner oeffnen</a>'
+    : '<span class="folder-btn-big disabled">&#128193; Dokumente-Ordner oeffnen</span>';
 
-  // Datei-Übersicht
-  document.getElementById('files-list').innerHTML = DOCS_META.filter(d => d.fileName).map(doc => {
-    const isDone = !!status[doc.id];
-    const short = doc.fileName.length > 35 ? doc.fileName.substring(0,34) + '…' : doc.fileName;
-    return `
-      <div class="file-row ${isDone ? 'done-row' : ''}">
-        <div class="file-icon-wrap">${doc.icon}</div>
-        <div class="file-info">
-          <div class="file-name ${isDone ? 'done' : ''}">${doc.name}</div>
-          <div class="file-hint" title="${doc.fileName}">${short}</div>
-        </div>
-        <span class="file-badge ${isDone ? 'done' : 'open'}">${isDone ? '✓ Erledigt' : '● Offen'}</span>
-      </div>`;
+  // Datei-Uebersicht
+  document.getElementById('files-list').innerHTML = DOCS_META.filter(function(d){ return d.fileName; }).map(function(doc) {
+    var isDone = !!status[doc.id];
+    var short = doc.fileName.length > 35 ? doc.fileName.substring(0,34) + '...' : doc.fileName;
+    return '<div class="file-row' + (isDone ? ' done-row' : '') + '">'
+      + '<div class="file-icon-wrap">' + doc.icon + '</div>'
+      + '<div class="file-info">'
+      + '<div class="file-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
+      + '<div class="file-hint" title="' + doc.fileName + '">' + short + '</div>'
+      + '</div>'
+      + '<span class="file-badge ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '&#10003; Erledigt' : '&#9679; Offen') + '</span>'
+      + '</div>';
   }).join('');
 
   // Zugangsdaten
-  const zdUrls = { spUrlCloud, spUrlMobile };
-  document.getElementById('zugangsdaten-list').innerHTML = ZUGANGSDATEN.map(zd => {
-    const url = zdUrls[zd.urlParam] || '';
-    return `
-      <div class="zd-row">
-        <div class="zd-icon">${zd.icon}</div>
-        <div class="zd-info">
-          <div class="zd-name">${zd.name}</div>
-          <div class="zd-hint">${zd.hint}</div>
-        </div>
-        ${url
-          ? `<a class="zd-btn" href="${url}" target="_blank">⬇ Öffnen</a>`
-          : `<span class="zd-btn disabled">⬇ Öffnen</span>`}
-      </div>`;
+  var zdUrls = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile };
+  document.getElementById('zugangsdaten-list').innerHTML = ZUGANGSDATEN.map(function(zd) {
+    var url = zdUrls[zd.urlParam] || '';
+    return '<div class="zd-row">'
+      + '<div class="zd-icon">' + zd.icon + '</div>'
+      + '<div class="zd-info">'
+      + '<div class="zd-name">' + zd.name + '</div>'
+      + '<div class="zd-hint">' + zd.hint + '</div>'
+      + '</div>'
+      + (url
+        ? '<a class="zd-btn" href="' + url + '" target="_blank">&#11015; Oeffnen</a>'
+        : '<span class="zd-btn disabled">&#11015; Oeffnen</span>')
+      + '</div>';
   }).join('');
 }
 
 function toggleSteps(id) {
-  const body  = document.getElementById('steps-' + id);
-  const arrow = document.getElementById('arrow-' + id);
-  const open  = body.classList.toggle('open');
+  var body  = document.getElementById('steps-' + id);
+  var arrow = document.getElementById('arrow-' + id);
+  var open  = body.classList.toggle('open');
   arrow.classList.toggle('open', open);
 }
 
 function markDone(id) {
-  status[id] = true; saveStatus(status); syncToParent(id, true); render();
-  if (Object.values(status).every(Boolean))
+  status[id] = true;
+  saveStatus(status);
+  syncToParent(id, true);
+  render();
+  if (DOCS_META.every(function(d){ return !!status[d.id]; })) {
     document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
+
 function markUndone(id) {
-  status[id] = false; saveStatus(status); syncToParent(id, false); render();
+  status[id] = false;
+  saveStatus(status);
+  syncToParent(id, false);
+  render();
 }
 
 function syncToParent(docId, value) {
-  const custId = (() => { try { return atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch { return ''; } })();
+  var custId = '';
   try {
-    const all = JSON.parse(localStorage.getItem('kd_onboarding') || '[]');
-    const idx = all.findIndex(c => c.id === custId);
-    if (idx >= 0) { all[idx].docs[docId] = value; localStorage.setItem('kd_onboarding', JSON.stringify(all)); }
-  } catch {}
-  try { localStorage.setItem('kd_checklist_sync', JSON.stringify({ custId, docId, value, ts: Date.now() })); } catch {}
+    var padded = token.padEnd(token.length + (4 - token.length % 4) % 4, '=');
+    custId = atob(padded);
+  } catch(e) { custId = ''; }
+
+  try {
+    var all = JSON.parse(localStorage.getItem('kd_onboarding') || '[]');
+    var idx = all.findIndex(function(c){ return c.id === custId; });
+    if (idx >= 0) {
+      all[idx].docs[docId] = value;
+      localStorage.setItem('kd_onboarding', JSON.stringify(all));
+    }
+  } catch(e) {}
+
+  try {
+    localStorage.setItem('kd_checklist_sync', JSON.stringify({ custId: custId, docId: docId, value: value, ts: Date.now() }));
+  } catch(e) {}
+
   if (custId && !isPreview) {
     fetch(API_URL, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secret: UPDATE_SECRET, custId, docId, value }),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: value }),
     })
-    .then(r => r.json())
-    .then(d => { if (!d.ok) console.warn('Backend-Sync Fehler:', d); else console.log('SharePoint aktualisiert:', doc
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok) { console.warn('Backend-Sync Fehler:', d); }
+      else { console.log('SharePoint aktualisiert:', docId, value); }
+    })
+    .catch(function(err){ console.warn('Backend-Sync nicht erreichbar:', err); });
+  }
+}
+
+render();
+</script>
+</body>
+</html>
