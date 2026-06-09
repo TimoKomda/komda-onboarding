@@ -256,7 +256,7 @@
 <footer>Komda &middot; Zapf Systemhaus GmbH &middot; Ihr IT-Partner</footer>
 
 <script>
-(function() {
+(async function() {
   'use strict';
 
   var API_URL       = 'https://gentle-stone-0c97b9310.7.azurestaticapps.net/api/status';
@@ -266,6 +266,16 @@
   var token      = params.get('token') || '';
   var kundeParam = params.get('kunde') || '';
   var isPreview  = params.get('preview') === '1';
+
+  // ── API-Config vom Azure Function laden (optionale Items + SP-URLs) ──
+  var apiConfig = null;
+  if (token && !isPreview) {
+    try {
+      var apiResp = await fetch(API_URL + '?token=' + encodeURIComponent(token));
+      var apiData = await apiResp.json();
+      if (apiData.ok) apiConfig = apiData;
+    } catch(e) { /* Fallback auf URL-Parameter */ }
+  }
 
   if (isPreview) document.getElementById('preview-banner').classList.add('visible');
   if (kundeParam) {
@@ -341,6 +351,21 @@
     { id: 'zd_cloud',   icon: '☁️',  name: 'Komda® Cloud / Hosting Zugangsdaten',  hint: 'Ordner mit Ihren Cloud-Zugangsdaten',       param: 'spUrlCloud'   },
   ];
 
+  var OPTIONAL_META = [
+    {
+      id: 'datenubernahme',
+      name: 'Datenübernahme',
+      icon: '💾',
+      desc: 'Übergabe Ihrer bestehenden Daten in das Komda-System.',
+      steps: [
+        'Datenübernahme-Ordner über den Button öffnen.',
+        'Exportdatei Ihrer bisherigen Software bereitstellen.',
+        'Datei in den Ordner hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+  ];
+
   function ls_get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
   function ls_set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
 
@@ -363,15 +388,20 @@
   var parentCustomer = loadFromParent();
   var status = (parentCustomer && parentCustomer.docs) ? Object.assign({}, parentCustomer.docs) : loadStatus();
 
+  var activeOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
+  var DOCS_ACTIVE = DOCS_META.concat(OPTIONAL_META.filter(function(o) {
+    return activeOpts.indexOf(o.id) !== -1;
+  }));
+
   function render() {
     var done = 0;
-    for (var i = 0; i < DOCS_META.length; i++) { if (status[DOCS_META[i].id]) done++; }
-    var pct = Math.round((done / DOCS_META.length) * 100);
+    for (var i = 0; i < DOCS_ACTIVE.length; i++) { if (status[DOCS_ACTIVE[i].id]) done++; }
+    var pct = Math.round((done / DOCS_ACTIVE.length) * 100);
 
-    var spUrl       = (parentCustomer && parentCustomer.spUrl)       || params.get('spUrl')       || '';
-    var spUrlCloud  = (parentCustomer && parentCustomer.spUrlCloud)  || params.get('spUrlCloud')  || '';
-    var spUrlMobile = (parentCustomer && parentCustomer.spUrlMobile) || params.get('spUrlMobile') || '';
-    var spUrlAuftrag= (parentCustomer && parentCustomer.spUrlAuftrag)|| params.get('spUrlAuftrag')|| '';
+    var spUrl       = (apiConfig && apiConfig.spUrl)       || (parentCustomer && parentCustomer.spUrl)       || params.get('spUrl')       || '';
+    var spUrlCloud  = (apiConfig && apiConfig.spUrlCloud)  || (parentCustomer && parentCustomer.spUrlCloud)  || params.get('spUrlCloud')  || '';
+    var spUrlMobile = (apiConfig && apiConfig.spUrlMobile) || (parentCustomer && parentCustomer.spUrlMobile) || params.get('spUrlMobile') || '';
+    var spUrlAuftrag= (apiConfig && apiConfig.spUrlAuftrag)|| (parentCustomer && parentCustomer.spUrlAuftrag)|| params.get('spUrlAuftrag')|| '';
     var folderUrls  = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag };
 
     // Fortschritt
@@ -384,14 +414,14 @@
     barEl.className  = 'progress-bar-inner' + cls;
     document.getElementById('progress-sub').textContent = pct === 100
       ? 'Alle Schritte abgeschlossen – vielen Dank!'
-      : 'Noch ' + (DOCS_META.length - done) + ' offene Aufgabe' + ((DOCS_META.length - done) !== 1 ? 'n' : '');
-    document.getElementById('check-count').textContent = done + ' / ' + DOCS_META.length + ' erledigt';
+      : 'Noch ' + (DOCS_ACTIVE.length - done) + ' offene Aufgabe' + ((DOCS_ACTIVE.length - done) !== 1 ? 'n' : '');
+    document.getElementById('check-count').textContent = done + ' / ' + DOCS_ACTIVE.length + ' erledigt';
     document.getElementById('done-card').classList.toggle('visible', pct === 100);
 
     // Checkliste
     var clHtml = '';
-    for (var d = 0; d < DOCS_META.length; d++) {
-      var doc = DOCS_META[d];
+    for (var d = 0; d < DOCS_ACTIVE.length; d++) {
+      var doc = DOCS_ACTIVE[d];
       var isDone = !!status[doc.id];
       var stepsHtml = '';
       for (var s = 0; s < doc.steps.length; s++) {
@@ -429,8 +459,8 @@
 
     // Datei-Uebersicht
     var flHtml = '';
-    for (var f = 0; f < DOCS_META.length; f++) {
-      var fd = DOCS_META[f];
+    for (var f = 0; f < DOCS_ACTIVE.length; f++) {
+      var fd = DOCS_ACTIVE[f];
       var fisDone = !!status[fd.id];
       flHtml += '<div class="file-row' + (fisDone ? ' done-row' : '') + '">'
         + '<div class="file-icon-wrap">' + fd.icon + '</div>'
@@ -471,7 +501,7 @@
       syncToParent(id, true);
       render();
       var allDone = true;
-      for (var i = 0; i < DOCS_META.length; i++) { if (!status[DOCS_META[i].id]) { allDone = false; break; } }
+      for (var i = 0; i < DOCS_ACTIVE.length; i++) { if (!status[DOCS_ACTIVE[i].id]) { allDone = false; break; } }
       if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (action === 'undo') {
       status[id] = false;
