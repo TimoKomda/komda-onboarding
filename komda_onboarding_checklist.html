@@ -8,23 +8,23 @@
   <style>
     :root {
       --red:#c41b1b; --red-dark:#9a1515; --red-pale:#fdeaea;
-      --bg:#f3f1ee; --card:#ffffff; --border:#e5e2de; --border-lt:#eeebe8;
+      --bg:#f3f1ee; --card:#fff; --border:#e5e2de; --border-lt:#eeebe8;
       --text:#1a1917; --muted:#706b66;
       --green:#107c41; --green-bg:#e8f5ee;
       --orange:#c87400; --orange-bg:#fff4e0;
-      --gray:#8a8886; --gray-bg:#f3f2f1;
-      --radius-sm:8px; --radius-md:14px; --radius-lg:20px;
+      --gray-bg:#f3f2f1;
+      --radius-md:14px; --radius-lg:20px;
       --shadow-sm:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.06);
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Segoe UI',Arial,sans-serif;background:var(--bg);min-height:100vh}
+    body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);min-height:100vh}
 
+    /* Header */
     .page-header{background:var(--red);box-shadow:0 2px 16px rgba(196,27,27,.25)}
-    .header-inner{max-width:1060px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;gap:16px}
-    .logo-wrap{display:flex;align-items:center;flex-shrink:0}
-    .logo-wrap img{height:48px;width:48px;border-radius:50%;display:block;mix-blend-mode:screen}
+    .header-inner{max-width:1060px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
+    .logo-svg{flex-shrink:0}
     .header-text-wrap{flex:1}
-    .header-title{font-size:20px;font-weight:700;color:#fff;margin-top:2px}
+    .header-title{font-size:20px;font-weight:700;color:#fff}
 
     .preview-banner{background:#f5a500;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:600;display:none}
     .preview-banner.visible{display:block}
@@ -56,16 +56,15 @@
 
     .check-item{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--border-lt);transition:background .15s}
     .check-item:hover{background:#fafaf9}
-    .check-circle{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:2px solid var(--border);background:#fff;transition:all .2s}
-    .check-circle.done{background:var(--green);border-color:var(--green)}
-    .check-circle.done::after{content:"\\2713";color:#fff;font-size:13px;font-weight:700}
+    .check-circle{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:2px solid var(--border);background:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:transparent}
+    .check-circle.done{background:var(--green);border-color:var(--green);color:#fff}
     .check-circle.open{border-color:var(--red)}
     .check-icon{font-size:22px;flex-shrink:0}
     .check-text{flex:1;min-width:0}
     .check-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.3}
     .check-name.done{color:var(--muted);text-decoration:line-through}
     .check-desc{font-size:12px;color:var(--muted);margin-top:2px}
-    .check-btn{flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;white-space:nowrap}
+    .check-btn{flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;white-space:nowrap;background:none}
     .check-btn.done-btn{background:var(--green-bg);color:var(--green);border-color:#c3e6d3}
     .check-btn.done-btn:hover{background:#c8ecd8}
     .check-btn.undo-btn{background:var(--gray-bg);color:var(--muted);border-color:var(--border)}
@@ -74,7 +73,7 @@
     .check-steps{background:#fafaf9;border-top:1px solid var(--border-lt)}
     .steps-toggle{padding:10px 22px 10px 64px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
     .steps-toggle:hover{color:var(--text)}
-    .steps-arrow{transition:transform .2s;font-size:10px}
+    .steps-arrow{transition:transform .2s;font-size:10px;display:inline-block}
     .steps-arrow.open{transform:rotate(90deg)}
     .steps-body{display:none;padding:4px 22px 14px 64px}
     .steps-body.open{display:block}
@@ -96,7 +95,6 @@
     .files-box-header{padding:16px 20px 12px;border-bottom:1px solid var(--border-lt)}
     .files-box-title{font-size:14px;font-weight:700;color:var(--text)}
     .files-box-sub{font-size:12px;color:var(--muted);margin-top:2px}
-
     .file-row{display:flex;align-items:center;gap:12px;padding:13px 20px;border-bottom:1px solid var(--border-lt)}
     .file-row:last-child{border-bottom:none}
     .file-row.done-row{opacity:.5}
@@ -109,7 +107,7 @@
     .file-badge.done{background:var(--green-bg);color:var(--green)}
     .file-badge.open{background:var(--red-pale);color:var(--red)}
 
-    /* Zugangsdaten */
+    /* Zugangsdaten + Auftragsbestaetigung */
     .zd-box{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden}
     .zd-header{padding:16px 20px 12px;border-bottom:1px solid var(--border-lt);background:#f8f5ff}
     .zd-title{font-size:14px;font-weight:700;color:var(--text)}
@@ -142,24 +140,28 @@
     .contact-link{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:all .15s;border:1.5px solid transparent}
     .contact-link.phone{background:var(--green-bg);color:var(--green);border-color:#c3e6d3}
     .contact-link.mail{background:var(--red-pale);color:var(--red);border-color:#f5c0c0}
-
     footer{text-align:center;color:var(--muted);font-size:12px;padding:20px;opacity:.7}
   </style>
 </head>
 <body>
 
 <div class="preview-banner" id="preview-banner">
-  Vorschau-Modus &ndash; So sieht der Kunde die Seite |
-  <a href="javascript:window.close()" style="color:#fff;text-decoration:underline">Schliessen</a>
+  Vorschau-Modus &ndash; So sieht der Kunde die Seite
+  <a href="javascript:window.close()" style="color:#fff;text-decoration:underline;margin-left:8px">Schlie&szlig;en</a>
 </div>
 
 <div class="page-header">
   <div class="header-inner">
-    <div class="logo-wrap">
-      <img src="./komda_logo_icon.png" alt="Komda">
-    </div>
+    <!-- SVG-Logo (eingebettet, kein Datei-Upload noetig) -->
+    <svg class="logo-svg" width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="50" fill="rgba(255,255,255,0.2)"/>
+      <polygon points="28,15 41,15 41,85 28,85" fill="white"/>
+      <polygon points="41,15 70,15 70,27 53,50 41,50" fill="white"/>
+      <polygon points="46,15 62,15 45,44 29,44" fill="rgba(196,27,27,0.7)"/>
+      <polygon points="41,50 53,50 70,85 57,85" fill="white"/>
+    </svg>
     <div class="header-text-wrap">
-      <div class="header-title" id="header-title">Willkommen zu Ihrem Komda&#174; Software Onboarding</div>
+      <div class="header-title" id="header-title">Willkommen zu Ihrem Komda&reg; Software Onboarding</div>
     </div>
   </div>
 </div>
@@ -170,7 +172,7 @@
     <div class="progress-top">
       <div>
         <div class="progress-label">Ihr Onboarding-Fortschritt</div>
-        <div class="progress-sub" id="progress-sub">Bitte schliessen Sie die folgenden Schritte ab.</div>
+        <div class="progress-sub" id="progress-sub">Bitte schlie&szlig;en Sie die folgenden Schritte ab.</div>
       </div>
       <div class="progress-pct zero" id="progress-pct">0%</div>
     </div>
@@ -181,12 +183,13 @@
 
   <div class="done-card" id="done-card">
     <div class="done-icon">&#127881;</div>
-    <div class="done-title">Onboarding vollstaendig!</div>
-    <div class="done-sub">Herzlichen Glueckwunsch &ndash; alle Unterlagen sind eingegangen.<br>Unser Team meldet sich bei Ihnen zum weiteren Vorgehen.</div>
+    <div class="done-title">Onboarding vollst&auml;ndig!</div>
+    <div class="done-sub">Herzlichen Gl&uuml;ckwunsch &ndash; alle Unterlagen sind eingegangen.<br>Unser Team meldet sich bei Ihnen zum weiteren Vorgehen.</div>
   </div>
 
   <div class="two-col">
 
+    <!-- Links: Checkliste -->
     <div class="col-card">
       <div class="col-card-header">
         <span style="font-size:18px">&#128203;</span>
@@ -196,26 +199,27 @@
       <div id="checklist-items"></div>
     </div>
 
+    <!-- Rechts: Dokumente -->
     <div class="doc-panel">
 
       <div class="folder-box">
         <div class="folder-box-title">&#128193; Ihre Dokumente</div>
-        <div class="folder-box-sub">Vorlagen herunterladen, ausfuellen, unterschreiben und wieder hochladen.</div>
+        <div class="folder-box-sub">Vorlagen herunterladen, ausf&uuml;llen, unterschreiben und wieder hochladen.</div>
         <div id="folder-btn-wrap"></div>
       </div>
 
       <div class="files-box">
         <div class="files-box-header">
-          <div class="files-box-title">Dokumente im Ueberblick</div>
-          <div class="files-box-sub">Herunterladen &rarr; Ausfuellen &rarr; Hochladen &rarr; Abhaken</div>
+          <div class="files-box-title">Dokumente im &Uuml;berblick</div>
+          <div class="files-box-sub">Herunterladen &rarr; Ausf&uuml;llen &rarr; Hochladen &rarr; Abhaken</div>
         </div>
         <div id="files-list"></div>
       </div>
 
       <div class="zd-box">
         <div class="zd-header">
-          <div class="zd-title">&#128273; Zugangsdaten</div>
-          <div class="zd-sub">Ihre persoenlichen Zugangsdaten zum Herunterladen</div>
+          <div class="zd-title">&#128273; Zugangsdaten &amp; Dokumente</div>
+          <div class="zd-sub">Direkt in den jeweiligen Ordner &ouml;ffnen</div>
         </div>
         <div id="zugangsdaten-list"></div>
       </div>
@@ -223,8 +227,7 @@
       <div class="upload-hint-box">
         <div class="upload-hint-title">&#128228; So laden Sie hoch</div>
         <div class="upload-hint-text">
-          Oeffnen Sie den Dokumente-Ordner, laden Sie das ausgefuellte Formular hoch
-          und haken Sie den Schritt in der Checkliste ab.
+          Ordner &ouml;ffnen &rarr; ausgef&uuml;lltes Formular hochladen &rarr; Schritt in der Checkliste abhaken.
         </div>
       </div>
 
@@ -238,264 +241,253 @@
       <div class="contact-sub">Unser Support-Team hilft Ihnen gerne weiter.</div>
       <div class="contact-links">
         <a class="contact-link phone" href="tel:+49000000000">&#128222; +49 xxx xxxxxxx</a>
-        <a class="contact-link mail" href="mailto:support@komda.de">&#9993;&#65039; support@komda.de</a>
+        <a class="contact-link mail" href="mailto:support@komda.de">&#9993; support@komda.de</a>
       </div>
     </div>
   </div>
 
 </div>
-
 <footer>Komda &middot; Zapf Systemhaus GmbH &middot; Ihr IT-Partner</footer>
 
 <script>
-'use strict';
+(function() {
+  'use strict';
 
-const API_URL       = 'https://gentle-stone-0c97b9310.7.azurestaticapps.net/api/status';
-const UPDATE_SECRET = '5838bff96f7347e7848c0610bb26baea';
+  var API_URL       = 'https://gentle-stone-0c97b9310.7.azurestaticapps.net/api/status';
+  var UPDATE_SECRET = '5838bff96f7347e7848c0610bb26baea';
 
-const params     = new URLSearchParams(window.location.search);
-const token      = params.get('token') || '';
-const kundeParam = params.get('kunde') || '';
-const isPreview  = params.get('preview') === '1';
+  var params     = new URLSearchParams(window.location.search);
+  var token      = params.get('token') || '';
+  var kundeParam = params.get('kunde') || '';
+  var isPreview  = params.get('preview') === '1';
 
-if (isPreview) document.getElementById('preview-banner').classList.add('visible');
-if (kundeParam) {
-  document.getElementById('header-title').textContent = 'Willkommen zu Ihrem Komda® Software Onboarding';
-  document.title = 'Komda® Software Onboarding - ' + decodeURIComponent(kundeParam);
-}
-
-const DOCS_META = [
-  {
-    id: 'fernwartung',
-    name: 'Einverstaendniserklaerung Fernwartung',
-    icon: '💻',
-    desc: 'Schriftliche Einwilligung zur Fernwartung durch unsere Techniker.',
-    fileName: 'Einverstaendniserklaerung_Fernwartung.pdf',
-    steps: [
-      'Oeffnen Sie Ihren Dokumente-Ordner ueber den Button rechts.',
-      'Laden Sie die Datei herunter.',
-      'Fuellen Sie das Formular aus und unterschreiben Sie es.',
-      'Laden Sie das ausgefuellte Dokument zurueck in den Ordner hoch.',
-      'Haken Sie diesen Schritt ab.',
-    ],
-  },
-  {
-    id: 'sepa',
-    name: 'SEPA-Firmenlastschrift-Mandat',
-    icon: '🏦',
-    desc: 'Unterzeichnetes SEPA-Mandat fuer die monatlichen Lastschriften.',
-    fileName: 'SEPA_Firmenlastschrift_Mandat.pdf',
-    steps: [
-      'Oeffnen Sie Ihren Dokumente-Ordner ueber den Button rechts.',
-      'Laden Sie die SEPA-Mandats-Datei herunter.',
-      'Fuellen Sie Ihre Bankverbindung vollstaendig aus und unterschreiben Sie.',
-      'Laden Sie das ausgefuellte Dokument zurueck in den Ordner hoch.',
-      'Haken Sie diesen Schritt ab.',
-    ],
-  },
-  {
-    id: 'email_rechnung',
-    name: 'E-Mail fuer Rechnungsversand',
-    icon: '📬',
-    desc: 'E-Mail-Adresse fuer den digitalen Rechnungsversand.',
-    fileName: 'EMail_Rechnungsversand_Antwortformular.pdf',
-    steps: [
-      'Oeffnen Sie Ihren Dokumente-Ordner ueber den Button rechts.',
-      'Laden Sie das Antwortformular herunter.',
-      'Tragen Sie die gewuenschte Rechnungs-E-Mail-Adresse ein.',
-      'Laden Sie das ausgefuellte Formular zurueck in den Ordner hoch.',
-      'Haken Sie diesen Schritt ab.',
-    ],
-  },
-];
-
-const ZUGANGSDATEN = [
-  {
-    id: 'zd_cloud',
-    name: 'Komda® Cloud / Hosting Zugangsdaten',
-    icon: '☁️',
-    hint: 'PDF mit Ihren Cloud- und Hosting-Zugangsdaten',
-    urlParam: 'spUrlCloud',
-  },
-  {
-    id: 'zd_mobile',
-    name: 'Komda® Mobile Zugangsdaten',
-    icon: '📱',
-    hint: 'PDF mit Ihren Mobile-Zugangsdaten',
-    urlParam: 'spUrlMobile',
-  },
-];
-
-function loadStatus() {
-  try { return JSON.parse(localStorage.getItem('kd_checklist_' + token) || '{}'); } catch(e) { return {}; }
-}
-function saveStatus(s) {
-  localStorage.setItem('kd_checklist_' + token, JSON.stringify(s));
-}
-function loadFromParent() {
-  try {
-    var all = JSON.parse(localStorage.getItem('kd_onboarding') || '[]');
-    if (!token) return null;
-    var id = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '='));
-    return all.find(function(c){ return c.id === id; }) || null;
-  } catch(e) { return null; }
-}
-
-var status = {};
-var parentCustomer = loadFromParent();
-if (parentCustomer && parentCustomer.docs) {
-  status = Object.assign({}, parentCustomer.docs);
-} else {
-  status = loadStatus();
-}
-
-function render() {
-  var done = DOCS_META.filter(function(d){ return !!status[d.id]; }).length;
-  var pct  = Math.round((done / DOCS_META.length) * 100);
-  var spUrl       = (parentCustomer && parentCustomer.spUrl)       || params.get('spUrl')       || '';
-  var spUrlCloud  = (parentCustomer && parentCustomer.spUrlCloud)  || params.get('spUrlCloud')  || spUrl;
-  var spUrlMobile = (parentCustomer && parentCustomer.spUrlMobile) || params.get('spUrlMobile') || spUrl;
-
-  var pctEl = document.getElementById('progress-pct');
-  var barEl = document.getElementById('progress-bar');
-  pctEl.textContent = pct + '%';
-  var cls = pct === 100 ? '' : pct > 0 ? ' partial' : ' zero';
-  pctEl.className   = 'progress-pct' + cls;
-  barEl.style.width = pct + '%';
-  barEl.className   = 'progress-bar-inner' + cls;
-  document.getElementById('progress-sub').textContent = pct === 100
-    ? 'Alle Schritte abgeschlossen - vielen Dank!'
-    : 'Noch ' + (DOCS_META.length - done) + ' offene Aufgabe' + (DOCS_META.length - done !== 1 ? 'n' : '');
-  document.getElementById('check-count').textContent = done + ' / ' + DOCS_META.length + ' erledigt';
-  document.getElementById('done-card').classList.toggle('visible', pct === 100);
-
-  // Checkliste
-  document.getElementById('checklist-items').innerHTML = DOCS_META.map(function(doc) {
-    var isDone = !!status[doc.id];
-    var stepsHtml = doc.steps.map(function(s, i) {
-      return '<li class="step-item"><span class="step-num">' + (i+1) + '</span><span>' + s + '</span></li>';
-    }).join('');
-    var btn = isDone
-      ? '<button class="check-btn undo-btn" onclick="markUndone(\'' + doc.id + '\')">&#8617; Rueckgaengig</button>'
-      : '<button class="check-btn done-btn" onclick="markDone(\'' + doc.id + '\')">&#10003; Erledigt</button>';
-    return '<div>'
-      + '<div class="check-item">'
-      + '<div class="check-circle ' + (isDone ? 'done' : 'open') + '"></div>'
-      + '<div class="check-icon">' + doc.icon + '</div>'
-      + '<div class="check-text">'
-      + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
-      + '<div class="check-desc">' + doc.desc + '</div>'
-      + '</div>'
-      + btn
-      + '</div>'
-      + '<div class="check-steps">'
-      + '<div class="steps-toggle" onclick="toggleSteps(\'' + doc.id + '\')">'
-      + '<span class="steps-arrow" id="arrow-' + doc.id + '">&#9654;</span>'
-      + ' Schritt-fuer-Schritt-Anleitung'
-      + '</div>'
-      + '<div class="steps-body" id="steps-' + doc.id + '">'
-      + '<ul class="step-list">' + stepsHtml + '</ul>'
-      + '</div>'
-      + '</div>'
-      + '</div>';
-  }).join('');
-
-  // Folder button
-  document.getElementById('folder-btn-wrap').innerHTML = spUrl
-    ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">&#128193; Dokumente-Ordner oeffnen</a>'
-    : '<span class="folder-btn-big disabled">&#128193; Dokumente-Ordner oeffnen</span>';
-
-  // Datei-Uebersicht
-  document.getElementById('files-list').innerHTML = DOCS_META.filter(function(d){ return d.fileName; }).map(function(doc) {
-    var isDone = !!status[doc.id];
-    var short = doc.fileName.length > 35 ? doc.fileName.substring(0,34) + '...' : doc.fileName;
-    return '<div class="file-row' + (isDone ? ' done-row' : '') + '">'
-      + '<div class="file-icon-wrap">' + doc.icon + '</div>'
-      + '<div class="file-info">'
-      + '<div class="file-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
-      + '<div class="file-hint" title="' + doc.fileName + '">' + short + '</div>'
-      + '</div>'
-      + '<span class="file-badge ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '&#10003; Erledigt' : '&#9679; Offen') + '</span>'
-      + '</div>';
-  }).join('');
-
-  // Zugangsdaten
-  var zdUrls = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile };
-  document.getElementById('zugangsdaten-list').innerHTML = ZUGANGSDATEN.map(function(zd) {
-    var url = zdUrls[zd.urlParam] || '';
-    return '<div class="zd-row">'
-      + '<div class="zd-icon">' + zd.icon + '</div>'
-      + '<div class="zd-info">'
-      + '<div class="zd-name">' + zd.name + '</div>'
-      + '<div class="zd-hint">' + zd.hint + '</div>'
-      + '</div>'
-      + (url
-        ? '<a class="zd-btn" href="' + url + '" target="_blank">&#11015; Oeffnen</a>'
-        : '<span class="zd-btn disabled">&#11015; Oeffnen</span>')
-      + '</div>';
-  }).join('');
-}
-
-function toggleSteps(id) {
-  var body  = document.getElementById('steps-' + id);
-  var arrow = document.getElementById('arrow-' + id);
-  var open  = body.classList.toggle('open');
-  arrow.classList.toggle('open', open);
-}
-
-function markDone(id) {
-  status[id] = true;
-  saveStatus(status);
-  syncToParent(id, true);
-  render();
-  if (DOCS_META.every(function(d){ return !!status[d.id]; })) {
-    document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (isPreview) document.getElementById('preview-banner').classList.add('visible');
+  if (kundeParam) {
+    document.title = 'Komda Onboarding - ' + decodeURIComponent(kundeParam);
   }
-}
 
-function markUndone(id) {
-  status[id] = false;
-  saveStatus(status);
-  syncToParent(id, false);
-  render();
-}
+  var DOCS_META = [
+    {
+      id: 'fernwartung',
+      name: 'Einverständniserklärung Fernwartung',
+      icon: '💻',
+      desc: 'Schriftliche Einwilligung zur Fernwartung durch unsere Techniker.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'Datei "Einverständniserklärung Fernwartung" herunterladen.',
+        'Formular ausfüllen und unterschreiben.',
+        'Ausgefülltes Dokument zurück in den Ordner hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+    {
+      id: 'sepa',
+      name: 'SEPA-Firmenlastschrift-Mandat',
+      icon: '🏦',
+      desc: 'Unterzeichnetes SEPA-Mandat für die monatlichen Lastschriften.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'SEPA-Mandats-Datei herunterladen.',
+        'Bankverbindung vollständig ausfüllen und unterschreiben.',
+        'Ausgefülltes Dokument zurück in den Ordner hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+    {
+      id: 'email_rechnung',
+      name: 'E-Mail für Rechnungsversand',
+      icon: '📬',
+      desc: 'E-Mail-Adresse für den digitalen Rechnungsversand.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'Antwortformular herunterladen.',
+        'Gewünschte Rechnungs-E-Mail-Adresse eintragen.',
+        'Ausgefülltes Formular zurück in den Ordner hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+  ];
 
-function syncToParent(docId, value) {
-  var custId = '';
-  try {
-    var padded = token.padEnd(token.length + (4 - token.length % 4) % 4, '=');
-    custId = atob(padded);
-  } catch(e) { custId = ''; }
+  // Ordner-Links (je Kunde individuell per URL-Parameter)
+  // spUrlCloud   = Link zu "Komda® Cloud oder Hosting Zugangsdaten"
+  // spUrlMobile  = Link zu "Komda® Mobile Zugangsdaten"
+  // spUrlAuftrag = Link zu "Auftragsbestaetigungen"
+  var FOLDER_LINKS = [
+    { id: 'zd_cloud',   icon: '☁️',  name: 'Komda® Cloud / Hosting Zugangsdaten', hint: 'Ordner mit Ihren Cloud-Zugangsdaten',       param: 'spUrlCloud'  },
+    { id: 'zd_mobile',  icon: '📱', name: 'Komda® Mobile Zugangsdaten',            hint: 'Ordner mit Ihren Mobile-Zugangsdaten',      param: 'spUrlMobile' },
+    { id: 'zd_auftrag', icon: '📄', name: 'Auftragsbestätigung',                         hint: 'Ordner mit Ihren Auftragsbestätigungen',    param: 'spUrlAuftrag'},
+  ];
 
-  try {
-    var all = JSON.parse(localStorage.getItem('kd_onboarding') || '[]');
-    var idx = all.findIndex(function(c){ return c.id === custId; });
-    if (idx >= 0) {
-      all[idx].docs[docId] = value;
-      localStorage.setItem('kd_onboarding', JSON.stringify(all));
+  function ls_get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
+  function ls_set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
+
+  function loadStatus() {
+    try { return JSON.parse(ls_get('kd_checklist_' + token) || '{}'); } catch(e) { return {}; }
+  }
+  function saveStatus(s) {
+    ls_set('kd_checklist_' + token, JSON.stringify(s));
+  }
+  function loadFromParent() {
+    try {
+      var all = JSON.parse(ls_get('kd_onboarding') || '[]');
+      if (!token) return null;
+      var id = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '='));
+      for (var i = 0; i < all.length; i++) { if (all[i].id === id) return all[i]; }
+      return null;
+    } catch(e) { return null; }
+  }
+
+  var parentCustomer = loadFromParent();
+  var status = (parentCustomer && parentCustomer.docs) ? Object.assign({}, parentCustomer.docs) : loadStatus();
+
+  function render() {
+    var done = 0;
+    for (var i = 0; i < DOCS_META.length; i++) { if (status[DOCS_META[i].id]) done++; }
+    var pct = Math.round((done / DOCS_META.length) * 100);
+
+    var spUrl       = (parentCustomer && parentCustomer.spUrl)       || params.get('spUrl')       || '';
+    var spUrlCloud  = (parentCustomer && parentCustomer.spUrlCloud)  || params.get('spUrlCloud')  || '';
+    var spUrlMobile = (parentCustomer && parentCustomer.spUrlMobile) || params.get('spUrlMobile') || '';
+    var spUrlAuftrag= (parentCustomer && parentCustomer.spUrlAuftrag)|| params.get('spUrlAuftrag')|| '';
+    var folderUrls  = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag };
+
+    // Fortschritt
+    var pctEl = document.getElementById('progress-pct');
+    var barEl = document.getElementById('progress-bar');
+    pctEl.textContent = pct + '%';
+    var cls = pct === 100 ? '' : pct > 0 ? ' partial' : ' zero';
+    pctEl.className  = 'progress-pct' + cls;
+    barEl.style.width = pct + '%';
+    barEl.className  = 'progress-bar-inner' + cls;
+    document.getElementById('progress-sub').textContent = pct === 100
+      ? 'Alle Schritte abgeschlossen – vielen Dank!'
+      : 'Noch ' + (DOCS_META.length - done) + ' offene Aufgabe' + ((DOCS_META.length - done) !== 1 ? 'n' : '');
+    document.getElementById('check-count').textContent = done + ' / ' + DOCS_META.length + ' erledigt';
+    document.getElementById('done-card').classList.toggle('visible', pct === 100);
+
+    // Checkliste
+    var clHtml = '';
+    for (var d = 0; d < DOCS_META.length; d++) {
+      var doc = DOCS_META[d];
+      var isDone = !!status[doc.id];
+      var stepsHtml = '';
+      for (var s = 0; s < doc.steps.length; s++) {
+        stepsHtml += '<li class="step-item"><span class="step-num">' + (s+1) + '</span><span>' + doc.steps[s] + '</span></li>';
+      }
+      clHtml += '<div>'
+        + '<div class="check-item">'
+        + '<div class="check-circle ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '✓' : '') + '</div>'
+        + '<div class="check-icon">' + doc.icon + '</div>'
+        + '<div class="check-text">'
+        + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
+        + '<div class="check-desc">' + doc.desc + '</div>'
+        + '</div>'
+        + (isDone
+          ? '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rükgängig</button>'
+          : '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Erledigt</button>')
+        + '</div>'
+        + '<div class="check-steps">'
+        + '<div class="steps-toggle" data-action="toggle" data-id="' + doc.id + '">'
+        + '<span class="steps-arrow" id="arrow-' + doc.id + '">▶</span>'
+        + ' Schritt-für-Schritt-Anleitung'
+        + '</div>'
+        + '<div class="steps-body" id="steps-' + doc.id + '">'
+        + '<ul class="step-list">' + stepsHtml + '</ul>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     }
-  } catch(e) {}
+    document.getElementById('checklist-items').innerHTML = clHtml;
 
-  try {
-    localStorage.setItem('kd_checklist_sync', JSON.stringify({ custId: custId, docId: docId, value: value, ts: Date.now() }));
-  } catch(e) {}
+    // Ordner-Button
+    document.getElementById('folder-btn-wrap').innerHTML = spUrl
+      ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">📁 Dokumente-Ordner öffnen</a>'
+      : '<span class="folder-btn-big disabled">📁 Dokumente-Ordner öffnen</span>';
 
-  if (custId && !isPreview) {
-    fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: value }),
-    })
-    .then(function(r){ return r.json(); })
-    .then(function(d){
-      if (!d.ok) { console.warn('Backend-Sync Fehler:', d); }
-      else { console.log('SharePoint aktualisiert:', docId, value); }
-    })
-    .catch(function(err){ console.warn('Backend-Sync nicht erreichbar:', err); });
+    // Datei-Uebersicht
+    var flHtml = '';
+    for (var f = 0; f < DOCS_META.length; f++) {
+      var fd = DOCS_META[f];
+      var fisDone = !!status[fd.id];
+      flHtml += '<div class="file-row' + (fisDone ? ' done-row' : '') + '">'
+        + '<div class="file-icon-wrap">' + fd.icon + '</div>'
+        + '<div class="file-info"><div class="file-name' + (fisDone ? ' done' : '') + '">' + fd.name + '</div></div>'
+        + '<span class="file-badge ' + (fisDone ? 'done' : 'open') + '">' + (fisDone ? '✓ Erledigt' : '● Offen') + '</span>'
+        + '</div>';
+    }
+    document.getElementById('files-list').innerHTML = flHtml;
+
+    // Zugangsdaten + Auftragsbestaetigung
+    var zdHtml = '';
+    for (var z = 0; z < FOLDER_LINKS.length; z++) {
+      var zd = FOLDER_LINKS[z];
+      var zdUrl = folderUrls[zd.param] || '';
+      zdHtml += '<div class="zd-row">'
+        + '<div class="zd-icon">' + zd.icon + '</div>'
+        + '<div class="zd-info">'
+        + '<div class="zd-name">' + zd.name + '</div>'
+        + '<div class="zd-hint">' + zd.hint + '</div>'
+        + '</div>'
+        + (zdUrl
+          ? '<a class="zd-btn" href="' + zdUrl + '" target="_blank">⬇ Öffnen</a>'
+          : '<span class="zd-btn disabled">⬇ Öffnen</span>')
+        + '</div>';
+    }
+    document.getElementById('zugangsdaten-list').innerHTML = zdHtml;
   }
-}
 
-render();
+  // Event-Delegation (kein inline-onclick)
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var action = btn.getAttribute('data-action');
+    var id     = btn.getAttribute('data-id');
+    if (action === 'done') {
+      status[id] = true;
+      saveStatus(status);
+      syncToParent(id, true);
+      render();
+      var allDone = true;
+      for (var i = 0; i < DOCS_META.length; i++) { if (!status[DOCS_META[i].id]) { allDone = false; break; } }
+      if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (action === 'undo') {
+      status[id] = false;
+      saveStatus(status);
+      syncToParent(id, false);
+      render();
+    } else if (action === 'toggle') {
+      var body  = document.getElementById('steps-' + id);
+      var arrow = document.getElementById('arrow-' + id);
+      if (body && arrow) {
+        var open = body.classList.toggle('open');
+        arrow.classList.toggle('open', open);
+      }
+    }
+  });
+
+  function syncToParent(docId, value) {
+    var custId = '';
+    try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
+    try {
+      var all = JSON.parse(ls_get('kd_onboarding') || '[]');
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].id === custId) { all[i].docs[docId] = value; ls_set('kd_onboarding', JSON.stringify(all)); break; }
+      }
+    } catch(e) {}
+    try { ls_set('kd_checklist_sync', JSON.stringify({ custId: custId, docId: docId, value: value, ts: Date.now() })); } catch(e) {}
+    if (custId && !isPreview) {
+      fetch(API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: value }),
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(d){ if (!d.ok) console.warn('Sync-Fehler:', d); else console.log('SP aktualisiert:', docId, value); })
+      .catch(function(e){ console.warn('Sync nicht erreichbar:', e); });
+    }
+  }
+
+  render();
+})();
 </script>
 </body>
 </html>
