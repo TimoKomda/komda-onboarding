@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Komda · Ihr Onboarding</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23c41b1b'/><text x='16' y='23' text-anchor='middle' font-family='Arial Black,sans-serif' font-size='21' font-weight='900' fill='white' letter-spacing='-1'>K</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c41b1b'/%3E%3Cpolygon points='28,15 41,15 41,85 28,85' fill='white'/%3E%3Cpolygon points='41,15 70,15 70,27 53,50 41,50' fill='white'/%3E%3Cpolygon points='46,15 62,15 45,44 29,44' fill='%23c41b1b'/%3E%3Cpolygon points='41,50 53,50 70,85 57,85' fill='white'/%3E%3C/svg%3E">
   <style>
     :root {
       --red:       #c41b1b;
@@ -31,10 +31,10 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); min-height: 100vh; }
 
-    /* ══ HEADER ══════════════════════════════════════════════════ */
     .page-header { background: var(--red); padding: 0; box-shadow: 0 2px 16px rgba(196,27,27,0.25); }
     .header-inner { max-width: 1060px; margin: 0 auto; padding: 20px 24px; display: flex; align-items: center; gap: 16px; }
-    .logo-mark { width: 42px; height: 42px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: white; flex-shrink: 0; letter-spacing: -1px; font-family: Arial Black, sans-serif; }
+    .logo-mark { background: white; border-radius: 10px; padding: 7px 14px; display: flex; align-items: center; flex-shrink: 0; box-shadow: 0 1px 4px rgba(0,0,0,0.18); }
+    .logo-mark img { height: 38px; width: auto; display: block; }
     .header-text-wrap { flex: 1; }
     .header-brand { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.75); letter-spacing: 0.5px; }
     .header-title { font-size: 20px; font-weight: 700; color: white; margin-top: 2px; }
@@ -42,14 +42,10 @@
     .preview-banner { background: #f5a500; color: white; text-align: center; padding: 8px; font-size: 13px; font-weight: 600; display: none; }
     .preview-banner.visible { display: block; }
 
-    /* ══ LAYOUT ══════════════════════════════════════════════════ */
     .page-body { max-width: 1060px; margin: 0 auto; padding: 28px 24px 60px; }
 
-    /* Progress (oben, volle Breite) */
-    .progress-card {
-      background: var(--card); border-radius: var(--radius-lg); padding: 22px 28px;
-      border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); margin-bottom: 24px;
-    }
+    /* Fortschritt */
+    .progress-card { background: var(--card); border-radius: var(--radius-lg); padding: 22px 28px; border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); margin-bottom: 24px; }
     .progress-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; gap: 16px; }
     .progress-label { font-size: 16px; font-weight: 700; color: var(--text); }
     .progress-sub   { font-size: 13px; color: var(--muted); margin-top: 3px; }
@@ -61,61 +57,35 @@
     .progress-bar-inner.partial { background: var(--orange); }
     .progress-bar-inner.zero    { background: var(--red-pale); }
 
-    /* Zwei-Spalten-Grid */
+    /* Zwei-Spalten */
     .two-col { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
     @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
 
-    /* ══ LINKE SPALTE: Checkliste ════════════════════════════════ */
-    .col-card {
-      background: var(--card); border-radius: var(--radius-lg);
-      border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); overflow: hidden;
-    }
-    .col-card-header {
-      padding: 18px 22px 14px; border-bottom: 1px solid var(--border-lt);
-      display: flex; align-items: center; gap: 10px;
-    }
+    /* Linke Spalte */
+    .col-card { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .col-card-header { padding: 18px 22px 14px; border-bottom: 1px solid var(--border-lt); display: flex; align-items: center; gap: 10px; }
     .col-card-title { font-size: 15px; font-weight: 700; color: var(--text); }
-    .col-card-count { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--muted);
-      background: var(--gray-bg); padding: 3px 10px; border-radius: 20px; }
+    .col-card-count { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--gray-bg); padding: 3px 10px; border-radius: 20px; }
 
-    /* Checklist-Items */
-    .check-item {
-      display: flex; align-items: center; gap: 14px;
-      padding: 16px 22px; border-bottom: 1px solid var(--border-lt); transition: background 0.15s;
-    }
-    .check-item:last-child { border-bottom: none; }
+    .check-item { display: flex; align-items: center; gap: 14px; padding: 16px 22px; border-bottom: 1px solid var(--border-lt); transition: background 0.15s; }
     .check-item:hover { background: #fafaf9; }
-
-    .check-circle {
-      width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      border: 2px solid var(--border); background: white; transition: all 0.2s;
-    }
+    .check-circle { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 2px solid var(--border); background: white; transition: all 0.2s; }
     .check-circle.done { background: var(--green); border-color: var(--green); }
     .check-circle.done::after { content: '✓'; color: white; font-size: 13px; font-weight: 700; }
     .check-circle.open { border-color: var(--red); }
-
     .check-icon { font-size: 22px; flex-shrink: 0; }
     .check-text { flex: 1; min-width: 0; }
     .check-name { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
     .check-name.done { color: var(--muted); text-decoration: line-through; }
     .check-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-    .check-btn {
-      flex-shrink: 0; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
-      cursor: pointer; border: 1.5px solid; transition: all 0.15s; white-space: nowrap;
-    }
+    .check-btn { flex-shrink: 0; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid; transition: all 0.15s; white-space: nowrap; }
     .check-btn.done-btn { background: var(--green-bg); color: var(--green); border-color: #c3e6d3; }
     .check-btn.done-btn:hover { background: #c8ecd8; }
     .check-btn.undo-btn { background: var(--gray-bg); color: var(--muted); border-color: var(--border); }
     .check-btn.undo-btn:hover { background: var(--border); }
 
-    /* Steps (ausklappbar, unter jedem Item) */
     .check-steps { background: #fafaf9; border-top: 1px solid var(--border-lt); }
-    .steps-toggle {
-      padding: 10px 22px 10px 64px; font-size: 12px; font-weight: 600; color: var(--muted);
-      cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none;
-    }
+    .steps-toggle { padding: 10px 22px 10px 64px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; }
     .steps-toggle:hover { color: var(--text); }
     .steps-arrow { transition: transform 0.2s; font-size: 10px; }
     .steps-arrow.open { transform: rotate(90deg); }
@@ -125,40 +95,22 @@
     .step-item { display: flex; gap: 10px; margin-bottom: 8px; font-size: 13px; color: var(--text); line-height: 1.5; }
     .step-num { width: 20px; height: 20px; background: var(--red); color: white; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; margin-top: 2px; }
 
-    /* ══ RECHTE SPALTE: Dokumente ════════════════════════════════ */
+    /* Rechte Spalte */
     .doc-panel { display: flex; flex-direction: column; gap: 16px; }
 
-    /* Ordner-Box */
-    .folder-box {
-      background: var(--card); border-radius: var(--radius-lg);
-      border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm);
-      padding: 20px 22px;
-    }
+    .folder-box { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); padding: 20px 22px; }
     .folder-box-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
     .folder-box-sub   { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.4; }
-
-    .folder-btn-big {
-      display: flex; align-items: center; justify-content: center; gap: 10px;
-      width: 100%; padding: 13px 20px; border-radius: var(--radius-md);
-      background: var(--red); color: white; font-size: 14px; font-weight: 700;
-      text-decoration: none; border: none; cursor: pointer; transition: background 0.15s;
-    }
+    .folder-btn-big { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 13px 20px; border-radius: var(--radius-md); background: var(--red); color: white; font-size: 14px; font-weight: 700; text-decoration: none; border: none; cursor: pointer; transition: background 0.15s; }
     .folder-btn-big:hover { background: var(--red-dark); }
     .folder-btn-big.disabled { background: var(--border); color: var(--muted); cursor: default; pointer-events: none; }
 
-    /* Datei-Liste */
-    .files-box {
-      background: var(--card); border-radius: var(--radius-lg);
-      border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); overflow: hidden;
-    }
+    .files-box { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); overflow: hidden; }
     .files-box-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border-lt); }
     .files-box-title { font-size: 14px; font-weight: 700; color: var(--text); }
     .files-box-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-    .file-row {
-      display: flex; align-items: center; gap: 12px;
-      padding: 13px 20px; border-bottom: 1px solid var(--border-lt);
-    }
+    .file-row { display: flex; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid var(--border-lt); }
     .file-row:last-child { border-bottom: none; }
     .file-row.done-row { opacity: 0.5; }
     .file-icon-wrap { font-size: 20px; flex-shrink: 0; }
@@ -166,35 +118,36 @@
     .file-name { font-size: 13px; font-weight: 600; color: var(--text); }
     .file-name.done { text-decoration: line-through; color: var(--muted); }
     .file-hint { font-size: 11px; color: var(--muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .file-status { flex-shrink: 0; }
     .file-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
     .file-badge.done { background: var(--green-bg); color: var(--green); }
     .file-badge.open { background: var(--red-pale); color: var(--red); }
 
-    /* Upload-Hinweis */
-    .upload-hint-box {
-      background: var(--orange-bg); border: 1px solid #f5d99a;
-      border-radius: var(--radius-md); padding: 14px 18px; margin-top: 4px;
-    }
+    /* Zugangsdaten-Block */
+    .zugangsdaten-box { background: var(--card); border-radius: var(--radius-lg); border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); overflow: hidden; }
+    .zugangsdaten-header { padding: 16px 20px 12px; border-bottom: 1px solid var(--border-lt); background: #f8f5ff; }
+    .zugangsdaten-title { font-size: 14px; font-weight: 700; color: var(--text); }
+    .zugangsdaten-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .zd-row { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--border-lt); }
+    .zd-row:last-child { border-bottom: none; }
+    .zd-icon { font-size: 20px; flex-shrink: 0; }
+    .zd-info { flex: 1; min-width: 0; }
+    .zd-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .zd-hint { font-size: 11px; color: var(--muted); margin-top: 2px; }
+    .zd-btn { flex-shrink: 0; display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; background: #f0f0ff; color: #4a4ab8; border: 1.5px solid #d0d0f0; white-space: nowrap; transition: all 0.15s; }
+    .zd-btn:hover { background: #e0e0ff; }
+    .zd-btn.disabled { opacity: 0.4; pointer-events: none; cursor: default; }
+
+    .upload-hint-box { background: var(--orange-bg); border: 1px solid #f5d99a; border-radius: var(--radius-md); padding: 14px 18px; }
     .upload-hint-title { font-size: 13px; font-weight: 700; color: var(--orange); margin-bottom: 4px; }
     .upload-hint-text  { font-size: 12px; color: #5a3e00; line-height: 1.5; }
 
-    /* Done-Card */
-    .done-card {
-      background: var(--green-bg); border: 1.5px solid #c3e6d3; border-radius: var(--radius-lg);
-      padding: 28px; text-align: center; display: none; margin-bottom: 20px;
-    }
+    .done-card { background: var(--green-bg); border: 1.5px solid #c3e6d3; border-radius: var(--radius-lg); padding: 28px; text-align: center; display: none; margin-bottom: 20px; }
     .done-card.visible { display: block; }
     .done-icon  { font-size: 48px; margin-bottom: 12px; }
     .done-title { font-size: 20px; font-weight: 700; color: var(--green); margin-bottom: 6px; }
     .done-sub   { font-size: 13px; color: #1e6e3a; }
 
-    /* Kontakt */
-    .contact-card {
-      background: var(--card); border-radius: var(--radius-md); padding: 18px 22px;
-      border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); margin-top: 20px;
-      display: flex; gap: 14px; align-items: center;
-    }
+    .contact-card { background: var(--card); border-radius: var(--radius-md); padding: 18px 22px; border: 1px solid var(--border-lt); box-shadow: var(--shadow-sm); margin-top: 20px; display: flex; gap: 14px; align-items: center; }
     .contact-icon  { font-size: 28px; flex-shrink: 0; }
     .contact-title { font-size: 14px; font-weight: 700; color: var(--text); }
     .contact-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
@@ -215,9 +168,10 @@
 
 <div class="page-header">
   <div class="header-inner">
-    <div class="logo-mark">K</div>
+    <div class="logo-mark">
+      <img src="./komda_logo_horizontal.png" alt="Komda Software – Wir pflegen die Zukunft">
+    </div>
     <div class="header-text-wrap">
-      <div class="header-brand">Komda · Zapf Systemhaus GmbH</div>
       <div class="header-title" id="header-title">Willkommen zu Ihrem Onboarding</div>
     </div>
   </div>
@@ -225,7 +179,6 @@
 
 <div class="page-body">
 
-  <!-- Fortschritt -->
   <div class="progress-card">
     <div class="progress-top">
       <div>
@@ -239,18 +192,16 @@
     </div>
   </div>
 
-  <!-- Alle erledigt -->
   <div class="done-card" id="done-card">
     <div class="done-icon">🎉</div>
     <div class="done-title">Onboarding vollständig!</div>
     <div class="done-sub">Herzlichen Glückwunsch – alle Unterlagen sind eingegangen.<br>Unser Team meldet sich bei Ihnen zum weiteren Vorgehen.</div>
   </div>
 
-  <!-- Zwei-Spalten-Layout -->
   <div class="two-col">
 
-    <!-- Linke Spalte: Checkliste -->
-    <div class="col-card" id="checklist-col">
+    <!-- Links: Checkliste -->
+    <div class="col-card">
       <div class="col-card-header">
         <span style="font-size:18px">📋</span>
         <span class="col-card-title">Onboarding-Checkliste</span>
@@ -259,17 +210,17 @@
       <div id="checklist-items"></div>
     </div>
 
-    <!-- Rechte Spalte: Dokumente -->
+    <!-- Rechts: Dokumente -->
     <div class="doc-panel">
 
-      <!-- Ordner-Button -->
+      <!-- Haupt-Ordner -->
       <div class="folder-box">
         <div class="folder-box-title">📁 Ihre Dokumente</div>
-        <div class="folder-box-sub">Hier finden Sie alle Vorlagen zum Herunterladen sowie die Möglichkeit, ausgefüllte Dokumente hochzuladen.</div>
+        <div class="folder-box-sub">Vorlagen herunterladen, ausfüllen, unterschreiben und wieder hochladen.</div>
         <div id="folder-btn-wrap"></div>
       </div>
 
-      <!-- Datei-Übersicht -->
+      <!-- Dokumente im Überblick -->
       <div class="files-box">
         <div class="files-box-header">
           <div class="files-box-title">Dokumente im Überblick</div>
@@ -278,19 +229,27 @@
         <div id="files-list"></div>
       </div>
 
+      <!-- Zugangsdaten -->
+      <div class="zugangsdaten-box">
+        <div class="zugangsdaten-header">
+          <div class="zugangsdaten-title">🔑 Zugangsdaten</div>
+          <div class="zugangsdaten-sub">Ihre persönlichen Zugangsdaten zum Herunterladen</div>
+        </div>
+        <div id="zugangsdaten-list"></div>
+      </div>
+
       <!-- Upload-Hinweis -->
       <div class="upload-hint-box">
         <div class="upload-hint-title">📤 So laden Sie hoch</div>
         <div class="upload-hint-text">
-          Öffnen Sie den Dokumente-Ordner (Button oben), laden Sie das ausgefüllte Formular
-          hoch und haken Sie den Schritt in der Checkliste ab.
+          Öffnen Sie den Dokumente-Ordner, laden Sie das ausgefüllte Formular hoch
+          und haken Sie den Schritt in der Checkliste ab.
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- Kontakt -->
   <div class="contact-card">
     <div class="contact-icon">💬</div>
     <div>
@@ -324,6 +283,7 @@ if (kundeParam) {
   document.title = `Komda Onboarding · ${decodeURIComponent(kundeParam)}`;
 }
 
+// Nur Dokumente (kein Zugangsdaten-Item mehr)
 const DOCS_META = [
   {
     id: 'fernwartung', name: 'Einverständniserklärung Fernwartung', icon: '🖥️',
@@ -361,16 +321,23 @@ const DOCS_META = [
       'Haken Sie diesen Schritt ab.',
     ],
   },
+];
+
+// Zugangsdaten-Ordner (eigene Links pro Kunde)
+const ZUGANGSDATEN = [
   {
-    id: 'zugangsdaten', name: 'Zugangsdaten bestätigen', icon: '🔑',
-    desc: 'Bestätigen Sie den Erhalt Ihrer Zugangsdaten.',
-    fileName: null, hasUpload: false,
-    steps: [
-      'Sie haben Ihre Zugangsdaten per separater E-Mail oder Post erhalten.',
-      'Melden Sie sich einmalig an und ändern Sie das Passwort nach Aufforderung.',
-      'Speichern Sie die Zugangsdaten sicher (z.B. in einem Passwort-Manager).',
-      'Haken Sie diesen Schritt ab.',
-    ],
+    id: 'zd_cloud',
+    name: 'Komda® Cloud / Hosting Zugangsdaten',
+    icon: '☁️',
+    hint: 'PDF mit Ihren Cloud- und Hosting-Zugangsdaten',
+    urlParam: 'spUrlCloud',
+  },
+  {
+    id: 'zd_mobile',
+    name: 'Komda® Mobile Zugangsdaten',
+    icon: '📱',
+    hint: 'PDF mit Ihren Mobile-Zugangsdaten',
+    urlParam: 'spUrlMobile',
   },
 ];
 
@@ -397,16 +364,18 @@ else { status = loadStatus(); }
 function render() {
   const done = DOCS_META.filter(d => status[d.id]).length;
   const pct  = Math.round((done / DOCS_META.length) * 100);
-  const spUrl = parentCustomer?.spUrl || params.get('spUrl') || '';
+  const spUrl      = parentCustomer?.spUrl      || params.get('spUrl')      || '';
+  const spUrlCloud  = parentCustomer?.spUrlCloud  || params.get('spUrlCloud')  || spUrl;
+  const spUrlMobile = parentCustomer?.spUrlMobile || params.get('spUrlMobile') || spUrl;
 
   // Fortschritt
   const pctEl = document.getElementById('progress-pct');
   const barEl = document.getElementById('progress-bar');
   pctEl.textContent = pct + '%';
   const cls = pct === 100 ? '' : pct > 0 ? ' partial' : ' zero';
-  pctEl.className = 'progress-pct' + cls;
+  pctEl.className   = 'progress-pct' + cls;
   barEl.style.width = pct + '%';
-  barEl.className = 'progress-bar-inner' + cls;
+  barEl.className   = 'progress-bar-inner' + cls;
   document.getElementById('progress-sub').textContent = pct === 100
     ? '✅ Alle Schritte abgeschlossen – vielen Dank!'
     : `Noch ${DOCS_META.length - done} offene Aufgabe${DOCS_META.length - done !== 1 ? 'n' : ''}`;
@@ -443,12 +412,12 @@ function render() {
       </div>`;
   }).join('');
 
-  // Ordner-Button (rechts)
+  // Ordner-Button
   document.getElementById('folder-btn-wrap').innerHTML = spUrl
     ? `<a class="folder-btn-big" href="${spUrl}" target="_blank">📁 Dokumente-Ordner öffnen</a>`
     : `<span class="folder-btn-big disabled">📁 Dokumente-Ordner öffnen</span>`;
 
-  // Datei-Liste (rechts)
+  // Datei-Übersicht
   document.getElementById('files-list').innerHTML = DOCS_META.filter(d => d.fileName).map(doc => {
     const isDone = !!status[doc.id];
     const short = doc.fileName.length > 35 ? doc.fileName.substring(0,34) + '…' : doc.fileName;
@@ -459,9 +428,24 @@ function render() {
           <div class="file-name ${isDone ? 'done' : ''}">${doc.name}</div>
           <div class="file-hint" title="${doc.fileName}">${short}</div>
         </div>
-        <div class="file-status">
-          <span class="file-badge ${isDone ? 'done' : 'open'}">${isDone ? '✓ Erledigt' : '● Offen'}</span>
+        <span class="file-badge ${isDone ? 'done' : 'open'}">${isDone ? '✓ Erledigt' : '● Offen'}</span>
+      </div>`;
+  }).join('');
+
+  // Zugangsdaten
+  const zdUrls = { spUrlCloud, spUrlMobile };
+  document.getElementById('zugangsdaten-list').innerHTML = ZUGANGSDATEN.map(zd => {
+    const url = zdUrls[zd.urlParam] || '';
+    return `
+      <div class="zd-row">
+        <div class="zd-icon">${zd.icon}</div>
+        <div class="zd-info">
+          <div class="zd-name">${zd.name}</div>
+          <div class="zd-hint">${zd.hint}</div>
         </div>
+        ${url
+          ? `<a class="zd-btn" href="${url}" target="_blank">⬇ Öffnen</a>`
+          : `<span class="zd-btn disabled">⬇ Öffnen</span>`}
       </div>`;
   }).join('');
 }
@@ -496,12 +480,4 @@ function syncToParent(docId, value) {
       body: JSON.stringify({ secret: UPDATE_SECRET, custId, docId, value }),
     })
     .then(r => r.json())
-    .then(d => { if (!d.ok) console.warn('Backend-Sync Fehler:', d); else console.log('SharePoint aktualisiert:', docId, value); })
-    .catch(err => console.warn('Backend-Sync nicht erreichbar:', err));
-  }
-}
-
-render();
-</script>
-</body>
-</html>
+    .then(d => { if (!d.ok) console.warn('Backend-Sync Fehler:', d); else console.log('SharePoint aktualisiert:', doc
