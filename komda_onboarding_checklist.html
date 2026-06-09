@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Komda &middot; Ihr Onboarding</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23c41b1b'/%3E%3Cpolygon points='28,15 41,15 41,85 28,85' fill='white'/%3E%3Cpolygon points='41,15 70,15 70,27 53,50 41,50' fill='white'/%3E%3Cpolygon points='46,15 62,15 45,44 29,44' fill='%23c41b1b'/%3E%3Cpolygon points='41,50 53,50 70,85 57,85' fill='white'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23b71c1c'/%3E%3Cpolygon points='23,13 39,13 39,87 23,87' fill='white'/%3E%3Cpolygon points='39,13 77,13 77,36 39,55' fill='white'/%3E%3Cpolygon points='39,57 59,57 79,87 57,87' fill='white'/%3E%3Cpolygon points='40,13 58,13 38,53 20,53' fill='%23b71c1c'/%3E%3C/svg%3E">
   <style>
     :root {
       --red:#c41b1b; --red-dark:#9a1515; --red-pale:#fdeaea;
@@ -25,6 +25,7 @@
     .logo-svg{flex-shrink:0}
     .header-text-wrap{flex:1}
     .header-title{font-size:20px;font-weight:700;color:#fff}
+    .header-subtitle{font-size:14px;color:rgba(255,255,255,0.85);margin-top:3px;font-weight:400}
 
     .preview-banner{background:#f5a500;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:600;display:none}
     .preview-banner.visible{display:block}
@@ -152,16 +153,21 @@
 
 <div class="page-header">
   <div class="header-inner">
-    <!-- SVG-Logo (eingebettet, kein Datei-Upload noetig) -->
+    <!-- Komda K-Logo (SVG, originalgetreu nachgebaut) -->
     <svg class="logo-svg" width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="50" fill="rgba(255,255,255,0.2)"/>
-      <polygon points="28,15 41,15 41,85 28,85" fill="white"/>
-      <polygon points="41,15 70,15 70,27 53,50 41,50" fill="white"/>
-      <polygon points="46,15 62,15 45,44 29,44" fill="rgba(196,27,27,0.7)"/>
-      <polygon points="41,50 53,50 70,85 57,85" fill="white"/>
+      <circle cx="50" cy="50" r="50" fill="rgba(255,255,255,0.15)"/>
+      <!-- Senkrechter Balken -->
+      <polygon points="23,13 39,13 39,87 23,87" fill="white"/>
+      <!-- Oberer Arm -->
+      <polygon points="39,13 77,13 77,36 39,55" fill="white"/>
+      <!-- Unterer Arm -->
+      <polygon points="39,57 59,57 79,87 57,87" fill="white"/>
+      <!-- Roter Diagonalschnitt -->
+      <polygon points="40,13 58,13 38,53 20,53" fill="#b71c1c"/>
     </svg>
     <div class="header-text-wrap">
       <div class="header-title" id="header-title">Willkommen zu Ihrem Komda&reg; Software Onboarding</div>
+      <div class="header-subtitle" id="header-subtitle"></div>
     </div>
   </div>
 </div>
@@ -216,19 +222,19 @@
         <div id="files-list"></div>
       </div>
 
-      <div class="zd-box">
-        <div class="zd-header">
-          <div class="zd-title">&#128273; Zugangsdaten &amp; Dokumente</div>
-          <div class="zd-sub">Direkt in den jeweiligen Ordner &ouml;ffnen</div>
-        </div>
-        <div id="zugangsdaten-list"></div>
-      </div>
-
       <div class="upload-hint-box">
         <div class="upload-hint-title">&#128228; So laden Sie hoch</div>
         <div class="upload-hint-text">
           Ordner &ouml;ffnen &rarr; ausgef&uuml;lltes Formular hochladen &rarr; Schritt in der Checkliste abhaken.
         </div>
+      </div>
+
+      <div class="zd-box">
+        <div class="zd-header">
+          <div class="zd-title">&#128193; Dokumente &amp; Zugangsdaten</div>
+          <div class="zd-sub">Direkt in den jeweiligen Ordner &ouml;ffnen</div>
+        </div>
+        <div id="zugangsdaten-list"></div>
       </div>
 
     </div>
@@ -240,8 +246,8 @@
       <div class="contact-title">Fragen zum Onboarding?</div>
       <div class="contact-sub">Unser Support-Team hilft Ihnen gerne weiter.</div>
       <div class="contact-links">
-        <a class="contact-link phone" href="tel:+49000000000">&#128222; +49 xxx xxxxxxx</a>
-        <a class="contact-link mail" href="mailto:support@komda.de">&#9993; support@komda.de</a>
+        <a class="contact-link phone" href="tel:+494419358901">&#128222; +49 441 935890</a>
+        <a class="contact-link mail" href="mailto:support@komda-software.de">&#9993; support@komda-software.de</a>
       </div>
     </div>
   </div>
@@ -263,7 +269,10 @@
 
   if (isPreview) document.getElementById('preview-banner').classList.add('visible');
   if (kundeParam) {
-    document.title = 'Komda Onboarding - ' + decodeURIComponent(kundeParam);
+    var firmaDec = decodeURIComponent(kundeParam);
+    document.title = 'Komda Onboarding - ' + firmaDec;
+    var subEl = document.getElementById('header-subtitle');
+    if (subEl) subEl.textContent = 'Guten Tag, ' + firmaDec + '!';
   }
 
   var DOCS_META = [
@@ -313,9 +322,9 @@
   // spUrlMobile  = Link zu "Komda® Mobile Zugangsdaten"
   // spUrlAuftrag = Link zu "Auftragsbestaetigungen"
   var FOLDER_LINKS = [
-    { id: 'zd_cloud',   icon: '☁️',  name: 'Komda® Cloud / Hosting Zugangsdaten', hint: 'Ordner mit Ihren Cloud-Zugangsdaten',       param: 'spUrlCloud'  },
-    { id: 'zd_mobile',  icon: '📱', name: 'Komda® Mobile Zugangsdaten',            hint: 'Ordner mit Ihren Mobile-Zugangsdaten',      param: 'spUrlMobile' },
-    { id: 'zd_auftrag', icon: '📄', name: 'Auftragsbestätigung',                         hint: 'Ordner mit Ihren Auftragsbestätigungen',    param: 'spUrlAuftrag'},
+    { id: 'zd_auftrag', icon: '📄', name: 'Auftragsbestätigung',                    hint: 'Ordner mit Ihren Auftragsbestätigungen',    param: 'spUrlAuftrag' },
+    { id: 'zd_mobile',  icon: '📱', name: 'Komda® Mobile Zugangsdaten',             hint: 'Ordner mit Ihren Mobile-Zugangsdaten',      param: 'spUrlMobile'  },
+    { id: 'zd_cloud',   icon: '☁️',  name: 'Komda® Cloud / Hosting Zugangsdaten',  hint: 'Ordner mit Ihren Cloud-Zugangsdaten',       param: 'spUrlCloud'   },
   ];
 
   function ls_get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
