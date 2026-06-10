@@ -12,6 +12,7 @@
       --text:#1a1917; --muted:#706b66;
       --green:#107c41; --green-bg:#e8f5ee;
       --orange:#c87400; --orange-bg:#fff4e0;
+      --blue:#1a56a8; --blue-bg:#e8f0ff; --blue-border:#c5d8f8;
       --gray-bg:#f3f2f1;
       --radius-md:14px; --radius-lg:20px;
       --shadow-sm:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.06);
@@ -19,7 +20,6 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:"Segoe UI",Arial,sans-serif;background:var(--bg);min-height:100vh}
 
-    /* Header */
     .page-header{background:var(--red);box-shadow:0 2px 16px rgba(196,27,27,.25)}
     .header-inner{max-width:1060px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
     .logo-svg{flex-shrink:0}
@@ -32,7 +32,6 @@
 
     .page-body{max-width:1060px;margin:0 auto;padding:28px 24px 60px}
 
-    /* Progress */
     .progress-card{background:var(--card);border-radius:var(--radius-lg);padding:22px 28px;border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);margin-bottom:24px}
     .progress-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:16px}
     .progress-label{font-size:16px;font-weight:700;color:var(--text)}
@@ -45,21 +44,30 @@
     .progress-bar-inner.partial{background:var(--orange)}
     .progress-bar-inner.zero{background:var(--red-pale)}
 
-    /* Two-col */
     .two-col{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
     @media(max-width:760px){.two-col{grid-template-columns:1fr}}
 
-    /* Left col */
     .col-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden}
     .col-card-header{padding:18px 22px 14px;border-bottom:1px solid var(--border-lt);display:flex;align-items:center;gap:10px}
     .col-card-title{font-size:15px;font-weight:700;color:var(--text)}
     .col-card-count{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);background:var(--gray-bg);padding:3px 10px;border-radius:20px}
+
+    /* Section bars */
+    .section-bar{padding:12px 22px 10px;border-bottom:1px solid var(--border-lt)}
+    .section-bar.a{background:#fff8f8}
+    .section-bar.b{background:#f5f8ff}
+    .section-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;margin-bottom:4px}
+    .section-tag.a{background:var(--red-pale);color:var(--red)}
+    .section-tag.b{background:var(--blue-bg);color:var(--blue)}
+    .section-bar-title{font-size:13px;font-weight:700;color:var(--text)}
+    .section-bar-hint{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
 
     .check-item{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--border-lt);transition:background .15s}
     .check-item:hover{background:#fafaf9}
     .check-circle{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:2px solid var(--border);background:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:transparent}
     .check-circle.done{background:var(--green);border-color:var(--green);color:#fff}
     .check-circle.open{border-color:var(--red)}
+    .check-circle.open-b{border-color:var(--blue)}
     .check-icon{font-size:22px;flex-shrink:0}
     .check-text{flex:1;min-width:0}
     .check-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.3}
@@ -81,10 +89,9 @@
     .step-list{list-style:none}
     .step-item{display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:var(--text);line-height:1.5}
     .step-num{width:20px;height:20px;background:var(--red);color:#fff;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:2px}
+    .step-num.b{background:var(--blue)}
 
-    /* Right col */
     .doc-panel{display:flex;flex-direction:column;gap:16px}
-
     .folder-box{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);padding:20px 22px}
     .folder-box-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
     .folder-box-sub{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.4}
@@ -103,12 +110,12 @@
     .file-info{flex:1;min-width:0}
     .file-name{font-size:13px;font-weight:600;color:var(--text)}
     .file-name.done{text-decoration:line-through;color:var(--muted)}
-    .file-hint{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .file-hint{font-size:11px;color:var(--muted);margin-top:2px}
     .file-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700}
     .file-badge.done{background:var(--green-bg);color:var(--green)}
     .file-badge.open{background:var(--red-pale);color:var(--red)}
+    .file-section-label{padding:8px 20px 4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--gray-bg);border-bottom:1px solid var(--border-lt)}
 
-    /* Zugangsdaten + Auftragsbestaetigung */
     .zd-box{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden}
     .zd-header{padding:16px 20px 12px;border-bottom:1px solid var(--border-lt);background:#f8f5ff}
     .zd-title{font-size:14px;font-weight:700;color:var(--text)}
@@ -153,16 +160,11 @@
 
 <div class="page-header">
   <div class="header-inner">
-    <!-- Komda K-Logo (SVG, originalgetreu nachgebaut) -->
     <svg class="logo-svg" width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
       <circle cx="50" cy="50" r="50" fill="rgba(255,255,255,0.15)"/>
-      <!-- Senkrechter Balken -->
       <polygon points="23,13 39,13 39,87 23,87" fill="white"/>
-      <!-- Oberer Arm -->
       <polygon points="39,13 77,13 77,36 39,55" fill="white"/>
-      <!-- Unterer Arm -->
       <polygon points="39,57 59,57 79,87 57,87" fill="white"/>
-      <!-- Roter Diagonalschnitt -->
       <polygon points="40,13 58,13 38,53 20,53" fill="#b71c1c"/>
     </svg>
     <div class="header-text-wrap">
@@ -195,7 +197,6 @@
 
   <div class="two-col">
 
-    <!-- Links: Checkliste -->
     <div class="col-card">
       <div class="col-card-header">
         <span style="font-size:18px">&#128203;</span>
@@ -205,19 +206,18 @@
       <div id="checklist-items"></div>
     </div>
 
-    <!-- Rechts: Dokumente -->
     <div class="doc-panel">
 
       <div class="folder-box">
-        <div class="folder-box-title">&#128193; Ihre Dokumente</div>
-        <div class="folder-box-sub">Vorlagen herunterladen, ausf&uuml;llen, unterschreiben und wieder hochladen.</div>
+        <div class="folder-box-title">&#128193; Ihr Dokumenten-Ordner</div>
+        <div class="folder-box-sub">Hier laden Sie alle Unterlagen hoch und finden Ihre Vorlagen zum Download.</div>
         <div id="folder-btn-wrap"></div>
       </div>
 
       <div class="files-box">
         <div class="files-box-header">
-          <div class="files-box-title">Dokumente im &Uuml;berblick</div>
-          <div class="files-box-sub">Herunterladen &rarr; Ausf&uuml;llen &rarr; Hochladen &rarr; Abhaken</div>
+          <div class="files-box-title">&#128202; &Uuml;berblick</div>
+          <div class="files-box-sub">Alle Punkte im Status auf einen Blick</div>
         </div>
         <div id="files-list"></div>
       </div>
@@ -225,7 +225,7 @@
       <div class="upload-hint-box">
         <div class="upload-hint-title">&#128228; So laden Sie hoch</div>
         <div class="upload-hint-text">
-          Ordner &ouml;ffnen &rarr; ausgef&uuml;lltes Formular hochladen &rarr; Schritt in der Checkliste abhaken.
+          Ordner &ouml;ffnen &rarr; ausgef&uuml;lltes Formular oder Unterlage hochladen &rarr; Schritt in der Checkliste abhaken.
         </div>
       </div>
 
@@ -267,7 +267,7 @@
   var kundeParam = params.get('kunde') || '';
   var isPreview  = params.get('preview') === '1';
 
-  // ── API-Config vom Azure Function laden (optionale Items + SP-URLs) ──
+  // API-Config laden
   var apiConfig = null;
   if (token && !isPreview) {
     try {
@@ -278,6 +278,8 @@
   }
 
   if (isPreview) document.getElementById('preview-banner').classList.add('visible');
+
+  // Begruessung
   if (kundeParam) {
     var firmaDec   = decodeURIComponent(kundeParam);
     var anredeDec  = decodeURIComponent(params.get('anrede') || '');
@@ -299,30 +301,19 @@
     }
   }
 
-  var DOCS_META = [
-    {
-      id: 'fernwartung',
-      name: 'Einverständniserklärung Fernwartung',
-      icon: '💻',
-      desc: 'Schriftliche Einwilligung zur Fernwartung durch unsere Techniker.',
-      steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'Datei "Einverständniserklärung Fernwartung" herunterladen.',
-        'Formular ausfüllen und unterschreiben.',
-        'Ausgefülltes Dokument zurück in den Ordner hochladen.',
-        'Diesen Schritt abhaken.',
-      ],
-    },
+  // ── Block A: Pflichtunterlagen ──────────────────────────────────────────
+  var BLOCK_A = [
     {
       id: 'sepa',
       name: 'SEPA-Firmenlastschrift-Mandat',
       icon: '🏦',
-      desc: 'Unterzeichnetes SEPA-Mandat für die monatlichen Lastschriften.',
+      desc: 'Unterzeichnetes SEPA-Mandat für die monatlichen Lastschriften. Das Original bitte zusätzlich Ihrer Bank übergeben.',
       steps: [
         'Dokumente-Ordner über den Button rechts öffnen.',
         'SEPA-Mandats-Datei herunterladen.',
         'Bankverbindung vollständig ausfüllen und unterschreiben.',
         'Ausgefülltes Dokument zurück in den Ordner hochladen.',
+        'Original zusätzlich Ihrer Bank übergeben.',
         'Diesen Schritt abhaken.',
       ],
     },
@@ -339,26 +330,105 @@
         'Diesen Schritt abhaken.',
       ],
     },
+    {
+      id: 'fernwartung',
+      name: 'Einverständniserklärung Fernwartung',
+      icon: '💻',
+      desc: 'Schriftliche Einwilligung zur Fernwartung durch unsere Techniker.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'Datei "Einverständniserklärung Fernwartung" herunterladen.',
+        'Formular ausfüllen und unterschreiben.',
+        'Ausgefülltes Dokument zurück in den Ordner hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+    {
+      id: 'avv',
+      name: 'Vertrag zur Auftragsverarbeitung (AVV)',
+      icon: '📋',
+      desc: 'Vertrag und Anlage C bitte ausfüllen, unterschreiben und hochladen.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'AVV-Datei herunterladen (Vertrag + Anlage A, B, C).',
+        'Vertrag und Anlage C vollständig ausfüllen und unterschreiben.',
+        'Vollständig ausgefüllten Vertrag zurück in den Ordner hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
   ];
 
-  // Ordner-Links (je Kunde individuell per URL-Parameter)
-  // spUrlCloud   = Link zu "Komda® Cloud oder Hosting Zugangsdaten"
-  // spUrlMobile  = Link zu "Komda® Mobile Zugangsdaten"
-  // spUrlAuftrag = Link zu "Auftragsbestaetigungen"
-  var FOLDER_LINKS = [
-    { id: 'zd_auftrag', icon: '📄', name: 'Auftragsbestätigung',                    hint: 'Ordner mit Ihren Auftragsbestätigungen',    param: 'spUrlAuftrag' },
-    { id: 'zd_mobile',  icon: '📱', name: 'Komda® Mobile Zugangsdaten',             hint: 'Ordner mit Ihren Mobile-Zugangsdaten',      param: 'spUrlMobile'  },
-    { id: 'zd_cloud',   icon: '☁️',  name: 'Komda® Cloud / Hosting Zugangsdaten',  hint: 'Ordner mit Ihren Cloud-Zugangsdaten',       param: 'spUrlCloud'   },
+  // ── Block B: Vorbereitungsunterlagen (Basis) ───────────────────────────
+  var BLOCK_B_BASE = [
+    {
+      id: 'vorlagen',
+      name: 'Vorlagen, Logos &amp; Briefbogen',
+      icon: '🖼️',
+      desc: 'Briefbogen als Word-Dokument und Logo(s) hochladen, damit wir Ihre Vorlagen erstellen können.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'Briefbogen als Word-Dokument hochladen.',
+        'Logo-Datei(en) hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+    {
+      id: 'debitoren',
+      name: 'Liste der Debitoren-Nummern',
+      icon: '📋',
+      desc: 'Liste Ihrer Kunden/Patienten und Kostenträger (Pflegekassen, Krankenkassen, Soziämter) bzw. eine Vorgabe dafür.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'Ihre Debitoren-Liste hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+    {
+      id: 'mitarbeiter',
+      name: 'Liste der Mitarbeiter-Nummern',
+      icon: '👥',
+      desc: 'Liste der Mitarbeiter-Nummern aus der Personalabrechnung.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'Ihre Mitarbeiter-Liste hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+    {
+      id: 'lohnarten',
+      name: 'Liste der Lohnarten',
+      icon: '💰',
+      desc: 'Liste der Lohnarten für Zuschläge, Stunden usw. aus der Personalabrechnung.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'Ihre Lohnarten-Liste hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
   ];
 
+  // ── Optionale Items (per Dashboard aktivierbar) ────────────────────────
   var OPTIONAL_META = [
     {
+      id: 'verguetung',
+      block: 'B',
+      name: 'Vergütungsvereinbarung',
+      icon: '📃',
+      desc: 'Bitte laden Sie Ihre Vergütungsvereinbarung in den Ordner hoch.',
+      steps: [
+        'Dokumente-Ordner über den Button rechts öffnen.',
+        'Ihre Vergütungsvereinbarung hochladen.',
+        'Diesen Schritt abhaken.',
+      ],
+    },
+    {
       id: 'datenubernahme',
+      block: 'B',
       name: 'Datenübernahme',
       icon: '💾',
       desc: 'Übergabe Ihrer bestehenden Daten in das Komda-System.',
       steps: [
-        'Datenübernahme-Ordner über den Button öffnen.',
+        'Datenübernahme-Ordner über den Button rechts öffnen.',
         'Exportdatei Ihrer bisherigen Software bereitstellen.',
         'Datei in den Ordner hochladen.',
         'Diesen Schritt abhaken.',
@@ -366,15 +436,25 @@
     },
   ];
 
-  function ls_get(key) { try { return localStorage.getItem(key); } catch(e) { return null; } }
-  function ls_set(key, val) { try { localStorage.setItem(key, val); } catch(e) {} }
+  // ── Ordner-Links ───────────────────────────────────────────────────────
+  var FOLDER_LINKS = [
+    { id: 'zd_auftrag', icon: '📄', name: 'Auftragsbetätigung',                  hint: 'Ordner mit Ihren Auftragsbetätigungen',    param: 'spUrlAuftrag' },
+    { id: 'zd_mobile',  icon: '📱', name: 'Komda® Mobile Zugangsdaten',           hint: 'Ordner mit Ihren Mobile-Zugangsdaten',      param: 'spUrlMobile'  },
+    { id: 'zd_cloud',   icon: '☁️',  name: 'Komda® Cloud / Hosting Zugangsdaten', hint: 'Ordner mit Ihren Cloud-Zugangsdaten',       param: 'spUrlCloud'   },
+  ];
 
-  function loadStatus() {
-    try { return JSON.parse(ls_get('kd_checklist_' + token) || '{}'); } catch(e) { return {}; }
-  }
-  function saveStatus(s) {
-    ls_set('kd_checklist_' + token, JSON.stringify(s));
-  }
+  // ── Aktive Listen aufbauen ─────────────────────────────────────────────
+  var activeOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
+  var BLOCK_B_ACTIVE = BLOCK_B_BASE.concat(
+    OPTIONAL_META.filter(function(o) { return o.block === 'B' && activeOpts.indexOf(o.id) !== -1; })
+  );
+  var ALL_DOCS = BLOCK_A.concat(BLOCK_B_ACTIVE);
+
+  // ── LocalStorage ──────────────────────────────────────────────────────
+  function ls_get(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
+  function ls_set(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+  function loadStatus() { try { return JSON.parse(ls_get('kd_checklist_' + token) || '{}'); } catch(e) { return {}; } }
+  function saveStatus(s) { ls_set('kd_checklist_' + token, JSON.stringify(s)); }
   function loadFromParent() {
     try {
       var all = JSON.parse(ls_get('kd_onboarding') || '[]');
@@ -388,21 +468,47 @@
   var parentCustomer = loadFromParent();
   var status = (parentCustomer && parentCustomer.docs) ? Object.assign({}, parentCustomer.docs) : loadStatus();
 
-  var activeOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
-  var DOCS_ACTIVE = DOCS_META.concat(OPTIONAL_META.filter(function(o) {
-    return activeOpts.indexOf(o.id) !== -1;
-  }));
+  // ── Render ─────────────────────────────────────────────────────────────
+  function renderItem(doc, blockClass) {
+    var isDone = !!status[doc.id];
+    var stepsHtml = '';
+    for (var s = 0; s < doc.steps.length; s++) {
+      stepsHtml += '<li class="step-item"><span class="step-num ' + blockClass + '">' + (s+1) + '</span><span>' + doc.steps[s] + '</span></li>';
+    }
+    return '<div>'
+      + '<div class="check-item">'
+      + '<div class="check-circle ' + (isDone ? 'done' : (blockClass === 'b' ? 'open-b' : 'open')) + '">' + (isDone ? '✓' : '') + '</div>'
+      + '<div class="check-icon">' + doc.icon + '</div>'
+      + '<div class="check-text">'
+      + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
+      + '<div class="check-desc">' + doc.desc + '</div>'
+      + '</div>'
+      + (isDone
+        ? '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rükgängig</button>'
+        : '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Erledigt</button>')
+      + '</div>'
+      + '<div class="check-steps">'
+      + '<div class="steps-toggle" data-action="toggle" data-id="' + doc.id + '">'
+      + '<span class="steps-arrow" id="arrow-' + doc.id + '">▶</span>'
+      + ' Schritt-für-Schritt-Anleitung'
+      + '</div>'
+      + '<div class="steps-body" id="steps-' + doc.id + '">'
+      + '<ul class="step-list">' + stepsHtml + '</ul>'
+      + '</div>'
+      + '</div>'
+      + '</div>';
+  }
 
   function render() {
     var done = 0;
-    for (var i = 0; i < DOCS_ACTIVE.length; i++) { if (status[DOCS_ACTIVE[i].id]) done++; }
-    var pct = Math.round((done / DOCS_ACTIVE.length) * 100);
+    for (var i = 0; i < ALL_DOCS.length; i++) { if (status[ALL_DOCS[i].id]) done++; }
+    var pct = ALL_DOCS.length > 0 ? Math.round((done / ALL_DOCS.length) * 100) : 0;
 
-    var spUrl       = (apiConfig && apiConfig.spUrl)       || (parentCustomer && parentCustomer.spUrl)       || params.get('spUrl')       || '';
-    var spUrlCloud  = (apiConfig && apiConfig.spUrlCloud)  || (parentCustomer && parentCustomer.spUrlCloud)  || params.get('spUrlCloud')  || '';
-    var spUrlMobile = (apiConfig && apiConfig.spUrlMobile) || (parentCustomer && parentCustomer.spUrlMobile) || params.get('spUrlMobile') || '';
-    var spUrlAuftrag= (apiConfig && apiConfig.spUrlAuftrag)|| (parentCustomer && parentCustomer.spUrlAuftrag)|| params.get('spUrlAuftrag')|| '';
-    var folderUrls  = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag };
+    var spUrl        = (apiConfig && apiConfig.spUrl)        || (parentCustomer && parentCustomer.spUrl)        || params.get('spUrl')        || '';
+    var spUrlCloud   = (apiConfig && apiConfig.spUrlCloud)   || (parentCustomer && parentCustomer.spUrlCloud)   || params.get('spUrlCloud')   || '';
+    var spUrlMobile  = (apiConfig && apiConfig.spUrlMobile)  || (parentCustomer && parentCustomer.spUrlMobile)  || params.get('spUrlMobile')  || '';
+    var spUrlAuftrag = (apiConfig && apiConfig.spUrlAuftrag) || (parentCustomer && parentCustomer.spUrlAuftrag) || params.get('spUrlAuftrag') || '';
+    var folderUrls   = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag };
 
     // Fortschritt
     var pctEl = document.getElementById('progress-pct');
@@ -414,73 +520,69 @@
     barEl.className  = 'progress-bar-inner' + cls;
     document.getElementById('progress-sub').textContent = pct === 100
       ? 'Alle Schritte abgeschlossen – vielen Dank!'
-      : 'Noch ' + (DOCS_ACTIVE.length - done) + ' offene Aufgabe' + ((DOCS_ACTIVE.length - done) !== 1 ? 'n' : '');
-    document.getElementById('check-count').textContent = done + ' / ' + DOCS_ACTIVE.length + ' erledigt';
+      : 'Noch ' + (ALL_DOCS.length - done) + ' offene Aufgabe' + ((ALL_DOCS.length - done) !== 1 ? 'n' : '');
+    document.getElementById('check-count').textContent = done + ' / ' + ALL_DOCS.length + ' erledigt';
     document.getElementById('done-card').classList.toggle('visible', pct === 100);
 
-    // Checkliste
+    // Checkliste: Block A
     var clHtml = '';
-    for (var d = 0; d < DOCS_ACTIVE.length; d++) {
-      var doc = DOCS_ACTIVE[d];
-      var isDone = !!status[doc.id];
-      var stepsHtml = '';
-      for (var s = 0; s < doc.steps.length; s++) {
-        stepsHtml += '<li class="step-item"><span class="step-num">' + (s+1) + '</span><span>' + doc.steps[s] + '</span></li>';
-      }
-      clHtml += '<div>'
-        + '<div class="check-item">'
-        + '<div class="check-circle ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '✓' : '') + '</div>'
-        + '<div class="check-icon">' + doc.icon + '</div>'
-        + '<div class="check-text">'
-        + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
-        + '<div class="check-desc">' + doc.desc + '</div>'
-        + '</div>'
-        + (isDone
-          ? '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rükgängig</button>'
-          : '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Erledigt</button>')
-        + '</div>'
-        + '<div class="check-steps">'
-        + '<div class="steps-toggle" data-action="toggle" data-id="' + doc.id + '">'
-        + '<span class="steps-arrow" id="arrow-' + doc.id + '">▶</span>'
-        + ' Schritt-für-Schritt-Anleitung'
-        + '</div>'
-        + '<div class="steps-body" id="steps-' + doc.id + '">'
-        + '<ul class="step-list">' + stepsHtml + '</ul>'
-        + '</div>'
-        + '</div>'
-        + '</div>';
+    clHtml += '<div class="section-bar a">'
+      + '<div class="section-tag a">Block A – Pflichtunterlagen</div>'
+      + '<div class="section-bar-title">Bitte unterschreiben und hochladen</div>'
+      + '<div class="section-bar-hint">Erst wenn diese Unterlagen (außer AVV) vorliegen, stimmen wir Liefer- und Schulungstermine ab.</div>'
+      + '</div>';
+    for (var d = 0; d < BLOCK_A.length; d++) {
+      clHtml += renderItem(BLOCK_A[d], 'a');
     }
+
+    // Checkliste: Block B
+    clHtml += '<div class="section-bar b">'
+      + '<div class="section-tag b">Block B – Vorbereitungsunterlagen</div>'
+      + '<div class="section-bar-title">Bitte bereitstellen und hochladen</div>'
+      + '<div class="section-bar-hint">Diese Unterlagen dienen zur Vorbereitung und strukturierten Durchführung der Schulungen.</div>'
+      + '</div>';
+    for (var e = 0; e < BLOCK_B_ACTIVE.length; e++) {
+      clHtml += renderItem(BLOCK_B_ACTIVE[e], 'b');
+    }
+
     document.getElementById('checklist-items').innerHTML = clHtml;
 
     // Ordner-Button
     document.getElementById('folder-btn-wrap').innerHTML = spUrl
-      ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">📁 Dokumente-Ordner öffnen</a>'
-      : '<span class="folder-btn-big disabled">📁 Dokumente-Ordner öffnen</span>';
+      ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">📁 Dokumenten-Ordner öffnen</a>'
+      : '<span class="folder-btn-big disabled">📁 Dokumenten-Ordner öffnen</span>';
 
     // Datei-Uebersicht
     var flHtml = '';
-    for (var f = 0; f < DOCS_ACTIVE.length; f++) {
-      var fd = DOCS_ACTIVE[f];
-      var fisDone = !!status[fd.id];
+    flHtml += '<div class="file-section-label">Block A – Pflichtunterlagen</div>';
+    for (var f = 0; f < BLOCK_A.length; f++) {
+      var fd = BLOCK_A[f]; var fisDone = !!status[fd.id];
       flHtml += '<div class="file-row' + (fisDone ? ' done-row' : '') + '">'
         + '<div class="file-icon-wrap">' + fd.icon + '</div>'
         + '<div class="file-info"><div class="file-name' + (fisDone ? ' done' : '') + '">' + fd.name + '</div></div>'
         + '<span class="file-badge ' + (fisDone ? 'done' : 'open') + '">' + (fisDone ? '✓ Erledigt' : '● Offen') + '</span>'
         + '</div>';
     }
+    if (BLOCK_B_ACTIVE.length > 0) {
+      flHtml += '<div class="file-section-label">Block B – Vorbereitung</div>';
+      for (var g = 0; g < BLOCK_B_ACTIVE.length; g++) {
+        var gb = BLOCK_B_ACTIVE[g]; var gbDone = !!status[gb.id];
+        flHtml += '<div class="file-row' + (gbDone ? ' done-row' : '') + '">'
+          + '<div class="file-icon-wrap">' + gb.icon + '</div>'
+          + '<div class="file-info"><div class="file-name' + (gbDone ? ' done' : '') + '">' + gb.name + '</div></div>'
+          + '<span class="file-badge ' + (gbDone ? 'done' : 'open') + '">' + (gbDone ? '✓ Erledigt' : '● Offen') + '</span>'
+          + '</div>';
+      }
+    }
     document.getElementById('files-list').innerHTML = flHtml;
 
     // Zugangsdaten + Auftragsbestaetigung
     var zdHtml = '';
     for (var z = 0; z < FOLDER_LINKS.length; z++) {
-      var zd = FOLDER_LINKS[z];
-      var zdUrl = folderUrls[zd.param] || '';
+      var zd = FOLDER_LINKS[z]; var zdUrl = folderUrls[zd.param] || '';
       zdHtml += '<div class="zd-row">'
         + '<div class="zd-icon">' + zd.icon + '</div>'
-        + '<div class="zd-info">'
-        + '<div class="zd-name">' + zd.name + '</div>'
-        + '<div class="zd-hint">' + zd.hint + '</div>'
-        + '</div>'
+        + '<div class="zd-info"><div class="zd-name">' + zd.name + '</div><div class="zd-hint">' + zd.hint + '</div></div>'
         + (zdUrl
           ? '<a class="zd-btn" href="' + zdUrl + '" target="_blank">⬇ Öffnen</a>'
           : '<span class="zd-btn disabled">⬇ Öffnen</span>')
@@ -489,7 +591,7 @@
     document.getElementById('zugangsdaten-list').innerHTML = zdHtml;
   }
 
-  // Event-Delegation (kein inline-onclick)
+  // ── Event-Delegation ──────────────────────────────────────────────────
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('[data-action]');
     if (!btn) return;
@@ -501,7 +603,7 @@
       syncToParent(id, true);
       render();
       var allDone = true;
-      for (var i = 0; i < DOCS_ACTIVE.length; i++) { if (!status[DOCS_ACTIVE[i].id]) { allDone = false; break; } }
+      for (var i = 0; i < ALL_DOCS.length; i++) { if (!status[ALL_DOCS[i].id]) { allDone = false; break; } }
       if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (action === 'undo') {
       status[id] = false;
@@ -511,13 +613,11 @@
     } else if (action === 'toggle') {
       var body  = document.getElementById('steps-' + id);
       var arrow = document.getElementById('arrow-' + id);
-      if (body && arrow) {
-        var open = body.classList.toggle('open');
-        arrow.classList.toggle('open', open);
-      }
+      if (body && arrow) { var open = body.classList.toggle('open'); arrow.classList.toggle('open', open); }
     }
   });
 
+  // ── SP-Sync ───────────────────────────────────────────────────────────
   function syncToParent(docId, value) {
     var custId = '';
     try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
