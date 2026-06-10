@@ -199,6 +199,9 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
         try:
             item_id = decode_token(token_param)
             fields  = sp_get_item(item_id)
+            # Build doc-status map so the client can sync across devices
+            docs = {doc_id: bool(fields.get(sp_field, False))
+                    for doc_id, sp_field in DOC_FIELD.items()}
             return func.HttpResponse(
                 json.dumps({
                     "ok":           True,
@@ -207,6 +210,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "spUrlMobile":  fields.get("SPUrlMobile",  ""),
                     "spUrlAuftrag": fields.get("SPUrlAuftrag", ""),
                     "optionen":     fields.get("Optionen",     ""),
+                    "docs":         docs,
                 }),
                 status_code=200, headers=CORS_HEADERS
             )
