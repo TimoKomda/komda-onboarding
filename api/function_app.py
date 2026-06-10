@@ -109,6 +109,7 @@ def sp_upload_file(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
     """
     Upload a file to a SharePoint folder via Microsoft Graph API.
     Returns (success: bool, message: str)
+    The message contains the upload URL for debugging when successful.
     """
     try:
         folder_path = extract_drive_path(sp_url)
@@ -118,7 +119,7 @@ def sp_upload_file(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
         token      = get_app_token()
         upload_url = (
             f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
-            f"/drive/root:/{urllib.parse.quote(folder_path)}/{urllib.parse.quote(safe_name)}:/content"
+            f"/drive/root:/{urllib.parse.quote(folder_path, safe='/')}/{urllib.parse.quote(safe_name)}:/content"
         )
         req = urllib.request.Request(
             upload_url,
@@ -131,10 +132,11 @@ def sp_upload_file(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
         )
         with urllib.request.urlopen(req) as resp:
             resp.read()
-            return True, "ok"
+            # Return the computed path so caller can log/display it
+            return True, f"path={folder_path}/{safe_name}"
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
-        return False, f"HTTP {e.code}: {body[:200]}"
+        return False, f"HTTP {e.code}: {body[:300]}"
     except Exception as ex:
         return False, str(ex)
 
