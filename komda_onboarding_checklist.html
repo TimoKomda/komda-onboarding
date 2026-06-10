@@ -175,8 +175,8 @@
       .sign-modal-box{border-radius:var(--radius-md) var(--radius-md) 0 0;margin-top:auto;margin-bottom:0;max-height:95vh;overflow-y:auto}
       .sign-modal-header{padding:14px 16px}
       .sign-modal-body{padding:14px 16px}
-      .sign-steps{padding:8px 10px}
-      .sign-step-label{display:none} /* hide text labels, keep circles */
+      .sign-steps{padding:8px 8px}
+      .sign-step-label{font-size:10px;white-space:normal;line-height:1.2}
       .sign-footer{flex-direction:column-reverse}
       .sign-cancel-btn,.sign-confirm-btn{width:100%;text-align:center}
       .sign-confirm-btn{padding:13px}
@@ -450,10 +450,13 @@
     },
     email_rechnung: {
       pdfUrl: 'formulare/email-rechnung.pdf',
-      signatures: [
-        { page: 0, signX: 80, signY: 100, signW: 220, signH: 50 },
-      ],
-      fieldLabels: {},
+      // Signaturfeld "Unterschrift" ist als /Sig-Feld im PDF → wird automatisch erkannt
+      signatures: [],
+      fieldLabels: {
+        'Firma':           'Firma',
+        'Ansprechpartner': 'Ansprechpartner',
+        'E-Mail-Adresse':  'E-Mail-Adresse',
+      },
     },
     fernwartung: {
       pdfUrl: 'formulare/fernwartung.pdf',
