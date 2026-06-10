@@ -460,8 +460,8 @@
     },
     fernwartung: {
       pdfUrl: 'formulare/fernwartung.pdf',
-      // Signaturfeld "Unterschrift" ist als /Sig-Feld im PDF → wird automatisch erkannt
       signatures: [],
+      showDate: false,  // Datum wird vom Kunden selbst eingetragen
       fieldLabels: {
         'Kunde': 'Kunde / Firmenstempel',
         'Datum': 'Datum',
@@ -1095,10 +1095,12 @@
           drawH = drawW / canvasRatio;
         }
         page.drawImage(sigImg, { x: sp.x, y: sp.y, width: drawW, height: drawH, opacity: 1 });
-        page.drawText(dateStr, {
-          x: sp.x, y: Math.max(sp.y - 13, 5),
-          size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3),
-        });
+        if (cfg.showDate !== false) {
+          page.drawText(dateStr, {
+            x: sp.x, y: Math.max(sp.y - 13, 5),
+            size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3),
+          });
+        }
       });
 
       // ── Build filename ────────────────────────────────────────
