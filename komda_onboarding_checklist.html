@@ -155,6 +155,24 @@
     .sign-pdf-link{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--red-pale);color:var(--red);border-radius:10px;text-decoration:none;font-size:13px;font-weight:600;margin-bottom:18px;transition:background .15s}
     .sign-pdf-link:hover{background:#fad5d5}
 
+    /* Step indicator */
+    .sign-steps{display:flex;align-items:center;gap:0;margin-bottom:20px;background:var(--gray-bg);border-radius:10px;padding:10px 14px}
+    .sign-step{display:flex;align-items:center;gap:7px;flex:1;min-width:0}
+    .sign-step-num{width:22px;height:22px;border-radius:50%;background:var(--border);color:var(--muted);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s,color .2s}
+    .sign-step-num.active{background:var(--red);color:#fff}
+    .sign-step-num.done{background:var(--green);color:#fff}
+    .sign-step-label{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sign-step-label.active{color:var(--text)}
+    .sign-step-arrow{color:var(--border);font-size:13px;margin:0 4px;flex-shrink:0}
+
+    /* PDF toggle */
+    .sign-pdf-toggle{display:flex;align-items:center;gap:8px;width:100%;background:none;border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:14px;transition:border-color .15s,color .15s;text-align:left}
+    .sign-pdf-toggle:hover{border-color:var(--red);color:var(--red)}
+    .sign-pdf-toggle .toggle-arrow{margin-left:auto;transition:transform .2s;font-size:10px}
+    .sign-pdf-toggle.open .toggle-arrow{transform:rotate(180deg)}
+    .sign-pdf-collapse{display:none;margin-bottom:14px}
+    .sign-pdf-collapse.open{display:block}
+
     /* Form fields */
     .sign-loading{text-align:center;padding:16px;color:var(--muted);font-size:13px}
     .sign-no-fields{font-size:13px;color:var(--muted);padding:10px 0 14px;font-style:italic}
@@ -289,22 +307,46 @@
       <button class="sign-modal-close" onclick="closeSignModal()">&#215;</button>
     </div>
     <div class="sign-modal-body">
-      <div class="sign-modal-info" id="sign-modal-info">
-        F&uuml;llen Sie die Felder aus und zeichnen Sie Ihre Unterschrift. Das fertige Dokument wird automatisch in Ihren Dokumenten-Ordner hochgeladen.
+
+      <!-- Step indicator -->
+      <div class="sign-steps">
+        <div class="sign-step">
+          <div class="sign-step-num active" id="step-num-1">1</div>
+          <div class="sign-step-label active" id="step-lbl-1">Felder ausf&uuml;llen</div>
+        </div>
+        <div class="sign-step-arrow">›</div>
+        <div class="sign-step">
+          <div class="sign-step-num" id="step-num-2">2</div>
+          <div class="sign-step-label" id="step-lbl-2">Unterschreiben</div>
+        </div>
+        <div class="sign-step-arrow">›</div>
+        <div class="sign-step">
+          <div class="sign-step-num" id="step-num-3">3</div>
+          <div class="sign-step-label" id="step-lbl-3">Hochladen</div>
+        </div>
       </div>
 
-      <!-- Inline PDF preview -->
-      <div class="sign-pdf-preview-wrap" id="sign-pdf-preview-wrap" style="display:none">
-        <iframe id="sign-pdf-iframe" src="" title="Dokument-Vorschau"
-          style="width:100%;height:340px;border:1px solid var(--border);border-radius:8px;background:#f9f9f9"></iframe>
-        <a class="sign-pdf-link" id="sign-pdf-link" href="#" target="_blank"
-          style="display:block;margin-top:6px;font-size:11px;text-align:right">&#128196; In neuem Tab &ouml;ffnen</a>
+      <!-- PDF preview (collapsed by default) -->
+      <div id="sign-pdf-preview-wrap" style="display:none">
+        <button class="sign-pdf-toggle" id="sign-pdf-toggle" onclick="toggleSignPdf()">
+          <span>&#128196; Dokument zur Ansicht &ouml;ffnen</span>
+          <span class="toggle-arrow">&#9660;</span>
+        </button>
+        <div class="sign-pdf-collapse" id="sign-pdf-collapse">
+          <iframe id="sign-pdf-iframe" src="" title="Dokument-Vorschau"
+            style="width:100%;height:320px;border:1px solid var(--border);border-radius:8px;background:#f9f9f9"></iframe>
+          <a id="sign-pdf-link" href="#" target="_blank"
+            style="display:block;margin-top:5px;font-size:11px;text-align:right;color:var(--muted)">&#128196; In neuem Tab &ouml;ffnen</a>
+        </div>
       </div>
 
       <div id="sign-form-fields"></div>
 
       <hr class="sign-divider">
-      <div class="sign-pad-label">Ihre Unterschrift:</div>
+      <div class="sign-pad-label">
+        <span class="sign-step-num active" style="display:inline-flex;width:20px;height:20px;font-size:10px;margin-right:6px;vertical-align:middle">2</span>
+        Ihre Unterschrift:
+      </div>
       <div class="sign-pad-wrap">
         <canvas id="sign-pad" width="620" height="140"></canvas>
         <div class="sign-pad-hint">Hier unterschreiben</div>
@@ -833,15 +875,64 @@
 
       document.getElementById('sign-form-fields').innerHTML = fieldsHtml;
 
+      // Update steps on field input
+      document.querySelectorAll('.sign-field-input').forEach(function(inp) {
+        inp.addEventListener('input', function() {
+          var hasSig = (function() {
+            var c = document.getElementById('sign-pad');
+            if (!c) return false;
+            var d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+            for (var i = 3; i < d.length; i += 4) { if (d[i] > 10) return true; }
+            return false;
+          })();
+          var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
+          if (window._updateSteps) window._updateSteps(anyFilled, hasSig);
+        });
+      });
+
     } catch(e) {
       document.getElementById('sign-form-fields').innerHTML =
         '<div class="sign-load-error">&#9888; ' + e.message + '</div>';
     }
   };
 
+  window.toggleSignPdf = function() {
+    var btn      = document.getElementById('sign-pdf-toggle');
+    var collapse = document.getElementById('sign-pdf-collapse');
+    var open     = collapse.classList.toggle('open');
+    btn.classList.toggle('open', open);
+  };
+
+  // Update step indicator: step 1 active while filling fields, step 2 when pad has ink
+  function _updateSteps(filledFields, hasSig) {
+    var s1n = document.getElementById('step-num-1'), s1l = document.getElementById('step-lbl-1');
+    var s2n = document.getElementById('step-num-2'), s2l = document.getElementById('step-lbl-2');
+    var s3n = document.getElementById('step-num-3'), s3l = document.getElementById('step-lbl-3');
+    if (!s1n) return;
+    // Step 1
+    if (filledFields && hasSig) { s1n.className = 'sign-step-num done'; }
+    else if (!filledFields)     { s1n.className = 'sign-step-num active'; s1l.className = 'sign-step-label active'; }
+    else                        { s1n.className = 'sign-step-num done'; }
+    s1l.className = 'sign-step-label' + ((!filledFields) ? ' active' : '');
+    // Step 2
+    if (hasSig)                { s2n.className = 'sign-step-num done'; s2l.className = 'sign-step-label'; }
+    else if (filledFields)     { s2n.className = 'sign-step-num active'; s2l.className = 'sign-step-label active'; }
+    else                       { s2n.className = 'sign-step-num'; s2l.className = 'sign-step-label'; }
+    // Step 3 (always pending until upload)
+    s3n.className = 'sign-step-num' + (hasSig ? ' active' : '');
+    s3l.className = 'sign-step-label' + (hasSig ? ' active' : '');
+  }
+  // Expose for canvas draw handler
+  window._updateSteps = _updateSteps;
+
   window.closeSignModal = function() {
     document.getElementById('sign-modal').classList.remove('open');
     document.body.style.overflow = '';
+    // Reset PDF toggle
+    var c = document.getElementById('sign-pdf-collapse');
+    var b = document.getElementById('sign-pdf-toggle');
+    if (c) c.classList.remove('open');
+    if (b) b.classList.remove('open');
     currentSignDocId = null;
   };
 
@@ -1066,11 +1157,17 @@
     }
     canvas.addEventListener('mousedown', function(e) { signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
     canvas.addEventListener('mousemove', function(e) { if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-    canvas.addEventListener('mouseup',    function() { signDrawing = false; });
+    function _afterStroke() {
+      signDrawing = false;
+      // Update steps: check if any field has a value
+      var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
+      if (window._updateSteps) window._updateSteps(anyFilled, true);
+    }
+    canvas.addEventListener('mouseup',    _afterStroke);
     canvas.addEventListener('mouseleave', function() { signDrawing = false; });
     canvas.addEventListener('touchstart', function(e) { signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); }, { passive: false });
     canvas.addEventListener('touchmove',  function(e) { if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, { passive: false });
-    canvas.addEventListener('touchend',   function() { signDrawing = false; });
+    canvas.addEventListener('touchend',   _afterStroke);
   })();
 
   render();
