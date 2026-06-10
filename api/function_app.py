@@ -86,54 +86,90 @@ def sp_patch(item_id: str, field: str, value: bool):
         resp.read()
 
 
-def extract_drive_path(sp_url: str) -> str:
+def _is_sharing_link(sp_url: str) -> bool:
+    """Detect SharePoint sharing links (/:f:/, /:b:/, /:fl:/ etc.)"""
+    return bool(re.search(r'/:[a-z]+:/', sp_url))
+
+
+def _encode_sharing_token(url: str) -> str:
+    """Encode a sharing URL as a Graph API shares token (u!<base64>)."""
+    b64 = base64.b64encode(url.encode('utf-8')).decode()
+    return 'u!' + b64.rstrip('=').replace('/', '_').replace('+', '-')
+
+
+def sp_upload_via_sharing_link(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
     """
-    Extracts the drive-relative folder path from a SharePoint folder URL.
-    e.g. https://tenant.sharepoint.com/sites/ZSH/Shared%20Documents/Onboarding/Kunde
-         -> Onboarding/Kunde
+    Upload to a SharePoint folder identified by a sharing link.
+    Uses /v1.0/shares/{token}/driveItem to resolve the folder, then uploads.
     """
-    parsed  = urllib.parse.urlparse(sp_url)
-    path    = urllib.parse.unquote(parsed.path)
-    # Strip /sites/{site-name}/{library-name}/ prefix
+    safe_name  = re.sub(r'[<>:"/\\|?*]', '_', filename)
+    app_token  = get_app_token()
+    share_token = _encode_sharing_token(sp_url)
+
+    # Resolve sharing link → drive item
+    resolve_url = f"https://graph.microsoft.com/v1.0/shares/{share_token}/driveItem?$select=id,parentReference"
+    req = urllib.request.Request(resolve_url, headers={"Authorization": f"Bearer {app_token}"})
+    with urllib.request.urlopen(req) as resp:
+        item = json.loads(resp.read())
+
+    drive_id = item['parentReference']['driveId']
+    item_id  = item['id']
+
+    upload_url = (
+        f"https://graph.microsoft.com/v1.0/drives/{drive_id}"
+        f"/items/{item_id}:/{urllib.parse.quote(safe_name)}:/content"
+    )
+    req = urllib.request.Request(
+        upload_url, data=file_bytes, method="PUT",
+        headers={"Authorization": f"Bearer {app_token}", "Content-Type": "application/octet-stream"},
+    )
+    with urllib.request.urlopen(req) as resp:
+        resp.read()
+    return True, f"driveId={drive_id} item={item_id} file={safe_name}"
+
+
+def sp_upload_via_path(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
+    """
+    Upload to a SharePoint folder identified by a direct URL.
+    e.g. https://tenant.sharepoint.com/sites/ZSH/Shared Documents/Onboarding/Kunde
+    """
+    safe_name = re.sub(r'[<>:"/\\|?*]', '_', filename)
+    parsed    = urllib.parse.urlparse(sp_url)
+    path      = urllib.parse.unquote(parsed.path)
+
+    # Strip /sites/{site}/{library}/ prefix → relative folder path
     m = re.match(r'^/sites/[^/]+/[^/]+/(.+)$', path)
     if m:
-        return m.group(1)
-    # Fallback: also handle /teams/ or no prefix
-    m2 = re.match(r'^/[^/]+/[^/]+/(.+)$', path)
-    if m2:
-        return m2.group(1)
-    return path.lstrip('/')
+        folder_path = m.group(1)
+    else:
+        m2 = re.match(r'^/[^/]+/[^/]+/(.+)$', path)
+        folder_path = m2.group(1) if m2 else path.lstrip('/')
+
+    app_token  = get_app_token()
+    upload_url = (
+        f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
+        f"/drive/root:/{urllib.parse.quote(folder_path, safe='/')}/{urllib.parse.quote(safe_name)}:/content"
+    )
+    req = urllib.request.Request(
+        upload_url, data=file_bytes, method="PUT",
+        headers={"Authorization": f"Bearer {app_token}", "Content-Type": "application/octet-stream"},
+    )
+    with urllib.request.urlopen(req) as resp:
+        resp.read()
+    return True, f"path={folder_path}/{safe_name}"
 
 
 def sp_upload_file(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
     """
-    Upload a file to a SharePoint folder via Microsoft Graph API.
-    Returns (success: bool, message: str)
-    The message contains the upload URL for debugging when successful.
+    Upload a file to a SharePoint folder.
+    Automatically detects sharing links (/:f:/ etc.) vs. direct folder URLs.
+    Returns (success: bool, debug_message: str).
     """
     try:
-        folder_path = extract_drive_path(sp_url)
-        # Sanitize filename (no path traversal)
-        safe_name = re.sub(r'[<>:"/\\|?*]', '_', filename)
-
-        token      = get_app_token()
-        upload_url = (
-            f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
-            f"/drive/root:/{urllib.parse.quote(folder_path, safe='/')}/{urllib.parse.quote(safe_name)}:/content"
-        )
-        req = urllib.request.Request(
-            upload_url,
-            data=file_bytes,
-            method="PUT",
-            headers={
-                "Authorization": f"Bearer {token}",
-                "Content-Type":  "application/octet-stream",
-            },
-        )
-        with urllib.request.urlopen(req) as resp:
-            resp.read()
-            # Return the computed path so caller can log/display it
-            return True, f"path={folder_path}/{safe_name}"
+        if _is_sharing_link(sp_url):
+            return sp_upload_via_sharing_link(sp_url, filename, file_bytes)
+        else:
+            return sp_upload_via_path(sp_url, filename, file_bytes)
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
         return False, f"HTTP {e.code}: {body[:300]}"
