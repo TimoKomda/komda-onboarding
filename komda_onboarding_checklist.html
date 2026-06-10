@@ -345,15 +345,40 @@
   var SIGN_CONFIG = {
     sepa: {
       pdfUrl: 'formulare/sepa-mandat.pdf',
-      page: 0, signX: 80, signY: 100, signW: 220, signH: 50,
+      // Mehrere Unterschrift-Positionen (gleiche Unterschrift wird an alle Stellen gesetzt)
+      // Wenn AcroForm-Signaturfelder im PDF vorhanden sind, werden diese automatisch genutzt.
+      // Fallback-Positionen (PDF-Koordinaten, Ursprung unten-links):
+      signatures: [
+        { page: 0, signX: 80, signY: 100, signW: 220, signH: 50 },
+        // Zweite Unterschrift-Position – bitte nach Test anpassen:
+        // { page: 0, signX: 80, signY: 40, signW: 220, signH: 50 },
+      ],
+      // Lesbare Feldnamen – bitte die internen PDF-Feldnamen (links) nach Test zuordnen:
+      // Format: 'interner PDF-Feldname': 'Anzeige-Label'
+      fieldLabels: {
+        // Beispiel (Feldnamen nach erstem Test hier einsetzen):
+        // 'Dx Form Field1': 'Firma / Kontoinhaber',
+        // 'Dx Form Field2': 'Straße, Hausnummer',
+        // 'Dx Form Field3': 'PLZ / Ort',
+        // 'Dx Form Field5': 'IBAN',
+        // 'Dx Form Field13': 'BIC',
+        // 'Dx Form Field14': 'Kreditinstitut',
+        // 'Dx Form Field15': 'Ort, Datum',
+      },
     },
     email_rechnung: {
       pdfUrl: 'formulare/email-rechnung.pdf',
-      page: 0, signX: 80, signY: 100, signW: 220, signH: 50,
+      signatures: [
+        { page: 0, signX: 80, signY: 100, signW: 220, signH: 50 },
+      ],
+      fieldLabels: {},
     },
     fernwartung: {
       pdfUrl: 'formulare/fernwartung.pdf',
-      page: 0, signX: 80, signY: 100, signW: 220, signH: 50,
+      signatures: [
+        { page: 0, signX: 80, signY: 100, signW: 220, signH: 50 },
+      ],
+      fieldLabels: {},
     },
   };
 
@@ -752,18 +777,24 @@
         });
 
         if (textFields.length > 0) {
+          var cfgLabels = (cfg && cfg.fieldLabels) ? cfg.fieldLabels : {};
           fieldsHtml += '<div class="sign-fields-label">Formularfelder ausf&#252;llen:</div>';
           fieldsHtml += '<div class="sign-fields-grid">';
-          textFields.forEach(function(tf) {
+          textFields.forEach(function(tf, idx) {
             var rawName = tf.name;
-            // Build readable label
-            var label = rawName
-              .replace(/^(txt|fld|field|input|form)/i, '')
-              .replace(/_/g, ' ')
-              .replace(/([a-z])([A-Z])/g, '$1 $2')
-              .trim();
-            if (label) label = label.charAt(0).toUpperCase() + label.slice(1);
-            else label = rawName;
+            var label;
+            if (cfgLabels[rawName]) {
+              label = cfgLabels[rawName];
+            } else {
+              // Auto-label: strip generic prefixes, camelCase split, fallback "Feld N"
+              label = rawName
+                .replace(/^(txt|fld|field|input|form|dx\s*form\s*field)/i, '')
+                .replace(/_/g, ' ')
+                .replace(/([a-z])([A-Z])/g, '$1 $2')
+                .trim();
+              if (!label || /^\d+$/.test(label)) label = 'Feld ' + (idx + 1);
+              else label = label.charAt(0).toUpperCase() + label.slice(1);
+            }
 
             fieldsHtml += '<div class="sign-field-item">'
               + '<label class="sign-field-label">' + label + '</label>'
@@ -801,9 +832,10 @@
     if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  // Helper: ArrayBuffer → Base64 (chunk-based, no stack overflow)
-  function _buf2b64(buf) {
-    var bytes = new Uint8Array(buf);
+  // Helper: Uint8Array / ArrayBuffer → Base64 (chunk-based, no stack overflow)
+  // IMPORTANT: always pass a Uint8Array (not .buffer) to get the exact byte range
+  function _buf2b64(input) {
+    var bytes = (input instanceof Uint8Array) ? input : new Uint8Array(input);
     var out = '';
     var chunk = 8192;
     for (var i = 0; i < bytes.length; i += chunk) {
@@ -840,41 +872,60 @@
     try {
       // Reload fresh from cached bytes to avoid stale mutations
       var pdfDoc = await PDFLib.PDFDocument.load(_pdfCache[currentSignDocId]);
+      var pages  = pdfDoc.getPages();
 
-      // ── Fill text fields ──────────────────────────────────────
+      // ── Fill text fields + flatten ────────────────────────────
+      // Flatten embeds AcroForm values as static PDF content so
+      // they are visible in all viewers and cannot be edited further.
       try {
         var form = pdfDoc.getForm();
         var inputs = document.querySelectorAll('.sign-field-input');
         inputs.forEach(function(inp) {
-          var fn = inp.getAttribute('data-field');
+          var fn  = inp.getAttribute('data-field');
           var val = inp.value.trim();
           if (!val) return;
           try { form.getTextField(fn).setText(val); } catch(e) {}
         });
+        form.flatten(); // embed values as visible text
       } catch(e) {}
 
-      // ── Determine signature position ──────────────────────────
-      var pages = pdfDoc.getPages();
-      var sigPage = cfg.page !== undefined ? cfg.page : 0;
-      var page = pages[Math.min(sigPage, pages.length - 1)];
-
-      var sp = _sigPosCache[currentSignDocId];
-      var sigX = sp ? sp.x : (cfg.signX !== undefined ? cfg.signX : 80);
-      var sigY = sp ? sp.y : (cfg.signY !== undefined ? cfg.signY : 100);
-      var sigW = sp ? sp.w : (cfg.signW !== undefined ? cfg.signW : 220);
-      var sigH = sp ? sp.h : (cfg.signH !== undefined ? cfg.signH : 50);
-
-      // ── Embed signature image ─────────────────────────────────
+      // ── Embed signature image (once, reused for all positions) ─
       var sigDataUrl = canvas.toDataURL('image/png');
       var sigBuf = await fetch(sigDataUrl).then(function(r) { return r.arrayBuffer(); });
       var sigImg = await pdfDoc.embedPng(sigBuf);
-      page.drawImage(sigImg, { x: sigX, y: sigY, width: sigW, height: sigH, opacity: 1 });
-
-      // Add date below signature
       var dateStr = new Date().toLocaleDateString('de-DE');
-      page.drawText(dateStr, {
-        x: sigX, y: Math.max(sigY - 13, 5),
-        size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3),
+
+      // ── Determine signature position(s) ──────────────────────
+      // Support both old single-position config (signX/Y/W/H) and
+      // new multi-position array (cfg.signatures).
+      var sigPositions = [];
+
+      // Auto-detected positions from AcroForm signature fields
+      var autoPos = _sigPosCache[currentSignDocId];
+      if (autoPos) {
+        sigPositions.push({ page: cfg.signatures ? (cfg.signatures[0] && cfg.signatures[0].page || 0) : (cfg.page || 0),
+          x: autoPos.x, y: autoPos.y, w: autoPos.w, h: autoPos.h });
+      }
+
+      // Fallback: from cfg.signatures array or legacy cfg.signX/Y/W/H
+      if (sigPositions.length === 0) {
+        if (cfg.signatures && cfg.signatures.length > 0) {
+          cfg.signatures.forEach(function(s) {
+            sigPositions.push({ page: s.page || 0, x: s.signX || 80, y: s.signY || 100, w: s.signW || 220, h: s.signH || 50 });
+          });
+        } else {
+          sigPositions.push({ page: cfg.page || 0, x: cfg.signX || 80, y: cfg.signY || 100, w: cfg.signW || 220, h: cfg.signH || 50 });
+        }
+      }
+
+      // ── Draw signature at each position ──────────────────────
+      sigPositions.forEach(function(sp) {
+        var page = pages[Math.min(sp.page, pages.length - 1)];
+        page.drawImage(sigImg, { x: sp.x, y: sp.y, width: sp.w, height: sp.h, opacity: 1 });
+        page.drawText(dateStr, {
+          x: sp.x, y: Math.max(sp.y - 13, 5),
+          size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3),
+        });
       });
 
       // ── Build filename ────────────────────────────────────────
@@ -883,8 +934,8 @@
       var safeDocName = (docObj ? docObj.name.replace(/[^\wäöüÄÖÜß\s\-]/g, '').trim() : currentSignDocId);
       var filename = safeDocName + '_unterschrieben.pdf';
 
-      // ── Save PDF ──────────────────────────────────────────────
-      var signedBytes = await pdfDoc.save();
+      // ── Save PDF (returns Uint8Array) ─────────────────────────
+      var signedBytes = await pdfDoc.save(); // Uint8Array
       var docId = currentSignDocId;
 
       // ── Try upload to SharePoint ──────────────────────────────
@@ -892,13 +943,14 @@
       var custId = '';
       try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
 
-      var uploaded = false;
+      var uploaded    = false;
       var uploadError = '';
 
       if (custId && uploadSpUrl && !isPreview) {
         btn.textContent = '☁ Wird hochgeladen…';
         try {
-          var b64 = _buf2b64(signedBytes.buffer || signedBytes);
+          // Pass Uint8Array directly – do NOT use .buffer (would include unused memory)
+          var b64 = _buf2b64(signedBytes);
           var uploadResp = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -928,21 +980,18 @@
       status[docId] = true;
       saveStatus(status);
       if (!uploaded) {
-        // syncToParent handles status update only (no file)
-        syncToParent(docId, true);
+        syncToParent(docId, true); // status-only POST (no file)
       }
       render();
 
       // ── Result feedback ───────────────────────────────────────
       if (uploaded) {
-        // Brief success notification (auto-hide)
         var note = document.createElement('div');
         note.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999';
         note.innerHTML = '✓ Dokument erfolgreich hochgeladen!';
         document.body.appendChild(note);
         setTimeout(function() { note.remove(); }, 4000);
       } else {
-        // Fallback: download + info
         _downloadPdf(signedBytes, filename);
         var msg = 'Das Dokument wurde heruntergeladen.';
         if (uploadError) msg += '\n\nHinweis: Automatischer Upload fehlgeschlagen (' + uploadError + ').\nBitte laden Sie die Datei manuell in Ihren Dokumenten-Ordner hoch.';
