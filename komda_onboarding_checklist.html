@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Komda &middot; Ihr Onboarding</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23b71c1c'/%3E%3Cpolygon points='23,13 39,13 39,87 23,87' fill='white'/%3E%3Cpolygon points='39,13 77,13 77,36 39,55' fill='white'/%3E%3Cpolygon points='39,57 59,57 79,87 57,87' fill='white'/%3E%3Cpolygon points='40,13 58,13 38,53 20,53' fill='%23b71c1c'/%3E%3C/svg%3E">
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <style>
     :root {
       --red:#c41b1b; --red-dark:#9a1515; --red-pale:#fdeaea;
@@ -32,65 +33,71 @@
 
     .page-body{max-width:1060px;margin:0 auto;padding:28px 24px 60px}
 
-    .progress-card{background:var(--card);border-radius:var(--radius-lg);padding:22px 28px;border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);margin-bottom:24px}
-    .progress-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:16px}
-    .progress-label{font-size:16px;font-weight:700;color:var(--text)}
-    .progress-sub{font-size:13px;color:var(--muted);margin-top:3px}
-    .progress-pct{font-size:34px;font-weight:800;color:var(--green);line-height:1;white-space:nowrap}
-    .progress-pct.partial{color:var(--orange)}
-    .progress-pct.zero{color:var(--red)}
-    .progress-bar-outer{background:var(--border);border-radius:10px;height:10px;overflow:hidden}
-    .progress-bar-inner{height:100%;border-radius:10px;background:var(--green);transition:width .5s}
-    .progress-bar-inner.partial{background:var(--orange)}
-    .progress-bar-inner.zero{background:var(--red-pale)}
+    /* Intro */
+    .intro-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);padding:22px 28px;margin-bottom:22px}
+    .intro-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .intro-body p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:6px}
+    .intro-body p:last-child{margin-bottom:0}
+    .intro-body strong{color:var(--text)}
 
+    /* Two-col layout */
     .two-col{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
     @media(max-width:760px){.two-col{grid-template-columns:1fr}}
 
-    .col-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden}
+    /* Checklist card with vertical progress bar */
+    .col-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden;position:relative}
     .col-card-header{padding:18px 22px 14px;border-bottom:1px solid var(--border-lt);display:flex;align-items:center;gap:10px}
     .col-card-title{font-size:15px;font-weight:700;color:var(--text)}
     .col-card-count{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);background:var(--gray-bg);padding:3px 10px;border-radius:20px}
 
+    /* Vertical progress track */
+    .progress-v-track{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--border-lt);z-index:1;pointer-events:none}
+    .progress-v-fill{position:absolute;top:0;left:0;width:100%;height:0%;background:var(--red);border-radius:0;transition:height .6s ease}
+    .progress-v-fill.partial{background:var(--orange)}
+    .progress-v-fill.done-full{background:var(--green)}
+
     /* Section bars */
-    .section-bar{padding:12px 22px 10px;border-bottom:1px solid var(--border-lt)}
-    .section-bar.a{background:#fff8f8}
-    .section-bar.b{background:#f5f8ff}
-    .section-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;margin-bottom:4px}
-    .section-tag.a{background:var(--red-pale);color:var(--red)}
-    .section-tag.b{background:var(--blue-bg);color:var(--blue)}
+    .section-bar{padding:12px 22px 10px;border-bottom:1px solid var(--border-lt);background:#fafaf9}
     .section-bar-title{font-size:13px;font-weight:700;color:var(--text)}
     .section-bar-hint{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
 
-    .check-item{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid var(--border-lt);transition:background .15s}
+    /* Status badge */
+    .status-badge{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+    .status-badge.open{background:#f3f2f1;color:var(--muted);border:1px solid var(--border)}
+    .status-badge.done{background:var(--green-bg);color:var(--green)}
+
+    /* Check items */
+    .check-item{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border-lt);transition:background .15s}
     .check-item:hover{background:#fafaf9}
-    .check-circle{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:2px solid var(--border);background:#fff;transition:all .2s;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:transparent}
-    .check-circle.done{background:var(--green);border-color:var(--green);color:#fff}
-    .check-circle.open{border-color:var(--red)}
-    .check-circle.open-b{border-color:var(--blue)}
-    .check-icon{font-size:22px;flex-shrink:0}
+    .check-icon{font-size:20px;flex-shrink:0}
     .check-text{flex:1;min-width:0}
     .check-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.3}
     .check-name.done{color:var(--muted);text-decoration:line-through}
     .check-desc{font-size:12px;color:var(--muted);margin-top:2px}
-    .check-btn{flex-shrink:0;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;white-space:nowrap;background:none}
+    .check-btn-wrap{flex-shrink:0;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+    .check-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;white-space:nowrap;background:none}
     .check-btn.done-btn{background:var(--green-bg);color:var(--green);border-color:#c3e6d3}
     .check-btn.done-btn:hover{background:#c8ecd8}
     .check-btn.undo-btn{background:var(--gray-bg);color:var(--muted);border-color:var(--border)}
     .check-btn.undo-btn:hover{background:var(--border)}
+    .check-btn.sign-btn{background:var(--red-pale);color:var(--red);border-color:#f5c0c0;font-size:12px;padding:7px 14px}
+    .check-btn.sign-btn:hover{background:#fad5d5}
+    .check-btn.manual-btn{background:none;color:var(--muted);border-color:transparent;font-size:10px;padding:2px 6px;opacity:.7}
+    .check-btn.manual-btn:hover{opacity:1;background:var(--gray-bg)}
 
     .check-steps{background:#fafaf9;border-top:1px solid var(--border-lt)}
-    .steps-toggle{padding:10px 22px 10px 64px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
+    .steps-toggle{padding:10px 22px 10px 54px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none}
     .steps-toggle:hover{color:var(--text)}
     .steps-arrow{transition:transform .2s;font-size:10px;display:inline-block}
     .steps-arrow.open{transform:rotate(90deg)}
-    .steps-body{display:none;padding:4px 22px 14px 64px}
+    .steps-body{display:none;padding:4px 22px 14px 54px}
     .steps-body.open{display:block}
     .step-list{list-style:none}
     .step-item{display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:var(--text);line-height:1.5}
     .step-num{width:20px;height:20px;background:var(--red);color:#fff;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:2px}
     .step-num.b{background:var(--blue)}
 
+    /* Right panel */
     .doc-panel{display:flex;flex-direction:column;gap:16px}
     .folder-box{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);padding:20px 22px}
     .folder-box-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
@@ -130,10 +137,6 @@
     .zd-btn:hover{background:#e0e0ff}
     .zd-btn.disabled{opacity:.4;pointer-events:none;cursor:default}
 
-    .upload-hint-box{background:var(--orange-bg);border:1px solid #f5d99a;border-radius:var(--radius-md);padding:14px 18px}
-    .upload-hint-title{font-size:13px;font-weight:700;color:var(--orange);margin-bottom:4px}
-    .upload-hint-text{font-size:12px;color:#5a3e00;line-height:1.5}
-
     .done-card{background:var(--green-bg);border:1.5px solid #c3e6d3;border-radius:var(--radius-lg);padding:28px;text-align:center;display:none;margin-bottom:20px}
     .done-card.visible{display:block}
     .done-icon{font-size:48px;margin-bottom:12px}
@@ -148,6 +151,30 @@
     .contact-link{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:all .15s;border:1.5px solid transparent}
     .contact-link.phone{background:var(--green-bg);color:var(--green);border-color:#c3e6d3}
     .contact-link.mail{background:var(--red-pale);color:var(--red);border-color:#f5c0c0}
+
+    /* Signing modal */
+    .sign-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:20px}
+    .sign-modal.open{display:flex}
+    .sign-modal-box{background:#fff;border-radius:var(--radius-lg);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+    .sign-modal-header{padding:20px 24px;border-bottom:1px solid var(--border-lt);display:flex;align-items:center;justify-content:space-between}
+    .sign-modal-title{font-size:16px;font-weight:700;color:var(--text)}
+    .sign-modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted);padding:4px 8px;line-height:1}
+    .sign-modal-body{padding:22px 24px}
+    .sign-modal-info{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6}
+    .sign-pdf-link{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--red-pale);color:var(--red);border-radius:10px;text-decoration:none;font-size:13px;font-weight:600;margin-bottom:22px;transition:background .15s}
+    .sign-pdf-link:hover{background:#fad5d5}
+    .sign-pad-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px}
+    .sign-pad-wrap{border:2px dashed var(--border);border-radius:12px;background:#fafaf9;position:relative;overflow:hidden}
+    #sign-pad{display:block;width:100%;height:150px;cursor:crosshair;touch-action:none}
+    .sign-pad-hint{position:absolute;bottom:8px;right:12px;font-size:10px;color:#bbb;pointer-events:none;user-select:none}
+    .sign-pad-actions{margin-top:8px}
+    .sign-clear-btn{padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--gray-bg);color:var(--muted)}
+    .sign-footer{display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border-lt);margin-top:18px}
+    .sign-cancel-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--gray-bg);color:var(--muted)}
+    .sign-confirm-btn{padding:10px 22px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:var(--red);color:#fff;transition:background .15s}
+    .sign-confirm-btn:hover{background:var(--red-dark)}
+    .sign-confirm-btn:disabled{opacity:.6;cursor:default}
+
     footer{text-align:center;color:var(--muted);font-size:12px;padding:20px;opacity:.7}
   </style>
 </head>
@@ -176,28 +203,27 @@
 
 <div class="page-body">
 
-  <div class="progress-card">
-    <div class="progress-top">
-      <div>
-        <div class="progress-label">Ihr Onboarding-Fortschritt</div>
-        <div class="progress-sub" id="progress-sub">Bitte schlie&szlig;en Sie die folgenden Schritte ab.</div>
-      </div>
-      <div class="progress-pct zero" id="progress-pct">0%</div>
-    </div>
-    <div class="progress-bar-outer">
-      <div class="progress-bar-inner zero" id="progress-bar" style="width:0%"></div>
-    </div>
-  </div>
-
   <div class="done-card" id="done-card">
     <div class="done-icon">&#127881;</div>
     <div class="done-title">Onboarding vollst&auml;ndig!</div>
     <div class="done-sub">Herzlichen Gl&uuml;ckwunsch &ndash; alle Unterlagen sind eingegangen.<br>Unser Team meldet sich bei Ihnen zum weiteren Vorgehen.</div>
   </div>
 
+  <div class="intro-card">
+    <div class="intro-title">&#128203; Ihr Onboarding-Leitfaden</div>
+    <div class="intro-body">
+      <p>Herzlich willkommen zu Ihrem Komda&reg; Software Onboarding! Diese Checkliste begleitet Sie Schritt f&uuml;r Schritt bis zum erfolgreichen Start Ihres neuen Systems.</p>
+      <p><strong>Was Sie erwartet:</strong> Zun&auml;chst ben&ouml;tigen wir einige <strong>Pflichtunterlagen</strong> von Ihnen &ndash; erst wenn diese bei uns eingegangen sind, k&ouml;nnen wir gemeinsam Liefer- und Schulungstermine abstimmen. Sie k&ouml;nnen die Dokumente direkt im Browser unterschreiben und herunterladen.</p>
+      <p>Im zweiten Schritt bitten wir Sie, <strong>Vorbereitungsunterlagen</strong> bereitzustellen. Diese helfen uns, Ihre Schulungen optimal auf Ihr Unternehmen abzustimmen.</p>
+    </div>
+  </div>
+
   <div class="two-col">
 
     <div class="col-card">
+      <div class="progress-v-track">
+        <div class="progress-v-fill zero" id="progress-side-fill"></div>
+      </div>
       <div class="col-card-header">
         <span style="font-size:18px">&#128203;</span>
         <span class="col-card-title">Onboarding-Checkliste</span>
@@ -217,16 +243,9 @@
       <div class="files-box">
         <div class="files-box-header">
           <div class="files-box-title">&#128202; &Uuml;berblick</div>
-          <div class="files-box-sub">Alle Punkte im Status auf einen Blick</div>
+          <div class="files-box-sub">Alle Punkte auf einen Blick</div>
         </div>
         <div id="files-list"></div>
-      </div>
-
-      <div class="upload-hint-box">
-        <div class="upload-hint-title">&#128228; So laden Sie hoch</div>
-        <div class="upload-hint-text">
-          Ordner &ouml;ffnen &rarr; ausgef&uuml;lltes Formular oder Unterlage hochladen &rarr; Schritt in der Checkliste abhaken.
-        </div>
       </div>
 
       <div class="zd-box">
@@ -253,6 +272,35 @@
   </div>
 
 </div>
+
+<!-- Signing modal -->
+<div class="sign-modal" id="sign-modal">
+  <div class="sign-modal-box">
+    <div class="sign-modal-header">
+      <div class="sign-modal-title" id="sign-modal-title">Dokument unterschreiben</div>
+      <button class="sign-modal-close" onclick="closeSignModal()">&#215;</button>
+    </div>
+    <div class="sign-modal-body">
+      <div class="sign-modal-info">
+        Bitte &ouml;ffnen Sie das Dokument und lesen Sie es durch. Zeichnen Sie anschlie&szlig;end Ihre Unterschrift in das Feld unten. Das unterschriebene Dokument wird automatisch heruntergeladen &ndash; bitte laden Sie es danach in Ihren Dokumenten-Ordner hoch.
+      </div>
+      <a class="sign-pdf-link" id="sign-pdf-link" href="#" target="_blank">&#128196; Dokument &ouml;ffnen &amp; lesen</a>
+      <div class="sign-pad-label">Ihre Unterschrift:</div>
+      <div class="sign-pad-wrap">
+        <canvas id="sign-pad" width="580" height="150"></canvas>
+        <div class="sign-pad-hint">Hier unterschreiben</div>
+      </div>
+      <div class="sign-pad-actions">
+        <button class="sign-clear-btn" onclick="clearSignPad()">&#10005; L&ouml;schen</button>
+      </div>
+      <div class="sign-footer">
+        <button class="sign-cancel-btn" onclick="closeSignModal()">Abbrechen</button>
+        <button class="sign-confirm-btn" id="sign-confirm-btn" onclick="applySignature()">&#128229; Unterschrift einf&uuml;gen &amp; herunterladen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer>Komda &middot; Zapf Systemhaus GmbH &middot; Ihr IT-Partner</footer>
 
 <script>
@@ -261,6 +309,29 @@
 
   var API_URL       = 'https://gentle-stone-0c97b9310.7.azurestaticapps.net/api/status';
   var UPDATE_SECRET = '5838bff96f7347e7848c0610bb26baea';
+
+  // ── PDF-Signatur-Konfiguration ───────────────────────────────────────────
+  // pdfUrl : Relativer Pfad zur PDF-Vorlage (Datei in GitHub-Repo ablegen)
+  // page   : Seite (0 = erste Seite)
+  // signX  : Abstand vom linken Rand in Punkten (1 Punkt = 1/72 Zoll)
+  // signY  : Abstand vom unteren Rand in Punkten (PDF-Koordinaten!)
+  // signW  : Breite der Unterschrift in Punkten
+  // signH  : Hoehe der Unterschrift in Punkten
+  // !! Nach Hochladen der PDFs bitte Positionen anpassen !!
+  var SIGN_CONFIG = {
+    sepa: {
+      pdfUrl: 'formulare/sepa-mandat.pdf',
+      page: 0, signX: 80, signY: 100, signW: 220, signH: 55,
+    },
+    email_rechnung: {
+      pdfUrl: 'formulare/email-rechnung.pdf',
+      page: 0, signX: 80, signY: 100, signW: 220, signH: 55,
+    },
+    fernwartung: {
+      pdfUrl: 'formulare/fernwartung.pdf',
+      page: 0, signX: 80, signY: 100, signW: 220, signH: 55,
+    },
+  };
 
   var params     = new URLSearchParams(window.location.search);
   var token      = params.get('token') || '';
@@ -301,7 +372,7 @@
     }
   }
 
-  // ── Block A: Pflichtunterlagen ──────────────────────────────────────────
+  // ── Pflichtunterlagen (ohne AVV) ────────────────────────────────────────
   var BLOCK_A = [
     {
       id: 'sepa',
@@ -309,12 +380,11 @@
       icon: '🏦',
       desc: 'Unterzeichnetes SEPA-Mandat für die monatlichen Lastschriften. Das Original bitte zusätzlich Ihrer Bank übergeben.',
       steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'SEPA-Mandats-Datei herunterladen.',
-        'Bankverbindung vollständig ausfüllen und unterschreiben.',
-        'Ausgefülltes Dokument zurück in den Ordner hochladen.',
+        'Klicken Sie auf "📝 Unterschreiben" und öffnen Sie das Formular.',
+        'Zeichnen Sie Ihre Unterschrift in das Unterschriftsfeld.',
+        'Klicken Sie auf "Herunterladen" – das unterschriebene Dokument wird gespeichert.',
+        'Laden Sie die Datei in Ihren Dokumenten-Ordner hoch.',
         'Original zusätzlich Ihrer Bank übergeben.',
-        'Diesen Schritt abhaken.',
       ],
     },
     {
@@ -323,11 +393,10 @@
       icon: '📬',
       desc: 'E-Mail-Adresse für den digitalen Rechnungsversand.',
       steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'Antwortformular herunterladen.',
-        'Gewünschte Rechnungs-E-Mail-Adresse eintragen.',
-        'Ausgefülltes Formular zurück in den Ordner hochladen.',
-        'Diesen Schritt abhaken.',
+        'Klicken Sie auf "📝 Unterschreiben" und öffnen Sie das Formular.',
+        'Tragen Sie die gewünschte Rechnungs-E-Mail-Adresse ein.',
+        'Zeichnen Sie Ihre Unterschrift in das Unterschriftsfeld.',
+        'Klicken Sie auf "Herunterladen" und laden Sie die Datei in Ihren Ordner hoch.',
       ],
     },
     {
@@ -336,13 +405,16 @@
       icon: '💻',
       desc: 'Schriftliche Einwilligung zur Fernwartung durch unsere Techniker.',
       steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'Datei "Einverständniserklärung Fernwartung" herunterladen.',
-        'Formular ausfüllen und unterschreiben.',
-        'Ausgefülltes Dokument zurück in den Ordner hochladen.',
-        'Diesen Schritt abhaken.',
+        'Klicken Sie auf "📝 Unterschreiben" und öffnen Sie das Formular.',
+        'Lesen Sie das Dokument durch.',
+        'Zeichnen Sie Ihre Unterschrift in das Unterschriftsfeld.',
+        'Klicken Sie auf "Herunterladen" und laden Sie die Datei in Ihren Ordner hoch.',
       ],
     },
+  ];
+
+  // ── Vorbereitungsunterlagen (AVV jetzt hier) ─────────────────────────────
+  var BLOCK_B_BASE = [
     {
       id: 'avv',
       name: 'Vertrag zur Auftragsverarbeitung (AVV)',
@@ -356,10 +428,6 @@
         'Diesen Schritt abhaken.',
       ],
     },
-  ];
-
-  // ── Block B: Vorbereitungsunterlagen (Basis) ───────────────────────────
-  var BLOCK_B_BASE = [
     {
       id: 'vorlagen',
       name: 'Vorlagen, Logos &amp; Briefbogen',
@@ -407,7 +475,7 @@
     },
   ];
 
-  // ── Optionale Items (per Dashboard aktivierbar) ────────────────────────
+  // ── Optionale Items ────────────────────────────────────────────────────
   var OPTIONAL_META = [
     {
       id: 'verguetung',
@@ -468,24 +536,34 @@
   var parentCustomer = loadFromParent();
   var status = (parentCustomer && parentCustomer.docs) ? Object.assign({}, parentCustomer.docs) : loadStatus();
 
-  // ── Render ─────────────────────────────────────────────────────────────
+  // ── renderItem ─────────────────────────────────────────────────────────
   function renderItem(doc, blockClass) {
     var isDone = !!status[doc.id];
     var stepsHtml = '';
     for (var s = 0; s < doc.steps.length; s++) {
       stepsHtml += '<li class="step-item"><span class="step-num ' + blockClass + '">' + (s+1) + '</span><span>' + doc.steps[s] + '</span></li>';
     }
+    var hasSigning = !!SIGN_CONFIG[doc.id];
+    var actionHtml;
+    if (isDone) {
+      actionHtml = '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rükgängig</button>';
+    } else if (hasSigning) {
+      actionHtml = '<div class="check-btn-wrap">'
+        + '<button class="check-btn sign-btn" data-action="sign" data-id="' + doc.id + '">📝 Unterschreiben</button>'
+        + '<button class="check-btn manual-btn" data-action="done" data-id="' + doc.id + '">✓ Manuell abhaken</button>'
+        + '</div>';
+    } else {
+      actionHtml = '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Erledigt</button>';
+    }
     return '<div>'
       + '<div class="check-item">'
-      + '<div class="check-circle ' + (isDone ? 'done' : (blockClass === 'b' ? 'open-b' : 'open')) + '">' + (isDone ? '✓' : '') + '</div>'
+      + '<span class="status-badge ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '✓ Erledigt' : '● Offen') + '</span>'
       + '<div class="check-icon">' + doc.icon + '</div>'
       + '<div class="check-text">'
       + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
       + '<div class="check-desc">' + doc.desc + '</div>'
       + '</div>'
-      + (isDone
-        ? '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rükgängig</button>'
-        : '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Erledigt</button>')
+      + actionHtml
       + '</div>'
       + '<div class="check-steps">'
       + '<div class="steps-toggle" data-action="toggle" data-id="' + doc.id + '">'
@@ -499,6 +577,7 @@
       + '</div>';
   }
 
+  // ── render ─────────────────────────────────────────────────────────────
   function render() {
     var done = 0;
     for (var i = 0; i < ALL_DOCS.length; i++) { if (status[ALL_DOCS[i].id]) done++; }
@@ -510,35 +589,28 @@
     var spUrlAuftrag = (apiConfig && apiConfig.spUrlAuftrag) || (parentCustomer && parentCustomer.spUrlAuftrag) || params.get('spUrlAuftrag') || '';
     var folderUrls   = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag };
 
-    // Fortschritt
-    var pctEl = document.getElementById('progress-pct');
-    var barEl = document.getElementById('progress-bar');
-    pctEl.textContent = pct + '%';
-    var cls = pct === 100 ? '' : pct > 0 ? ' partial' : ' zero';
-    pctEl.className  = 'progress-pct' + cls;
-    barEl.style.width = pct + '%';
-    barEl.className  = 'progress-bar-inner' + cls;
-    document.getElementById('progress-sub').textContent = pct === 100
-      ? 'Alle Schritte abgeschlossen – vielen Dank!'
-      : 'Noch ' + (ALL_DOCS.length - done) + ' offene Aufgabe' + ((ALL_DOCS.length - done) !== 1 ? 'n' : '');
+    // Vertikale Fortschrittsleiste
+    var sideFill = document.getElementById('progress-side-fill');
+    if (sideFill) {
+      sideFill.style.height = pct + '%';
+      sideFill.className = 'progress-v-fill' + (pct === 100 ? ' done-full' : pct > 0 ? ' partial' : '');
+    }
     document.getElementById('check-count').textContent = done + ' / ' + ALL_DOCS.length + ' erledigt';
     document.getElementById('done-card').classList.toggle('visible', pct === 100);
 
-    // Checkliste: Block A
+    // Checkliste: Pflichtunterlagen
     var clHtml = '';
-    clHtml += '<div class="section-bar a">'
-      + '<div class="section-tag a">Block A – Pflichtunterlagen</div>'
-      + '<div class="section-bar-title">Bitte unterschreiben und hochladen</div>'
-      + '<div class="section-bar-hint">Erst wenn diese Unterlagen (außer AVV) vorliegen, stimmen wir Liefer- und Schulungstermine ab.</div>'
+    clHtml += '<div class="section-bar">'
+      + '<div class="section-bar-title">Pflichtunterlagen</div>'
+      + '<div class="section-bar-hint">Erst wenn diese Unterlagen vorliegen, stimmen wir Liefer- und Schulungstermine ab.</div>'
       + '</div>';
     for (var d = 0; d < BLOCK_A.length; d++) {
-      clHtml += renderItem(BLOCK_A[d], 'a');
+      clHtml += renderItem(BLOCK_A[d], '');
     }
 
-    // Checkliste: Block B
-    clHtml += '<div class="section-bar b">'
-      + '<div class="section-tag b">Block B – Vorbereitungsunterlagen</div>'
-      + '<div class="section-bar-title">Bitte bereitstellen und hochladen</div>'
+    // Checkliste: Vorbereitungsunterlagen
+    clHtml += '<div class="section-bar">'
+      + '<div class="section-bar-title">Vorbereitungsunterlagen</div>'
       + '<div class="section-bar-hint">Diese Unterlagen dienen zur Vorbereitung und strukturierten Durchführung der Schulungen.</div>'
       + '</div>';
     for (var e = 0; e < BLOCK_B_ACTIVE.length; e++) {
@@ -554,7 +626,7 @@
 
     // Datei-Uebersicht
     var flHtml = '';
-    flHtml += '<div class="file-section-label">Block A – Pflichtunterlagen</div>';
+    flHtml += '<div class="file-section-label">Pflichtunterlagen</div>';
     for (var f = 0; f < BLOCK_A.length; f++) {
       var fd = BLOCK_A[f]; var fisDone = !!status[fd.id];
       flHtml += '<div class="file-row' + (fisDone ? ' done-row' : '') + '">'
@@ -564,7 +636,7 @@
         + '</div>';
     }
     if (BLOCK_B_ACTIVE.length > 0) {
-      flHtml += '<div class="file-section-label">Block B – Vorbereitung</div>';
+      flHtml += '<div class="file-section-label">Vorbereitungsunterlagen</div>';
       for (var g = 0; g < BLOCK_B_ACTIVE.length; g++) {
         var gb = BLOCK_B_ACTIVE[g]; var gbDone = !!status[gb.id];
         flHtml += '<div class="file-row' + (gbDone ? ' done-row' : '') + '">'
@@ -576,7 +648,7 @@
     }
     document.getElementById('files-list').innerHTML = flHtml;
 
-    // Zugangsdaten + Auftragsbestaetigung
+    // Zugangsdaten
     var zdHtml = '';
     for (var z = 0; z < FOLDER_LINKS.length; z++) {
       var zd = FOLDER_LINKS[z]; var zdUrl = folderUrls[zd.param] || '';
@@ -613,7 +685,9 @@
     } else if (action === 'toggle') {
       var body  = document.getElementById('steps-' + id);
       var arrow = document.getElementById('arrow-' + id);
-      if (body && arrow) { var open = body.classList.toggle('open'); arrow.classList.toggle('open', open); }
+      if (body && arrow) { var isOpen = body.classList.toggle('open'); arrow.classList.toggle('open', isOpen); }
+    } else if (action === 'sign') {
+      openSignModal(id);
     }
   });
 
@@ -634,12 +708,168 @@
         body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: value }),
       })
       .then(function(r){ return r.json(); })
-      .then(function(d){ if (!d.ok) console.warn('Sync-Fehler:', d); else console.log('SP aktualisiert:', docId, value); })
+      .then(function(d){ if (!d.ok) console.warn('Sync-Fehler:', d); })
       .catch(function(e){ console.warn('Sync nicht erreichbar:', e); });
     }
   }
 
+  // ── Signing ────────────────────────────────────────────────────────────
+  var currentSignDocId = null;
+  var signDrawing = false;
+
+  function openSignModal(docId) {
+    currentSignDocId = docId;
+    var doc = null;
+    for (var i = 0; i < ALL_DOCS.length; i++) { if (ALL_DOCS[i].id === docId) { doc = ALL_DOCS[i]; break; } }
+    var cfg = SIGN_CONFIG[docId];
+    document.getElementById('sign-modal-title').textContent = doc ? doc.name : '';
+    var pdfLink = document.getElementById('sign-pdf-link');
+    if (cfg) {
+      pdfLink.href = cfg.pdfUrl;
+      pdfLink.style.display = '';
+    } else {
+      pdfLink.style.display = 'none';
+    }
+    clearSignPad();
+    document.getElementById('sign-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    var confirmBtn = document.getElementById('sign-confirm-btn');
+    confirmBtn.textContent = '📥 Unterschrift einfügen & herunterladen';
+    confirmBtn.disabled = false;
+  }
+
+  function closeSignModal() {
+    document.getElementById('sign-modal').classList.remove('open');
+    document.body.style.overflow = '';
+    currentSignDocId = null;
+  }
+
+  function clearSignPad() {
+    var canvas = document.getElementById('sign-pad');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function setupSignPad() {
+    var canvas = document.getElementById('sign-pad');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#1a1917';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    function getPos(e) {
+      var rect = canvas.getBoundingClientRect();
+      var scaleX = canvas.width / rect.width;
+      var scaleY = canvas.height / rect.height;
+      var src = e.touches ? e.touches[0] : e;
+      return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
+    }
+    canvas.addEventListener('mousedown', function(e) {
+      signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    });
+    canvas.addEventListener('mousemove', function(e) {
+      if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
+    });
+    canvas.addEventListener('mouseup', function() { signDrawing = false; });
+    canvas.addEventListener('mouseleave', function() { signDrawing = false; });
+    canvas.addEventListener('touchstart', function(e) {
+      signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault();
+    }, { passive: false });
+    canvas.addEventListener('touchmove', function(e) {
+      if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault();
+    }, { passive: false });
+    canvas.addEventListener('touchend', function() { signDrawing = false; });
+  }
+
+  window.openSignModal  = openSignModal;
+  window.closeSignModal = closeSignModal;
+  window.clearSignPad   = clearSignPad;
+
+  window.applySignature = async function() {
+    var canvas = document.getElementById('sign-pad');
+    var ctx = canvas.getContext('2d');
+    var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    var isEmpty = true;
+    for (var i = 0; i < data.length; i += 4) { if (data[i+3] > 0) { isEmpty = false; break; } }
+    if (isEmpty) { alert('Bitte zeichnen Sie zunächst Ihre Unterschrift.'); return; }
+
+    var cfg = SIGN_CONFIG[currentSignDocId];
+    if (!cfg) return;
+
+    var btn = document.getElementById('sign-confirm-btn');
+    btn.textContent = '⏳ Wird verarbeitet...';
+    btn.disabled = true;
+
+    try {
+      var pdfBytes = await fetch(cfg.pdfUrl).then(function(r) {
+        if (!r.ok) throw new Error('PDF nicht gefunden: ' + cfg.pdfUrl);
+        return r.arrayBuffer();
+      });
+
+      var PDFLib = window.PDFLib;
+      var pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+      var pages = pdfDoc.getPages();
+      var page  = pages[Math.min(cfg.page || 0, pages.length - 1)];
+
+      // Unterschrift als PNG einbetten
+      var signDataUrl = canvas.toDataURL('image/png');
+      var signResp    = await fetch(signDataUrl);
+      var signBuf     = await signResp.arrayBuffer();
+      var signImage   = await pdfDoc.embedPng(signBuf);
+
+      page.drawImage(signImage, {
+        x: cfg.signX, y: cfg.signY,
+        width: cfg.signW, height: cfg.signH,
+        opacity: 1,
+      });
+
+      // Datum unter die Unterschrift
+      var dateStr = new Date().toLocaleDateString('de-DE');
+      page.drawText(dateStr, {
+        x: cfg.signX, y: cfg.signY - 13,
+        size: 8,
+        color: PDFLib.rgb(0.3, 0.3, 0.3),
+      });
+
+      var signedBytes = await pdfDoc.save();
+      var blob = new Blob([signedBytes], { type: 'application/pdf' });
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href   = url;
+      var doc  = null;
+      for (var j = 0; j < ALL_DOCS.length; j++) { if (ALL_DOCS[j].id === currentSignDocId) { doc = ALL_DOCS[j]; break; } }
+      a.download = (doc ? doc.name.replace(/[^a-zA-Z0-9\s\-]/g, '').trim() : currentSignDocId) + '_unterschrieben.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
+
+      // Als erledigt markieren
+      var docId = currentSignDocId;
+      closeSignModal();
+      status[docId] = true;
+      saveStatus(status);
+      syncToParent(docId, true);
+      render();
+
+    } catch(e) {
+      console.error('Signing error:', e);
+      alert('Fehler beim Verarbeiten:\n' + e.message + '\n\nBitte prüfen Sie, ob die PDF-Datei im Ordner "formulare/" vorhanden ist.');
+      btn.textContent = '📥 Unterschrift einfügen & herunterladen';
+      btn.disabled = false;
+    }
+  };
+
+  // Modal schliessen bei Klick auf Hintergrund
+  document.getElementById('sign-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeSignModal();
+  });
+
   render();
+  setupSignPad();
 })();
 </script>
 </body>
