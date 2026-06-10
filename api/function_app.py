@@ -15,10 +15,27 @@ LIST_ID       = os.environ.get("LIST_ID", "")
 UPDATE_SECRET = os.environ.get("UPDATE_SECRET", "")
 
 DOC_FIELD = {
-    "fernwartung":    "DocFernwartung",
+    # Block A – Pflichtunterlagen
     "sepa":           "DocSepa",
     "email_rechnung": "DocEmailRechnung",
+    "fernwartung":    "DocFernwartung",
+    "avv":            "DocAvv",
+    # Block B – Vorbereitungsunterlagen (Basis)
+    "vorlagen":       "DocVorlagen",
+    "debitoren":      "DocDebitoren",
+    "mitarbeiter":    "DocMitarbeiter",
+    "lohnarten":      "DocLohnarten",
+    # Block B – Optional
+    "verguetung":     "DocVerguetung",
+    "datenubernahme": "DocDatenubernahme",
 }
+
+GET_SELECT_FIELDS = (
+    "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,"
+    "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
+    "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
+    "DocVerguetung,DocDatenubernahme"
+)
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":  "*",
@@ -45,15 +62,12 @@ def get_app_token() -> str:
 
 def sp_get_item(item_id: str) -> dict:
     token = get_app_token()
-    fields = "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,DocFernwartung,DocSepa,DocEmailRechnung"
     url = (
         f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
         f"/lists/{LIST_ID}/items/{item_id}/fields"
-        f"?$select={fields}"
+        f"?$select={GET_SELECT_FIELDS}"
     )
-    req = urllib.request.Request(url, headers={
-        "Authorization": f"Bearer {token}",
-    })
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
     with urllib.request.urlopen(req) as resp:
         return json.loads(resp.read())
 
@@ -74,7 +88,6 @@ def sp_patch(item_id: str, field: str, value: bool):
 
 
 def decode_token(token: str) -> str:
-    """Base64-Token → SharePoint Item-ID"""
     padded = token + "=" * (4 - len(token) % 4 if len(token) % 4 else 0)
     return base64.b64decode(padded).decode("utf-8")
 
@@ -86,11 +99,9 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     if req.method == "OPTIONS":
         return func.HttpResponse("", status_code=200, headers=CORS_HEADERS)
 
-    # ── GET: Kunden-Config anhand Token zurückgeben ──────────────────────
     if req.method == "GET":
         token_param = req.params.get("token", "").strip()
         if not token_param:
-            # Health-Check ohne Token
             return func.HttpResponse(
                 json.dumps({"ok": True, "service": "komda-onboarding"}),
                 status_code=200, headers=CORS_HEADERS
@@ -100,12 +111,12 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
             fields  = sp_get_item(item_id)
             return func.HttpResponse(
                 json.dumps({
-                    "ok":          True,
-                    "spUrl":       fields.get("SPUrl",       ""),
-                    "spUrlCloud":  fields.get("SPUrlCloud",  ""),
-                    "spUrlMobile": fields.get("SPUrlMobile", ""),
-                    "spUrlAuftrag":fields.get("SPUrlAuftrag",""),
-                    "optionen":    fields.get("Optionen",    ""),
+                    "ok":           True,
+                    "spUrl":        fields.get("SPUrl",        ""),
+                    "spUrlCloud":   fields.get("SPUrlCloud",   ""),
+                    "spUrlMobile":  fields.get("SPUrlMobile",  ""),
+                    "spUrlAuftrag": fields.get("SPUrlAuftrag", ""),
+                    "optionen":     fields.get("Optionen",     ""),
                 }),
                 status_code=200, headers=CORS_HEADERS
             )
@@ -115,7 +126,6 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                 status_code=500, headers=CORS_HEADERS
             )
 
-    # ── POST: Dokument-Status aktualisieren (unverändert) ────────────────
     try:
         body = req.get_json()
     except Exception:
