@@ -758,7 +758,8 @@
     }
 
     document.getElementById('sign-pos-info').textContent = '';
-    document.getElementById('sign-modal-info').style.display = '';
+    var infoEl = document.getElementById('sign-modal-info');
+    if (infoEl) infoEl.style.display = '';
     clearSignPad();
 
     var confirmBtn = document.getElementById('sign-confirm-btn');
