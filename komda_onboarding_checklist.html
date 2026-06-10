@@ -13,7 +13,7 @@
       --text:#1a1917; --muted:#706b66;
       --green:#107c41; --green-bg:#e8f5ee;
       --orange:#c87400; --orange-bg:#fff4e0;
-      --blue:#1a56a8; --blue-bg:#e8f0ff; --blue-border:#c5d8f8;
+      --blue:#1a56a8; --blue-bg:#e8f0ff;
       --gray-bg:#f3f2f1;
       --radius-md:14px; --radius-lg:20px;
       --shadow-sm:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.06);
@@ -33,40 +33,33 @@
 
     .page-body{max-width:1060px;margin:0 auto;padding:28px 24px 60px}
 
-    /* Intro */
     .intro-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);padding:22px 28px;margin-bottom:22px}
     .intro-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
     .intro-body p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:6px}
     .intro-body p:last-child{margin-bottom:0}
     .intro-body strong{color:var(--text)}
 
-    /* Two-col layout */
     .two-col{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
     @media(max-width:760px){.two-col{grid-template-columns:1fr}}
 
-    /* Checklist card with vertical progress bar */
     .col-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden;position:relative}
     .col-card-header{padding:18px 22px 14px;border-bottom:1px solid var(--border-lt);display:flex;align-items:center;gap:10px}
     .col-card-title{font-size:15px;font-weight:700;color:var(--text)}
     .col-card-count{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);background:var(--gray-bg);padding:3px 10px;border-radius:20px}
 
-    /* Vertical progress track */
     .progress-v-track{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--border-lt);z-index:1;pointer-events:none}
-    .progress-v-fill{position:absolute;top:0;left:0;width:100%;height:0%;background:var(--red);border-radius:0;transition:height .6s ease}
+    .progress-v-fill{position:absolute;top:0;left:0;width:100%;height:0%;background:var(--red);transition:height .6s ease}
     .progress-v-fill.partial{background:var(--orange)}
     .progress-v-fill.done-full{background:var(--green)}
 
-    /* Section bars */
     .section-bar{padding:12px 22px 10px;border-bottom:1px solid var(--border-lt);background:#fafaf9}
     .section-bar-title{font-size:13px;font-weight:700;color:var(--text)}
     .section-bar-hint{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
 
-    /* Status badge */
     .status-badge{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
     .status-badge.open{background:#f3f2f1;color:var(--muted);border:1px solid var(--border)}
     .status-badge.done{background:var(--green-bg);color:var(--green)}
 
-    /* Check items */
     .check-item{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border-lt);transition:background .15s}
     .check-item:hover{background:#fafaf9}
     .check-icon{font-size:20px;flex-shrink:0}
@@ -80,7 +73,7 @@
     .check-btn.done-btn:hover{background:#c8ecd8}
     .check-btn.undo-btn{background:var(--gray-bg);color:var(--muted);border-color:var(--border)}
     .check-btn.undo-btn:hover{background:var(--border)}
-    .check-btn.sign-btn{background:var(--red-pale);color:var(--red);border-color:#f5c0c0;font-size:12px;padding:7px 14px}
+    .check-btn.sign-btn{background:var(--red-pale);color:var(--red);border-color:#f5c0c0}
     .check-btn.sign-btn:hover{background:#fad5d5}
     .check-btn.manual-btn{background:none;color:var(--muted);border-color:transparent;font-size:10px;padding:2px 6px;opacity:.7}
     .check-btn.manual-btn:hover{opacity:1;background:var(--gray-bg)}
@@ -97,7 +90,6 @@
     .step-num{width:20px;height:20px;background:var(--red);color:#fff;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;margin-top:2px}
     .step-num.b{background:var(--blue)}
 
-    /* Right panel */
     .doc-panel{display:flex;flex-direction:column;gap:16px}
     .folder-box{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);padding:20px 22px}
     .folder-box-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
@@ -117,7 +109,6 @@
     .file-info{flex:1;min-width:0}
     .file-name{font-size:13px;font-weight:600;color:var(--text)}
     .file-name.done{text-decoration:line-through;color:var(--muted)}
-    .file-hint{font-size:11px;color:var(--muted);margin-top:2px}
     .file-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700}
     .file-badge.done{background:var(--green-bg);color:var(--green)}
     .file-badge.open{background:var(--red-pale);color:var(--red)}
@@ -153,22 +144,39 @@
     .contact-link.mail{background:var(--red-pale);color:var(--red);border-color:#f5c0c0}
 
     /* Signing modal */
-    .sign-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:20px}
+    .sign-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
     .sign-modal.open{display:flex}
-    .sign-modal-box{background:#fff;border-radius:var(--radius-lg);max-width:640px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+    .sign-modal-box{background:#fff;border-radius:var(--radius-lg);max-width:680px;width:100%;margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
     .sign-modal-header{padding:20px 24px;border-bottom:1px solid var(--border-lt);display:flex;align-items:center;justify-content:space-between}
     .sign-modal-title{font-size:16px;font-weight:700;color:var(--text)}
     .sign-modal-close{background:none;border:none;font-size:24px;cursor:pointer;color:var(--muted);padding:4px 8px;line-height:1}
     .sign-modal-body{padding:22px 24px}
-    .sign-modal-info{font-size:13px;color:var(--muted);margin-bottom:16px;line-height:1.6}
-    .sign-pdf-link{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;background:var(--red-pale);color:var(--red);border-radius:10px;text-decoration:none;font-size:13px;font-weight:600;margin-bottom:22px;transition:background .15s}
+    .sign-modal-info{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+    .sign-pdf-link{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;background:var(--red-pale);color:var(--red);border-radius:10px;text-decoration:none;font-size:13px;font-weight:600;margin-bottom:18px;transition:background .15s}
     .sign-pdf-link:hover{background:#fad5d5}
+
+    /* Form fields */
+    .sign-loading{text-align:center;padding:16px;color:var(--muted);font-size:13px}
+    .sign-no-fields{font-size:13px;color:var(--muted);padding:10px 0 14px;font-style:italic}
+    .sign-load-error{font-size:13px;color:var(--orange);padding:10px 0 14px}
+    .sign-fields-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px}
+    .sign-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+    @media(max-width:500px){.sign-fields-grid{grid-template-columns:1fr}}
+    .sign-field-item{display:flex;flex-direction:column;gap:4px}
+    .sign-field-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+    .sign-field-input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:#fff;transition:border-color .15s}
+    .sign-field-input:focus{outline:none;border-color:var(--red)}
+
+    /* Signature pad */
+    .sign-divider{border:none;border-top:1px solid var(--border-lt);margin:18px 0}
     .sign-pad-label{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px}
     .sign-pad-wrap{border:2px dashed var(--border);border-radius:12px;background:#fafaf9;position:relative;overflow:hidden}
-    #sign-pad{display:block;width:100%;height:150px;cursor:crosshair;touch-action:none}
-    .sign-pad-hint{position:absolute;bottom:8px;right:12px;font-size:10px;color:#bbb;pointer-events:none;user-select:none}
-    .sign-pad-actions{margin-top:8px}
+    #sign-pad{display:block;width:100%;height:140px;cursor:crosshair;touch-action:none}
+    .sign-pad-hint{position:absolute;bottom:8px;right:12px;font-size:10px;color:#ccc;pointer-events:none;user-select:none}
+    .sign-pad-actions{margin-top:8px;display:flex;align-items:center;gap:10px}
     .sign-clear-btn{padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--gray-bg);color:var(--muted)}
+    .sign-pos-info{font-size:11px;color:var(--muted);flex:1}
+
     .sign-footer{display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border-lt);margin-top:18px}
     .sign-cancel-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--gray-bg);color:var(--muted)}
     .sign-confirm-btn{padding:10px 22px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:var(--red);color:#fff;transition:background .15s}
@@ -213,7 +221,7 @@
     <div class="intro-title">&#128203; Ihr Onboarding-Leitfaden</div>
     <div class="intro-body">
       <p>Herzlich willkommen zu Ihrem Komda&reg; Software Onboarding! Diese Checkliste begleitet Sie Schritt f&uuml;r Schritt bis zum erfolgreichen Start Ihres neuen Systems.</p>
-      <p><strong>Was Sie erwartet:</strong> Zun&auml;chst ben&ouml;tigen wir einige <strong>Pflichtunterlagen</strong> von Ihnen &ndash; erst wenn diese bei uns eingegangen sind, k&ouml;nnen wir gemeinsam Liefer- und Schulungstermine abstimmen. Sie k&ouml;nnen die Dokumente direkt im Browser unterschreiben und herunterladen.</p>
+      <p><strong>Was Sie erwartet:</strong> Zun&auml;chst ben&ouml;tigen wir einige <strong>Pflichtunterlagen</strong> von Ihnen &ndash; erst wenn diese bei uns eingegangen sind, k&ouml;nnen wir gemeinsam Liefer- und Schulungstermine abstimmen. Sie k&ouml;nnen die Dokumente direkt im Browser ausf&uuml;llen, unterschreiben und herunterladen.</p>
       <p>Im zweiten Schritt bitten wir Sie, <strong>Vorbereitungsunterlagen</strong> bereitzustellen. Diese helfen uns, Ihre Schulungen optimal auf Ihr Unternehmen abzustimmen.</p>
     </div>
   </div>
@@ -222,7 +230,7 @@
 
     <div class="col-card">
       <div class="progress-v-track">
-        <div class="progress-v-fill zero" id="progress-side-fill"></div>
+        <div class="progress-v-fill" id="progress-side-fill"></div>
       </div>
       <div class="col-card-header">
         <span style="font-size:18px">&#128203;</span>
@@ -277,25 +285,31 @@
 <div class="sign-modal" id="sign-modal">
   <div class="sign-modal-box">
     <div class="sign-modal-header">
-      <div class="sign-modal-title" id="sign-modal-title">Dokument unterschreiben</div>
+      <div class="sign-modal-title" id="sign-modal-title">Dokument ausf&uuml;llen &amp; unterschreiben</div>
       <button class="sign-modal-close" onclick="closeSignModal()">&#215;</button>
     </div>
     <div class="sign-modal-body">
       <div class="sign-modal-info">
-        Bitte &ouml;ffnen Sie das Dokument und lesen Sie es durch. Zeichnen Sie anschlie&szlig;end Ihre Unterschrift in das Feld unten. Das unterschriebene Dokument wird automatisch heruntergeladen &ndash; bitte laden Sie es danach in Ihren Dokumenten-Ordner hoch.
+        &Ouml;ffnen Sie das Dokument zum Lesen, f&uuml;llen Sie die Felder aus und zeichnen Sie Ihre Unterschrift. Das fertige Dokument wird heruntergeladen &ndash; bitte anschlie&szlig;end in Ihren Dokumenten-Ordner hochladen.
       </div>
       <a class="sign-pdf-link" id="sign-pdf-link" href="#" target="_blank">&#128196; Dokument &ouml;ffnen &amp; lesen</a>
+
+      <div id="sign-form-fields"></div>
+
+      <hr class="sign-divider">
       <div class="sign-pad-label">Ihre Unterschrift:</div>
       <div class="sign-pad-wrap">
-        <canvas id="sign-pad" width="580" height="150"></canvas>
+        <canvas id="sign-pad" width="620" height="140"></canvas>
         <div class="sign-pad-hint">Hier unterschreiben</div>
       </div>
       <div class="sign-pad-actions">
         <button class="sign-clear-btn" onclick="clearSignPad()">&#10005; L&ouml;schen</button>
+        <span class="sign-pos-info" id="sign-pos-info"></span>
       </div>
+
       <div class="sign-footer">
         <button class="sign-cancel-btn" onclick="closeSignModal()">Abbrechen</button>
-        <button class="sign-confirm-btn" id="sign-confirm-btn" onclick="applySignature()">&#128229; Unterschrift einf&uuml;gen &amp; herunterladen</button>
+        <button class="sign-confirm-btn" id="sign-confirm-btn" onclick="applySignature()">&#128229; Ausf&uuml;llen, unterschreiben &amp; herunterladen</button>
       </div>
     </div>
   </div>
@@ -311,25 +325,28 @@
   var UPDATE_SECRET = '5838bff96f7347e7848c0610bb26baea';
 
   // ── PDF-Signatur-Konfiguration ───────────────────────────────────────────
-  // pdfUrl : Relativer Pfad zur PDF-Vorlage (Datei in GitHub-Repo ablegen)
-  // page   : Seite (0 = erste Seite)
-  // signX  : Abstand vom linken Rand in Punkten (1 Punkt = 1/72 Zoll)
-  // signY  : Abstand vom unteren Rand in Punkten (PDF-Koordinaten!)
-  // signW  : Breite der Unterschrift in Punkten
-  // signH  : Hoehe der Unterschrift in Punkten
-  // !! Nach Hochladen der PDFs bitte Positionen anpassen !!
+  // pdfUrl  : Relativer Pfad zur PDF-Vorlage im GitHub-Repo
+  // page    : Seite (0 = erste Seite)
+  //
+  // Unterschrift-Position (Fallback, wenn kein AcroForm-Feld erkannt wird):
+  // signX / signY : Position in Punkten ab unten-links (PDF-Koordinaten)
+  // signW / signH : Größe der Unterschrift
+  //
+  // >> TIPP: Stellen Sie sicher, dass die PDFs ein AcroForm-Unterschriftenfeld
+  // >> mit "Unterschrift" im Feldnamen enthalten – dann wird die Position
+  // >> automatisch aus dem PDF übernommen. <<
   var SIGN_CONFIG = {
     sepa: {
       pdfUrl: 'formulare/sepa-mandat.pdf',
-      page: 0, signX: 80, signY: 100, signW: 220, signH: 55,
+      page: 0, signX: 80, signY: 100, signW: 220, signH: 50,
     },
     email_rechnung: {
       pdfUrl: 'formulare/email-rechnung.pdf',
-      page: 0, signX: 80, signY: 100, signW: 220, signH: 55,
+      page: 0, signX: 80, signY: 100, signW: 220, signH: 50,
     },
     fernwartung: {
       pdfUrl: 'formulare/fernwartung.pdf',
-      page: 0, signX: 80, signY: 100, signW: 220, signH: 55,
+      page: 0, signX: 80, signY: 100, signW: 220, signH: 50,
     },
   };
 
@@ -338,33 +355,27 @@
   var kundeParam = params.get('kunde') || '';
   var isPreview  = params.get('preview') === '1';
 
-  // API-Config laden
   var apiConfig = null;
   if (token && !isPreview) {
     try {
       var apiResp = await fetch(API_URL + '?token=' + encodeURIComponent(token));
       var apiData = await apiResp.json();
       if (apiData.ok) apiConfig = apiData;
-    } catch(e) { /* Fallback auf URL-Parameter */ }
+    } catch(e) {}
   }
 
   if (isPreview) document.getElementById('preview-banner').classList.add('visible');
 
-  // Begruessung
   if (kundeParam) {
-    var firmaDec   = decodeURIComponent(kundeParam);
-    var anredeDec  = decodeURIComponent(params.get('anrede') || '');
-    var nameDec    = decodeURIComponent(params.get('name')   || '');
+    var firmaDec  = decodeURIComponent(kundeParam);
+    var anredeDec = decodeURIComponent(params.get('anrede') || '');
+    var nameDec   = decodeURIComponent(params.get('name')   || '');
     document.title = 'Komda Onboarding - ' + firmaDec;
     var subEl = document.getElementById('header-subtitle');
     if (subEl) {
       var greeting = 'Guten Tag';
       if (anredeDec && nameDec) {
-        if (anredeDec === 'SGDH') {
-          greeting = 'Sehr geehrte Damen und Herren';
-        } else {
-          greeting = 'Guten Tag, ' + anredeDec + ' ' + nameDec;
-        }
+        greeting = anredeDec === 'SGDH' ? 'Sehr geehrte Damen und Herren' : 'Guten Tag, ' + anredeDec + ' ' + nameDec;
       } else if (nameDec) {
         greeting = 'Guten Tag, ' + nameDec;
       }
@@ -372,53 +383,45 @@
     }
   }
 
-  // ── Pflichtunterlagen (ohne AVV) ────────────────────────────────────────
+  // ── Pflichtunterlagen (3 Dokumente) ────────────────────────────────────
   var BLOCK_A = [
     {
-      id: 'sepa',
-      name: 'SEPA-Firmenlastschrift-Mandat',
-      icon: '🏦',
+      id: 'sepa', name: 'SEPA-Firmenlastschrift-Mandat', icon: '🏦',
       desc: 'Unterzeichnetes SEPA-Mandat für die monatlichen Lastschriften. Das Original bitte zusätzlich Ihrer Bank übergeben.',
       steps: [
-        'Klicken Sie auf "📝 Unterschreiben" und öffnen Sie das Formular.',
-        'Zeichnen Sie Ihre Unterschrift in das Unterschriftsfeld.',
-        'Klicken Sie auf "Herunterladen" – das unterschriebene Dokument wird gespeichert.',
+        'Klicken Sie auf "Ausf&#252;llen &amp; Unterschreiben".',
+        'F&#252;llen Sie alle Felder aus und zeichnen Sie Ihre Unterschrift.',
+        'Klicken Sie auf "Herunterladen" &#8211; das fertige Dokument wird gespeichert.',
         'Laden Sie die Datei in Ihren Dokumenten-Ordner hoch.',
-        'Original zusätzlich Ihrer Bank übergeben.',
+        'Original zus&#228;tzlich Ihrer Bank &#252;bergeben.',
       ],
     },
     {
-      id: 'email_rechnung',
-      name: 'E-Mail für Rechnungsversand',
-      icon: '📬',
+      id: 'email_rechnung', name: 'E-Mail für Rechnungsversand', icon: '📬',
       desc: 'E-Mail-Adresse für den digitalen Rechnungsversand.',
       steps: [
-        'Klicken Sie auf "📝 Unterschreiben" und öffnen Sie das Formular.',
-        'Tragen Sie die gewünschte Rechnungs-E-Mail-Adresse ein.',
-        'Zeichnen Sie Ihre Unterschrift in das Unterschriftsfeld.',
-        'Klicken Sie auf "Herunterladen" und laden Sie die Datei in Ihren Ordner hoch.',
+        'Klicken Sie auf "Ausf&#252;llen &amp; Unterschreiben".',
+        'Tragen Sie die gew&#252;nschte Rechnungs-E-Mail-Adresse ein.',
+        'Zeichnen Sie Ihre Unterschrift und laden Sie das Dokument herunter.',
+        'Datei in Ihren Dokumenten-Ordner hochladen.',
       ],
     },
     {
-      id: 'fernwartung',
-      name: 'Einverständniserklärung Fernwartung',
-      icon: '💻',
+      id: 'fernwartung', name: 'Einverständniserklärung Fernwartung', icon: '💻',
       desc: 'Schriftliche Einwilligung zur Fernwartung durch unsere Techniker.',
       steps: [
-        'Klicken Sie auf "📝 Unterschreiben" und öffnen Sie das Formular.',
-        'Lesen Sie das Dokument durch.',
-        'Zeichnen Sie Ihre Unterschrift in das Unterschriftsfeld.',
-        'Klicken Sie auf "Herunterladen" und laden Sie die Datei in Ihren Ordner hoch.',
+        'Klicken Sie auf "Ausf&#252;llen &amp; Unterschreiben".',
+        'Lesen Sie das Dokument durch und f&#252;llen Sie alle Felder aus.',
+        'Zeichnen Sie Ihre Unterschrift und laden Sie das Dokument herunter.',
+        'Datei in Ihren Dokumenten-Ordner hochladen.',
       ],
     },
   ];
 
-  // ── Vorbereitungsunterlagen (AVV jetzt hier) ─────────────────────────────
+  // ── Vorbereitungsunterlagen (AVV jetzt hier) ─────────────────────────
   var BLOCK_B_BASE = [
     {
-      id: 'avv',
-      name: 'Vertrag zur Auftragsverarbeitung (AVV)',
-      icon: '📋',
+      id: 'avv', name: 'Vertrag zur Auftragsverarbeitung (AVV)', icon: '📋',
       desc: 'Vertrag und Anlage C bitte ausfüllen, unterschreiben und hochladen.',
       steps: [
         'Dokumente-Ordner über den Button rechts öffnen.',
@@ -429,9 +432,7 @@
       ],
     },
     {
-      id: 'vorlagen',
-      name: 'Vorlagen, Logos &amp; Briefbogen',
-      icon: '🖼️',
+      id: 'vorlagen', name: 'Vorlagen, Logos &amp; Briefbogen', icon: '🖼️',
       desc: 'Briefbogen als Word-Dokument und Logo(s) hochladen, damit wir Ihre Vorlagen erstellen können.',
       steps: [
         'Dokumente-Ordner über den Button rechts öffnen.',
@@ -441,84 +442,48 @@
       ],
     },
     {
-      id: 'debitoren',
-      name: 'Liste der Debitoren-Nummern',
-      icon: '📋',
-      desc: 'Liste Ihrer Kunden/Patienten und Kostenträger (Pflegekassen, Krankenkassen, Soziämter) bzw. eine Vorgabe dafür.',
-      steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'Ihre Debitoren-Liste hochladen.',
-        'Diesen Schritt abhaken.',
-      ],
+      id: 'debitoren', name: 'Liste der Debitoren-Nummern', icon: '📋',
+      desc: 'Liste Ihrer Kunden/Patienten und Kostenträger (Pflegekassen, Krankenkassen, Sozialämter) bzw. eine Vorgabe dafür.',
+      steps: ['Dokumente-Ordner öffnen.', 'Ihre Debitoren-Liste hochladen.', 'Diesen Schritt abhaken.'],
     },
     {
-      id: 'mitarbeiter',
-      name: 'Liste der Mitarbeiter-Nummern',
-      icon: '👥',
+      id: 'mitarbeiter', name: 'Liste der Mitarbeiter-Nummern', icon: '👥',
       desc: 'Liste der Mitarbeiter-Nummern aus der Personalabrechnung.',
-      steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'Ihre Mitarbeiter-Liste hochladen.',
-        'Diesen Schritt abhaken.',
-      ],
+      steps: ['Dokumente-Ordner öffnen.', 'Ihre Mitarbeiter-Liste hochladen.', 'Diesen Schritt abhaken.'],
     },
     {
-      id: 'lohnarten',
-      name: 'Liste der Lohnarten',
-      icon: '💰',
+      id: 'lohnarten', name: 'Liste der Lohnarten', icon: '💰',
       desc: 'Liste der Lohnarten für Zuschläge, Stunden usw. aus der Personalabrechnung.',
-      steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'Ihre Lohnarten-Liste hochladen.',
-        'Diesen Schritt abhaken.',
-      ],
+      steps: ['Dokumente-Ordner öffnen.', 'Ihre Lohnarten-Liste hochladen.', 'Diesen Schritt abhaken.'],
     },
   ];
 
-  // ── Optionale Items ────────────────────────────────────────────────────
   var OPTIONAL_META = [
     {
-      id: 'verguetung',
-      block: 'B',
-      name: 'Vergütungsvereinbarung',
-      icon: '📃',
+      id: 'verguetung', block: 'B', name: 'Vergütungsvereinbarung', icon: '📃',
       desc: 'Bitte laden Sie Ihre Vergütungsvereinbarung in den Ordner hoch.',
-      steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'Ihre Vergütungsvereinbarung hochladen.',
-        'Diesen Schritt abhaken.',
-      ],
+      steps: ['Dokumente-Ordner öffnen.', 'Vergütungsvereinbarung hochladen.', 'Diesen Schritt abhaken.'],
     },
     {
-      id: 'datenubernahme',
-      block: 'B',
-      name: 'Datenübernahme',
-      icon: '💾',
+      id: 'datenubernahme', block: 'B', name: 'Datenübernahme', icon: '💾',
       desc: 'Übergabe Ihrer bestehenden Daten in das Komda-System.',
-      steps: [
-        'Datenübernahme-Ordner über den Button rechts öffnen.',
-        'Exportdatei Ihrer bisherigen Software bereitstellen.',
-        'Datei in den Ordner hochladen.',
-        'Diesen Schritt abhaken.',
-      ],
+      steps: ['Datenübernahme-Ordner öffnen.', 'Exportdatei hochladen.', 'Diesen Schritt abhaken.'],
     },
   ];
 
-  // ── Ordner-Links ───────────────────────────────────────────────────────
   var FOLDER_LINKS = [
     { id: 'zd_auftrag', icon: '📄', name: 'Auftragsbetätigung',                  hint: 'Ordner mit Ihren Auftragsbetätigungen',    param: 'spUrlAuftrag' },
     { id: 'zd_mobile',  icon: '📱', name: 'Komda® Mobile Zugangsdaten',           hint: 'Ordner mit Ihren Mobile-Zugangsdaten',      param: 'spUrlMobile'  },
     { id: 'zd_cloud',   icon: '☁️',  name: 'Komda® Cloud / Hosting Zugangsdaten', hint: 'Ordner mit Ihren Cloud-Zugangsdaten',       param: 'spUrlCloud'   },
   ];
 
-  // ── Aktive Listen aufbauen ─────────────────────────────────────────────
   var activeOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
   var BLOCK_B_ACTIVE = BLOCK_B_BASE.concat(
     OPTIONAL_META.filter(function(o) { return o.block === 'B' && activeOpts.indexOf(o.id) !== -1; })
   );
   var ALL_DOCS = BLOCK_A.concat(BLOCK_B_ACTIVE);
 
-  // ── LocalStorage ──────────────────────────────────────────────────────
+  // ── LocalStorage ─────────────────────────────────────────────────────
   function ls_get(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
   function ls_set(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
   function loadStatus() { try { return JSON.parse(ls_get('kd_checklist_' + token) || '{}'); } catch(e) { return {}; } }
@@ -536,7 +501,7 @@
   var parentCustomer = loadFromParent();
   var status = (parentCustomer && parentCustomer.docs) ? Object.assign({}, parentCustomer.docs) : loadStatus();
 
-  // ── renderItem ─────────────────────────────────────────────────────────
+  // ── renderItem ────────────────────────────────────────────────────────
   function renderItem(doc, blockClass) {
     var isDone = !!status[doc.id];
     var stepsHtml = '';
@@ -549,7 +514,7 @@
       actionHtml = '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rükgängig</button>';
     } else if (hasSigning) {
       actionHtml = '<div class="check-btn-wrap">'
-        + '<button class="check-btn sign-btn" data-action="sign" data-id="' + doc.id + '">📝 Unterschreiben</button>'
+        + '<button class="check-btn sign-btn" data-action="sign" data-id="' + doc.id + '">📝 Ausfüllen &amp; Unterschreiben</button>'
         + '<button class="check-btn manual-btn" data-action="done" data-id="' + doc.id + '">✓ Manuell abhaken</button>'
         + '</div>';
     } else {
@@ -577,7 +542,7 @@
       + '</div>';
   }
 
-  // ── render ─────────────────────────────────────────────────────────────
+  // ── render ────────────────────────────────────────────────────────────
   function render() {
     var done = 0;
     for (var i = 0; i < ALL_DOCS.length; i++) { if (status[ALL_DOCS[i].id]) done++; }
@@ -589,7 +554,6 @@
     var spUrlAuftrag = (apiConfig && apiConfig.spUrlAuftrag) || (parentCustomer && parentCustomer.spUrlAuftrag) || params.get('spUrlAuftrag') || '';
     var folderUrls   = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag };
 
-    // Vertikale Fortschrittsleiste
     var sideFill = document.getElementById('progress-side-fill');
     if (sideFill) {
       sideFill.style.height = pct + '%';
@@ -598,35 +562,25 @@
     document.getElementById('check-count').textContent = done + ' / ' + ALL_DOCS.length + ' erledigt';
     document.getElementById('done-card').classList.toggle('visible', pct === 100);
 
-    // Checkliste: Pflichtunterlagen
-    var clHtml = '';
-    clHtml += '<div class="section-bar">'
+    var clHtml = '<div class="section-bar">'
       + '<div class="section-bar-title">Pflichtunterlagen</div>'
       + '<div class="section-bar-hint">Erst wenn diese Unterlagen vorliegen, stimmen wir Liefer- und Schulungstermine ab.</div>'
       + '</div>';
-    for (var d = 0; d < BLOCK_A.length; d++) {
-      clHtml += renderItem(BLOCK_A[d], '');
-    }
+    for (var d = 0; d < BLOCK_A.length; d++) { clHtml += renderItem(BLOCK_A[d], ''); }
 
-    // Checkliste: Vorbereitungsunterlagen
     clHtml += '<div class="section-bar">'
       + '<div class="section-bar-title">Vorbereitungsunterlagen</div>'
-      + '<div class="section-bar-hint">Diese Unterlagen dienen zur Vorbereitung und strukturierten Durchführung der Schulungen.</div>'
+      + '<div class="section-bar-hint">Diese Unterlagen ermöglichen strukturierte, auf Sie abgestimmte Schulungen.</div>'
       + '</div>';
-    for (var e = 0; e < BLOCK_B_ACTIVE.length; e++) {
-      clHtml += renderItem(BLOCK_B_ACTIVE[e], 'b');
-    }
+    for (var e = 0; e < BLOCK_B_ACTIVE.length; e++) { clHtml += renderItem(BLOCK_B_ACTIVE[e], 'b'); }
 
     document.getElementById('checklist-items').innerHTML = clHtml;
 
-    // Ordner-Button
     document.getElementById('folder-btn-wrap').innerHTML = spUrl
       ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">📁 Dokumenten-Ordner öffnen</a>'
       : '<span class="folder-btn-big disabled">📁 Dokumenten-Ordner öffnen</span>';
 
-    // Datei-Uebersicht
-    var flHtml = '';
-    flHtml += '<div class="file-section-label">Pflichtunterlagen</div>';
+    var flHtml = '<div class="file-section-label">Pflichtunterlagen</div>';
     for (var f = 0; f < BLOCK_A.length; f++) {
       var fd = BLOCK_A[f]; var fisDone = !!status[fd.id];
       flHtml += '<div class="file-row' + (fisDone ? ' done-row' : '') + '">'
@@ -648,42 +602,33 @@
     }
     document.getElementById('files-list').innerHTML = flHtml;
 
-    // Zugangsdaten
     var zdHtml = '';
     for (var z = 0; z < FOLDER_LINKS.length; z++) {
       var zd = FOLDER_LINKS[z]; var zdUrl = folderUrls[zd.param] || '';
       zdHtml += '<div class="zd-row">'
         + '<div class="zd-icon">' + zd.icon + '</div>'
         + '<div class="zd-info"><div class="zd-name">' + zd.name + '</div><div class="zd-hint">' + zd.hint + '</div></div>'
-        + (zdUrl
-          ? '<a class="zd-btn" href="' + zdUrl + '" target="_blank">⬇ Öffnen</a>'
-          : '<span class="zd-btn disabled">⬇ Öffnen</span>')
+        + (zdUrl ? '<a class="zd-btn" href="' + zdUrl + '" target="_blank">⬇ Öffnen</a>'
+                 : '<span class="zd-btn disabled">⬇ Öffnen</span>')
         + '</div>';
     }
     document.getElementById('zugangsdaten-list').innerHTML = zdHtml;
   }
 
-  // ── Event-Delegation ──────────────────────────────────────────────────
+  // ── Event-Delegation ─────────────────────────────────────────────────
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('[data-action]');
     if (!btn) return;
     var action = btn.getAttribute('data-action');
     var id     = btn.getAttribute('data-id');
     if (action === 'done') {
-      status[id] = true;
-      saveStatus(status);
-      syncToParent(id, true);
-      render();
-      var allDone = true;
-      for (var i = 0; i < ALL_DOCS.length; i++) { if (!status[ALL_DOCS[i].id]) { allDone = false; break; } }
+      status[id] = true; saveStatus(status); syncToParent(id, true); render();
+      var allDone = ALL_DOCS.every(function(d) { return !!status[d.id]; });
       if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (action === 'undo') {
-      status[id] = false;
-      saveStatus(status);
-      syncToParent(id, false);
-      render();
+      status[id] = false; saveStatus(status); syncToParent(id, false); render();
     } else if (action === 'toggle') {
-      var body  = document.getElementById('steps-' + id);
+      var body = document.getElementById('steps-' + id);
       var arrow = document.getElementById('arrow-' + id);
       if (body && arrow) { var isOpen = body.classList.toggle('open'); arrow.classList.toggle('open', isOpen); }
     } else if (action === 'sign') {
@@ -691,7 +636,7 @@
     }
   });
 
-  // ── SP-Sync ───────────────────────────────────────────────────────────
+  // ── SP-Sync ──────────────────────────────────────────────────────────
   function syncToParent(docId, value) {
     var custId = '';
     try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
@@ -707,86 +652,138 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: value }),
       })
-      .then(function(r){ return r.json(); })
-      .then(function(d){ if (!d.ok) console.warn('Sync-Fehler:', d); })
-      .catch(function(e){ console.warn('Sync nicht erreichbar:', e); });
+      .then(function(r) { return r.json(); })
+      .then(function(d) { if (!d.ok) console.warn('Sync-Fehler:', d); })
+      .catch(function(e) { console.warn('Sync nicht erreichbar:', e); });
     }
   }
 
-  // ── Signing ────────────────────────────────────────────────────────────
+  // ── Signing ──────────────────────────────────────────────────────────
   var currentSignDocId = null;
   var signDrawing = false;
+  var _pdfCache = {}; // { docId: ArrayBuffer }
+  var _sigPosCache = {}; // { docId: {x,y,w,h} or null }
 
-  function openSignModal(docId) {
+  window.openSignModal = async function(docId) {
     currentSignDocId = docId;
     var doc = null;
     for (var i = 0; i < ALL_DOCS.length; i++) { if (ALL_DOCS[i].id === docId) { doc = ALL_DOCS[i]; break; } }
     var cfg = SIGN_CONFIG[docId];
-    document.getElementById('sign-modal-title').textContent = doc ? doc.name : '';
+
+    document.getElementById('sign-modal-title').textContent = doc ? (doc.name) : 'Dokument unterschreiben';
     var pdfLink = document.getElementById('sign-pdf-link');
-    if (cfg) {
-      pdfLink.href = cfg.pdfUrl;
-      pdfLink.style.display = '';
-    } else {
-      pdfLink.style.display = 'none';
-    }
+    pdfLink.href = cfg ? cfg.pdfUrl : '#';
+    pdfLink.style.display = cfg ? '' : 'none';
+    document.getElementById('sign-pos-info').textContent = '';
     clearSignPad();
+
+    var confirmBtn = document.getElementById('sign-confirm-btn');
+    confirmBtn.textContent = '📥 Ausfüllen, unterschreiben & herunterladen';
+    confirmBtn.disabled = false;
+
+    document.getElementById('sign-form-fields').innerHTML =
+      '<div class="sign-loading">&#9203; Formular wird geladen&#8230;</div>';
     document.getElementById('sign-modal').classList.add('open');
     document.body.style.overflow = 'hidden';
-    var confirmBtn = document.getElementById('sign-confirm-btn');
-    confirmBtn.textContent = '📥 Unterschrift einfügen & herunterladen';
-    confirmBtn.disabled = false;
-  }
 
-  function closeSignModal() {
+    if (!cfg) {
+      document.getElementById('sign-form-fields').innerHTML = '';
+      return;
+    }
+
+    try {
+      // Load PDF (use cache to avoid double-fetch)
+      if (!_pdfCache[docId]) {
+        var resp = await fetch(cfg.pdfUrl);
+        if (!resp.ok) throw new Error('PDF nicht gefunden: ' + cfg.pdfUrl + ' (HTTP ' + resp.status + ')');
+        _pdfCache[docId] = await resp.arrayBuffer();
+      }
+
+      var pdfDoc = await PDFLib.PDFDocument.load(_pdfCache[docId]);
+      var fieldsHtml = '';
+      _sigPosCache[docId] = null;
+
+      try {
+        var form = pdfDoc.getForm();
+        var fields = form.getFields();
+        var textFields = [];
+        var sigKeywords = ['unterschrift', 'signature', 'sign', 'signatur', 'sig_'];
+
+        fields.forEach(function(field) {
+          var name = field.getName();
+          var nameLow = name.toLowerCase();
+          var isSig = sigKeywords.some(function(kw) { return nameLow.indexOf(kw) !== -1; });
+
+          if (isSig) {
+            // Auto-detect signature position from field rectangle
+            try {
+              var widgets = field.acroField.getWidgets();
+              if (widgets.length > 0) {
+                var rect = widgets[0].getRectangle();
+                _sigPosCache[docId] = { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
+                document.getElementById('sign-pos-info').textContent =
+                  '&#128204; Position auto-erkannt (x:' + Math.round(rect.x) + ' y:' + Math.round(rect.y) + ')';
+              }
+            } catch(e2) {}
+            return; // don't add signature field to text form
+          }
+
+          // Duck-typing: try getText() to confirm it's a text field
+          try {
+            var val = field.getText();
+            textFields.push({ field: field, name: name, val: val || '' });
+          } catch(e3) {}
+        });
+
+        if (textFields.length > 0) {
+          fieldsHtml += '<div class="sign-fields-label">Formularfelder ausf&#252;llen:</div>';
+          fieldsHtml += '<div class="sign-fields-grid">';
+          textFields.forEach(function(tf) {
+            var rawName = tf.name;
+            // Build readable label
+            var label = rawName
+              .replace(/^(txt|fld|field|input|form)/i, '')
+              .replace(/_/g, ' ')
+              .replace(/([a-z])([A-Z])/g, '$1 $2')
+              .trim();
+            if (label) label = label.charAt(0).toUpperCase() + label.slice(1);
+            else label = rawName;
+
+            fieldsHtml += '<div class="sign-field-item">'
+              + '<label class="sign-field-label">' + label + '</label>'
+              + '<input type="text" class="sign-field-input" data-field="' + rawName + '"'
+              + ' value="' + tf.val.replace(/"/g, '&quot;') + '"'
+              + ' placeholder="' + label + '" /></div>';
+          });
+          fieldsHtml += '</div>';
+        } else if (_sigPosCache[docId]) {
+          fieldsHtml = '<p class="sign-no-fields">Keine Textfelder erkannt &#8211; bitte nur unterschreiben.</p>';
+        } else {
+          fieldsHtml = '<p class="sign-no-fields">Keine ausf&#252;llbaren Felder erkannt. Dokument &#252;ber den Link oben &#246;ffnen.</p>';
+        }
+
+      } catch(formErr) {
+        fieldsHtml = '<p class="sign-no-fields">Das Dokument enth&#228;lt keine Formularfelder. Bitte &#246;ffnen Sie es &#252;ber den Link oben.</p>';
+      }
+
+      document.getElementById('sign-form-fields').innerHTML = fieldsHtml;
+
+    } catch(e) {
+      document.getElementById('sign-form-fields').innerHTML =
+        '<div class="sign-load-error">&#9888; ' + e.message + '</div>';
+    }
+  };
+
+  window.closeSignModal = function() {
     document.getElementById('sign-modal').classList.remove('open');
     document.body.style.overflow = '';
     currentSignDocId = null;
-  }
+  };
 
-  function clearSignPad() {
+  window.clearSignPad = function() {
     var canvas = document.getElementById('sign-pad');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function setupSignPad() {
-    var canvas = document.getElementById('sign-pad');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    ctx.strokeStyle = '#1a1917';
-    ctx.lineWidth = 2.5;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-
-    function getPos(e) {
-      var rect = canvas.getBoundingClientRect();
-      var scaleX = canvas.width / rect.width;
-      var scaleY = canvas.height / rect.height;
-      var src = e.touches ? e.touches[0] : e;
-      return { x: (src.clientX - rect.left) * scaleX, y: (src.clientY - rect.top) * scaleY };
-    }
-    canvas.addEventListener('mousedown', function(e) {
-      signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
-    });
-    canvas.addEventListener('mousemove', function(e) {
-      if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
-    });
-    canvas.addEventListener('mouseup', function() { signDrawing = false; });
-    canvas.addEventListener('mouseleave', function() { signDrawing = false; });
-    canvas.addEventListener('touchstart', function(e) {
-      signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault();
-    }, { passive: false });
-    canvas.addEventListener('touchmove', function(e) {
-      if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault();
-    }, { passive: false });
-    canvas.addEventListener('touchend', function() { signDrawing = false; });
-  }
-
-  window.openSignModal  = openSignModal;
-  window.closeSignModal = closeSignModal;
-  window.clearSignPad   = clearSignPad;
+    if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  };
 
   window.applySignature = async function() {
     var canvas = document.getElementById('sign-pad');
@@ -797,59 +794,67 @@
     if (isEmpty) { alert('Bitte zeichnen Sie zunächst Ihre Unterschrift.'); return; }
 
     var cfg = SIGN_CONFIG[currentSignDocId];
-    if (!cfg) return;
+    if (!cfg || !_pdfCache[currentSignDocId]) { alert('PDF nicht geladen. Bitte Modal schließen und erneut öffnen.'); return; }
 
     var btn = document.getElementById('sign-confirm-btn');
-    btn.textContent = '⏳ Wird verarbeitet...';
+    btn.textContent = '&#9203; Wird verarbeitet&#8230;';
     btn.disabled = true;
 
     try {
-      var pdfBytes = await fetch(cfg.pdfUrl).then(function(r) {
-        if (!r.ok) throw new Error('PDF nicht gefunden: ' + cfg.pdfUrl);
-        return r.arrayBuffer();
-      });
+      // Reload fresh from cached bytes to avoid stale mutations
+      var pdfDoc = await PDFLib.PDFDocument.load(_pdfCache[currentSignDocId]);
 
-      var PDFLib = window.PDFLib;
-      var pdfDoc = await PDFLib.PDFDocument.load(pdfBytes);
+      // ── Fill text fields ──────────────────────────────────────
+      try {
+        var form = pdfDoc.getForm();
+        var inputs = document.querySelectorAll('.sign-field-input');
+        inputs.forEach(function(inp) {
+          var fn = inp.getAttribute('data-field');
+          var val = inp.value.trim();
+          if (!val) return;
+          try { form.getTextField(fn).setText(val); } catch(e) {}
+        });
+      } catch(e) {}
+
+      // ── Determine signature position ──────────────────────────
       var pages = pdfDoc.getPages();
-      var page  = pages[Math.min(cfg.page || 0, pages.length - 1)];
+      var sigPage = cfg.page !== undefined ? cfg.page : 0;
+      var page = pages[Math.min(sigPage, pages.length - 1)];
 
-      // Unterschrift als PNG einbetten
-      var signDataUrl = canvas.toDataURL('image/png');
-      var signResp    = await fetch(signDataUrl);
-      var signBuf     = await signResp.arrayBuffer();
-      var signImage   = await pdfDoc.embedPng(signBuf);
+      var sp = _sigPosCache[currentSignDocId];
+      var sigX = sp ? sp.x : (cfg.signX !== undefined ? cfg.signX : 80);
+      var sigY = sp ? sp.y : (cfg.signY !== undefined ? cfg.signY : 100);
+      var sigW = sp ? sp.w : (cfg.signW !== undefined ? cfg.signW : 220);
+      var sigH = sp ? sp.h : (cfg.signH !== undefined ? cfg.signH : 50);
 
-      page.drawImage(signImage, {
-        x: cfg.signX, y: cfg.signY,
-        width: cfg.signW, height: cfg.signH,
-        opacity: 1,
-      });
+      // ── Embed signature image ─────────────────────────────────
+      var sigDataUrl = canvas.toDataURL('image/png');
+      var sigBuf = await fetch(sigDataUrl).then(function(r) { return r.arrayBuffer(); });
+      var sigImg = await pdfDoc.embedPng(sigBuf);
+      page.drawImage(sigImg, { x: sigX, y: sigY, width: sigW, height: sigH, opacity: 1 });
 
-      // Datum unter die Unterschrift
+      // Add date below signature
       var dateStr = new Date().toLocaleDateString('de-DE');
       page.drawText(dateStr, {
-        x: cfg.signX, y: cfg.signY - 13,
-        size: 8,
-        color: PDFLib.rgb(0.3, 0.3, 0.3),
+        x: sigX, y: Math.max(sigY - 13, 5),
+        size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3),
       });
 
+      // ── Save + download ───────────────────────────────────────
       var signedBytes = await pdfDoc.save();
       var blob = new Blob([signedBytes], { type: 'application/pdf' });
       var url  = URL.createObjectURL(blob);
       var a    = document.createElement('a');
       a.href   = url;
-      var doc  = null;
-      for (var j = 0; j < ALL_DOCS.length; j++) { if (ALL_DOCS[j].id === currentSignDocId) { doc = ALL_DOCS[j]; break; } }
-      a.download = (doc ? doc.name.replace(/[^a-zA-Z0-9\s\-]/g, '').trim() : currentSignDocId) + '_unterschrieben.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      var docObj = null;
+      for (var j = 0; j < ALL_DOCS.length; j++) { if (ALL_DOCS[j].id === currentSignDocId) { docObj = ALL_DOCS[j]; break; } }
+      a.download = (docObj ? docObj.name.replace(/[^\wäöüÄÖÜß\s\-]/g, '').trim() : currentSignDocId) + '_unterschrieben.pdf';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       setTimeout(function() { URL.revokeObjectURL(url); }, 5000);
 
-      // Als erledigt markieren
+      // ── Mark as done ──────────────────────────────────────────
       var docId = currentSignDocId;
-      closeSignModal();
+      window.closeSignModal();
       status[docId] = true;
       saveStatus(status);
       syncToParent(docId, true);
@@ -857,19 +862,39 @@
 
     } catch(e) {
       console.error('Signing error:', e);
-      alert('Fehler beim Verarbeiten:\n' + e.message + '\n\nBitte prüfen Sie, ob die PDF-Datei im Ordner "formulare/" vorhanden ist.');
-      btn.textContent = '📥 Unterschrift einfügen & herunterladen';
+      alert('Fehler beim Verarbeiten:\n' + e.message);
+      btn.textContent = '📥 Ausfüllen, unterschreiben & herunterladen';
       btn.disabled = false;
     }
   };
 
-  // Modal schliessen bei Klick auf Hintergrund
+  // Close modal on backdrop click
   document.getElementById('sign-modal').addEventListener('click', function(e) {
-    if (e.target === this) closeSignModal();
+    if (e.target === this) window.closeSignModal();
   });
 
+  // ── Signature pad setup ──────────────────────────────────────────────
+  (function setupSignPad() {
+    var canvas = document.getElementById('sign-pad');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    ctx.strokeStyle = '#1a1917'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    function getPos(e) {
+      var rect = canvas.getBoundingClientRect();
+      var sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+      var src = e.touches ? e.touches[0] : e;
+      return { x: (src.clientX - rect.left) * sx, y: (src.clientY - rect.top) * sy };
+    }
+    canvas.addEventListener('mousedown', function(e) { signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+    canvas.addEventListener('mousemove', function(e) { if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+    canvas.addEventListener('mouseup',    function() { signDrawing = false; });
+    canvas.addEventListener('mouseleave', function() { signDrawing = false; });
+    canvas.addEventListener('touchstart', function(e) { signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('touchmove',  function(e) { if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, { passive: false });
+    canvas.addEventListener('touchend',   function() { signDrawing = false; });
+  })();
+
   render();
-  setupSignPad();
 })();
 </script>
 </body>
