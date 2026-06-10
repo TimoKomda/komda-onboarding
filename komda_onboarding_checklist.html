@@ -143,6 +143,45 @@
     .contact-link.phone{background:var(--green-bg);color:var(--green);border-color:#c3e6d3}
     .contact-link.mail{background:var(--red-pale);color:var(--red);border-color:#f5c0c0}
 
+    /* ── Mobile ── */
+    @media(max-width:480px){
+      .header-inner{padding:10px 14px;gap:10px}
+      .header-title{font-size:16px}
+      .header-subtitle{font-size:12px}
+      .logo-svg{width:36px;height:36px}
+      .page-body{padding:14px 12px 48px}
+      .intro-card{padding:16px 16px}
+      .col-card-header{padding:14px 14px 10px}
+      .section-bar{padding:10px 14px 8px}
+
+      /* Checklist items: stack buttons below text on mobile */
+      .check-item{flex-wrap:wrap;gap:8px;padding:12px 14px}
+      .check-btn-wrap{flex-direction:row;align-items:center;width:100%;justify-content:flex-end}
+      .check-btn{font-size:11px;padding:5px 10px}
+      .check-name{font-size:13px}
+      .steps-body{padding:4px 14px 12px 40px}
+      .steps-toggle{padding:8px 14px 8px 40px}
+
+      /* Right panel full-width */
+      .doc-panel{gap:12px}
+      .folder-box{padding:14px 14px}
+      .file-row,.zd-row{padding:11px 14px;gap:10px}
+
+      /* Contact card */
+      .contact-card{flex-direction:column;align-items:flex-start;gap:8px;padding:14px 14px}
+
+      /* Sign modal */
+      .sign-modal{padding:0}
+      .sign-modal-box{border-radius:var(--radius-md) var(--radius-md) 0 0;margin-top:auto;margin-bottom:0;max-height:95vh;overflow-y:auto}
+      .sign-modal-header{padding:14px 16px}
+      .sign-modal-body{padding:14px 16px}
+      .sign-steps{padding:8px 10px}
+      .sign-step-label{display:none} /* hide text labels, keep circles */
+      .sign-footer{flex-direction:column-reverse}
+      .sign-cancel-btn,.sign-confirm-btn{width:100%;text-align:center}
+      .sign-confirm-btn{padding:13px}
+    }
+
     /* Signing modal */
     .sign-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
     .sign-modal.open{display:flex}
@@ -572,6 +611,12 @@
 
   var parentCustomer = loadFromParent();
   var status = (parentCustomer && parentCustomer.docs) ? Object.assign({}, parentCustomer.docs) : loadStatus();
+
+  // SharePoint is source of truth — overwrite local status with SP data (enables cross-device sync)
+  if (apiConfig && apiConfig.docs) {
+    Object.assign(status, apiConfig.docs);
+    saveStatus(status);
+  }
 
   // ── renderItem ────────────────────────────────────────────────────────
   function renderItem(doc, blockClass) {
