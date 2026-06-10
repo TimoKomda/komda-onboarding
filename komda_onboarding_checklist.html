@@ -460,10 +460,12 @@
     },
     fernwartung: {
       pdfUrl: 'formulare/fernwartung.pdf',
-      signatures: [
-        { page: 0, signX: 80, signY: 100, signW: 220, signH: 50 },
-      ],
-      fieldLabels: {},
+      // Signaturfeld "Unterschrift" ist als /Sig-Feld im PDF → wird automatisch erkannt
+      signatures: [],
+      fieldLabels: {
+        'Kunde': 'Kunde / Firmenstempel',
+        'Datum': 'Datum',
+      },
     },
   };
 
