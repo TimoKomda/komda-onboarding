@@ -328,7 +328,8 @@
 (async function() {
   'use strict';
 
-  var API_URL       = 'https://gentle-stone-0c97b9310.7.azurestaticapps.net/api/status';
+  // Relativer Pfad → immer same-origin (egal ob custom domain oder azurestaticapps.net)
+  var API_URL       = '/api/status';
   var UPDATE_SECRET = '5838bff96f7347e7848c0610bb26baea';
 
   // ── PDF-Signatur-Konfiguration ───────────────────────────────────────────
@@ -356,14 +357,14 @@
       // Lesbare Feldnamen – bitte die internen PDF-Feldnamen (links) nach Test zuordnen:
       // Format: 'interner PDF-Feldname': 'Anzeige-Label'
       fieldLabels: {
-        // Beispiel (Feldnamen nach erstem Test hier einsetzen):
-        // 'Dx Form Field1': 'Firma / Kontoinhaber',
-        // 'Dx Form Field2': 'Straße, Hausnummer',
-        // 'Dx Form Field3': 'PLZ / Ort',
-        // 'Dx Form Field5': 'IBAN',
-        // 'Dx Form Field13': 'BIC',
-        // 'Dx Form Field14': 'Kreditinstitut',
-        // 'Dx Form Field15': 'Ort, Datum',
+        'dxFormField13': 'Firma / Kontoinhaber',
+        'dxFormField14': 'Straße, Hausnummer',
+        'dxFormField15': 'PLZ, Ort',
+        'dxFormField1':  'Kreditinstitut',
+        'dxFormField2':  'IBAN',
+        'dxFormField3':  'BIC',
+        'dxFormField4':  'Ort (Unterschriftsort)',
+        'dxFormField5':  'Datum',
       },
     },
     email_rechnung: {
@@ -753,7 +754,14 @@
         fields.forEach(function(field) {
           var name = field.getName();
           var nameLow = name.toLowerCase();
-          var isSig = sigKeywords.some(function(kw) { return nameLow.indexOf(kw) !== -1; });
+          var isSigByName = sigKeywords.some(function(kw) { return nameLow.indexOf(kw) !== -1; });
+          // Also detect by field type (/Sig) – e.g. dxFormField6 in SEPA PDF
+          var isSigByType = false;
+          try {
+            var ftEntry = field.acroField.dict.get(PDFLib.PDFName.of('FT'));
+            if (ftEntry && ftEntry.encodedName === '/Sig') isSigByType = true;
+          } catch(e) {}
+          var isSig = isSigByName || isSigByType;
 
           if (isSig) {
             // Auto-detect signature position from field rectangle
@@ -772,9 +780,19 @@
           // Duck-typing: try getText() to confirm it's a text field
           try {
             var val = field.getText();
-            textFields.push({ field: field, name: name, val: val || '' });
+            // Get y-position for sorting in reading order (top-down)
+            var sortY = 0;
+            try {
+              var w = field.acroField.getWidgets()[0];
+              var r2 = w.getRectangle();
+              sortY = -(r2.y); // negate: higher y_pdf = higher on page = lower sortY
+            } catch(e) {}
+            textFields.push({ field: field, name: name, val: val || '', sortY: sortY });
           } catch(e3) {}
         });
+
+        // Sort fields top-to-bottom (by descending PDF y coordinate)
+        textFields.sort(function(a, b) { return a.sortY - b.sortY; });
 
         if (textFields.length > 0) {
           var cfgLabels = (cfg && cfg.fieldLabels) ? cfg.fieldLabels : {};
