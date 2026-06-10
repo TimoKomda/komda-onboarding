@@ -1005,10 +1005,12 @@
       // ── Result feedback ───────────────────────────────────────
       if (uploaded) {
         var note = document.createElement('div');
-        note.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999';
-        note.innerHTML = '✓ Dokument erfolgreich hochgeladen!';
+        note.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;max-width:360px';
+        var debugPath = (uploadData && uploadData.uploadError) ? uploadData.uploadError : '';
+        note.innerHTML = '✓ Dokument erfolgreich hochgeladen!'
+          + (debugPath ? '<div style="font-size:10px;opacity:.7;margin-top:4px;word-break:break-all">' + debugPath + '</div>' : '');
         document.body.appendChild(note);
-        setTimeout(function() { note.remove(); }, 4000);
+        setTimeout(function() { note.remove(); }, 6000);
       } else {
         _downloadPdf(signedBytes, filename);
         var msg = 'Das Dokument wurde heruntergeladen.';
