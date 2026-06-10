@@ -937,9 +937,22 @@
       }
 
       // ── Draw signature at each position ──────────────────────
+      // Preserve canvas aspect ratio so signature is never squished
+      var sigCanvas = document.getElementById('sign-pad');
+      var canvasRatio = sigCanvas.width / sigCanvas.height; // e.g. 620/140 ≈ 4.43
       sigPositions.forEach(function(sp) {
         var page = pages[Math.min(sp.page, pages.length - 1)];
-        page.drawImage(sigImg, { x: sp.x, y: sp.y, width: sp.w, height: sp.h, opacity: 1 });
+        var drawW, drawH;
+        if (sp.w / sp.h > canvasRatio) {
+          // Field wider than canvas ratio → constrain by height
+          drawH = sp.h;
+          drawW = drawH * canvasRatio;
+        } else {
+          // Field narrower than canvas ratio → constrain by width
+          drawW = sp.w;
+          drawH = drawW / canvasRatio;
+        }
+        page.drawImage(sigImg, { x: sp.x, y: sp.y, width: drawW, height: drawH, opacity: 1 });
         page.drawText(dateStr, {
           x: sp.x, y: Math.max(sp.y - 13, 5),
           size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3),
@@ -1004,13 +1017,20 @@
 
       // ── Result feedback ───────────────────────────────────────
       if (uploaded) {
+        // Offer download of the signed PDF
+        _downloadPdf(signedBytes, filename);
+
         var note = document.createElement('div');
-        note.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;max-width:360px';
-        var debugPath = (uploadData && uploadData.uploadError) ? uploadData.uploadError : '';
-        note.innerHTML = '✓ Dokument erfolgreich hochgeladen!'
-          + (debugPath ? '<div style="font-size:10px;opacity:.7;margin-top:4px;word-break:break-all">' + debugPath + '</div>' : '');
+        note.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;max-width:380px;cursor:default';
+        // Build a download link inside the toast for re-download
+        var blobUrl = URL.createObjectURL(new Blob([signedBytes], {type:'application/pdf'}));
+        note.innerHTML = '✓ Dokument hochgeladen &amp; heruntergeladen!'
+          + '<div style="font-size:12px;font-weight:400;margin-top:6px">'
+          + '<a href="' + blobUrl + '" download="' + filename + '" '
+          + 'style="color:#fff;text-decoration:underline;">&#128196; Erneut herunterladen</a>'
+          + '</div>';
         document.body.appendChild(note);
-        setTimeout(function() { note.remove(); }, 6000);
+        setTimeout(function() { note.remove(); URL.revokeObjectURL(blobUrl); }, 30000);
       } else {
         _downloadPdf(signedBytes, filename);
         var msg = 'Das Dokument wurde heruntergeladen.';
