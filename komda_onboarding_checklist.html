@@ -462,6 +462,43 @@
         'Datum': 'Datum',
       },
     },
+    avv: {
+      pdfUrl: 'formulare/avv.pdf',
+      signatures: [],
+      showDate: false,
+      autoFill: {
+        'OldenburgDatum': function() {
+          return 'Oldenburg, ' + new Date().toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
+        },
+      },
+      fieldLabels: {
+        'Firma':          'Firma / Kundenname',
+        'Strasse':        'Straße',
+        'PlzOrt':         'PLZ / Ort',
+        'OrtDatum':       'Ort und Datum (Unterschriftsort)',
+        'WB1_Name':       'Weisungsbefugte(r) 1 – Vor- und Nachname',
+        'WB1_Funktion':   'Weisungsbefugte(r) 1 – Funktion',
+        'WB1_Telefon':    'Weisungsbefugte(r) 1 – Telefon',
+        'WB1_Email':      'Weisungsbefugte(r) 1 – E-Mail',
+        'WB2_Name':       'Weisungsbefugte(r) 2 – Vor- und Nachname',
+        'WB2_Funktion':   'Weisungsbefugte(r) 2 – Funktion',
+        'WB2_Telefon':    'Weisungsbefugte(r) 2 – Telefon',
+        'WB2_Email':      'Weisungsbefugte(r) 2 – E-Mail',
+        'WB3_Name':       'Weisungsbefugte(r) 3 – Vor- und Nachname',
+        'WB3_Funktion':   'Weisungsbefugte(r) 3 – Funktion',
+        'WB3_Telefon':    'Weisungsbefugte(r) 3 – Telefon',
+        'WB3_Email':      'Weisungsbefugte(r) 3 – E-Mail',
+        'WB4_Name':       'Weisungsbefugte(r) 4 – Vor- und Nachname',
+        'WB4_Funktion':   'Weisungsbefugte(r) 4 – Funktion',
+        'WB4_Telefon':    'Weisungsbefugte(r) 4 – Telefon',
+        'WB4_Email':      'Weisungsbefugte(r) 4 – E-Mail',
+        'WB5_Name':       'Weisungsbefugte(r) 5 – Vor- und Nachname',
+        'WB5_Funktion':   'Weisungsbefugte(r) 5 – Funktion',
+        'WB5_Telefon':    'Weisungsbefugte(r) 5 – Telefon',
+        'WB5_Email':      'Weisungsbefugte(r) 5 – E-Mail',
+        'OldenburgDatum': 'Komda – Standort und Datum (auto)',
+      },
+    },
   };
 
   var params     = new URLSearchParams(window.location.search);
@@ -527,19 +564,20 @@
         'Zeichnen Sie Ihre Unterschrift und klicken Sie auf "Unterschreiben &amp; hochladen" – das Dokument wird automatisch gespeichert.',
       ],
     },
+    {
+      id: 'avv', name: 'Vertrag zur Auftragsverarbeitung (AVV)', icon: '&#128203;',
+      desc: 'Bitte füllen Sie Ihre Firmendaten und Weisungsbefugten aus und unterschreiben Sie den Vertrag.',
+      steps: [
+        'Klicken Sie auf "Ausfüllen &amp; Unterschreiben".',
+        'Tragen Sie Ihre Firmendaten (Seite 1) sowie Ort und Datum ein.',
+        'Tragen Sie Ihre Weisungsbefugten (Anlage C) ein – mindestens 1 Person ist erforderlich.',
+        'Zeichnen Sie Ihre Unterschrift und klicken Sie auf "Unterschreiben &amp; hochladen".',
+      ],
+    },
   ];
 
   // ── Vorbereitungsunterlagen ───────────────────────────────────────────
   var BLOCK_B_BASE = [
-    {
-      id: 'avv', name: 'Vertrag zur Auftragsverarbeitung (AVV)', icon: '&#128203;', upload: true,
-      desc: 'Vertrag und Anlage C bitte ausfüllen, unterschreiben und hochladen.',
-      steps: [
-        'AVV-Datei aus Ihrem Dokumenten-Ordner herunterladen (Vertrag + Anlage A, B, C).',
-        'Vertrag und Anlage C vollständig ausfüllen und unterschreiben.',
-        'Vollständig ausgefüllten Vertrag hier hochladen.',
-      ],
-    },
     {
       id: 'vorlagen', name: 'Vorlagen, Logos &amp; Briefbogen', icon: '&#128444;', upload: true,
       desc: 'Briefbogen als Word-Dokument und Logo(s) hochladen, damit wir Ihre Vorlagen erstellen können.',
@@ -932,6 +970,14 @@
       }
 
       document.getElementById('sign-form-fields').innerHTML = fieldsHtml;
+
+      // Apply autoFill values (e.g. OldenburgDatum with today's date)
+      if (cfg && cfg.autoFill) {
+        Object.keys(cfg.autoFill).forEach(function(fn) {
+          var el = document.querySelector('.sign-field-input[data-field="' + fn + '"]');
+          if (el) el.value = cfg.autoFill[fn]();
+        });
+      }
 
       // Update steps on field input
       document.querySelectorAll('.sign-field-input').forEach(function(inp) {
