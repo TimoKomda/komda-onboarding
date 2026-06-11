@@ -23,7 +23,7 @@
 
     .page-header{background:var(--red);box-shadow:0 2px 16px rgba(196,27,27,.25)}
     .header-inner{max-width:1060px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
-    .logo-svg{flex-shrink:0}
+    .logo-svg{flex-shrink:0;filter:drop-shadow(0 1px 5px rgba(0,0,0,0.30))}
     .header-text-wrap{flex:1}
     .header-title{font-size:20px;font-weight:700;color:#fff}
     .header-subtitle{font-size:14px;color:rgba(255,255,255,0.85);margin-top:3px;font-weight:400}
@@ -260,7 +260,12 @@
     .sign-confirm-btn:hover{background:var(--red-dark)}
     .sign-confirm-btn:disabled{opacity:.6;cursor:default}
 
-    footer{text-align:center;color:var(--muted);font-size:12px;padding:20px;opacity:.7}
+    footer{text-align:center;color:var(--muted);font-size:12px;padding:28px 20px 32px;border-top:1px solid var(--border)}
+    .footer-copy{margin-bottom:10px;font-weight:500}
+    .footer-links{display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
+    .footer-links a{color:var(--muted);text-decoration:none;transition:color .15s}
+    .footer-links a:hover{color:var(--red)}
+    @media(max-width:760px){.files-box{display:none}}
   </style>
 </head>
 <body>
@@ -273,11 +278,16 @@
 <div class="page-header">
   <div class="header-inner">
     <svg class="logo-svg" width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="50" fill="rgba(255,255,255,0.15)"/>
-      <polygon points="23,13 39,13 39,87 23,87" fill="white"/>
-      <polygon points="39,13 77,13 77,36 39,55" fill="white"/>
-      <polygon points="39,57 59,57 79,87 57,87" fill="white"/>
-      <polygon points="40,13 58,13 38,53 20,53" fill="#b71c1c"/>
+      <!-- Red circle background (slightly darker than header for depth) -->
+      <circle cx="50" cy="50" r="50" fill="#991010"/>
+      <!-- K – vertical bar -->
+      <polygon points="25,12 39,12 39,88 25,88" fill="white"/>
+      <!-- K – upper arm -->
+      <polygon points="39,12 80,12 80,32 39,52" fill="white"/>
+      <!-- K – lower arm -->
+      <polygon points="39,56 62,56 82,88 57,88" fill="white"/>
+      <!-- Diagonal slash cutting through junction (brand detail) -->
+      <polygon points="26,45 40,14 50,16 32,50" fill="#991010"/>
     </svg>
     <div class="header-text-wrap">
       <div class="header-title" id="header-title">Willkommen zu Ihrem Komda&reg; Software Onboarding</div>
@@ -423,7 +433,13 @@
   </div>
 </div>
 
-<footer>Komda &middot; Zapf Systemhaus GmbH &middot; Ihr IT-Partner</footer>
+<footer>
+  <div class="footer-copy">&copy; 2026 by Komda Software GmbH</div>
+  <div class="footer-links">
+    <a href="https://komda-software.de/impressum/" target="_blank" rel="noopener">Impressum</a>
+    <a href="https://komda-software.de/datenschutz/" target="_blank" rel="noopener">Datenschutz</a>
+  </div>
+</footer>
 
 <script>
 (async function() {
