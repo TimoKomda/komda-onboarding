@@ -57,8 +57,21 @@
     .section-bar-hint{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
 
     .status-badge{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
-    .status-badge.open{background:#f3f2f1;color:var(--muted);border:1px solid var(--border)}
+    .status-badge.open{background:var(--red-pale);color:var(--red);border:1px solid #f5c0c0}
     .status-badge.done{background:var(--green-bg);color:var(--green)}
+
+    /* Upload zone */
+    .upload-zone{border:2px dashed var(--border);border-radius:10px;padding:14px 16px;text-align:center;margin:8px 22px 14px 54px;cursor:default;transition:border-color .2s,background .2s}
+    .upload-zone.drag-over{border-color:var(--blue);background:#e8f0ff}
+    .upload-zone-hint{font-size:12px;color:var(--muted);margin-bottom:10px}
+    .upload-zone-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+    .upload-file-label{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;background:var(--red);color:#fff;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:background .15s}
+    .upload-file-label:hover{background:var(--red-dark)}
+    .upload-result{margin-top:10px;font-size:12px;font-weight:600}
+    .upload-result.ok{color:var(--green)}
+    .upload-result.err{color:var(--red)}
+    .upload-result.working{color:var(--orange)}
+    @media(max-width:480px){.upload-zone{margin:8px 14px 12px 14px}}
 
     .check-item{display:flex;align-items:center;gap:12px;padding:14px 22px;border-bottom:1px solid var(--border-lt);transition:background .15s}
     .check-item:hover{background:#fafaf9}
@@ -69,8 +82,10 @@
     .check-desc{font-size:12px;color:var(--muted);margin-top:2px}
     .check-btn-wrap{flex-shrink:0;display:flex;flex-direction:column;gap:4px;align-items:flex-end}
     .check-btn{padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;white-space:nowrap;background:none}
-    .check-btn.done-btn{background:var(--green-bg);color:var(--green);border-color:#c3e6d3}
-    .check-btn.done-btn:hover{background:#c8ecd8}
+    .check-btn.done-btn{background:var(--gray-bg);color:var(--muted);border-color:var(--border)}
+    .check-btn.done-btn:hover{background:var(--border)}
+    .check-btn.upload-btn{background:var(--blue-bg);color:var(--blue);border-color:#b8cef0}
+    .check-btn.upload-btn:hover{background:#d4e4ff}
     .check-btn.undo-btn{background:var(--gray-bg);color:var(--muted);border-color:var(--border)}
     .check-btn.undo-btn:hover{background:var(--border)}
     .check-btn.sign-btn{background:var(--red-pale);color:var(--red);border-color:#f5c0c0}
@@ -353,12 +368,12 @@
           <div class="sign-step-num active" id="step-num-1">1</div>
           <div class="sign-step-label active" id="step-lbl-1">Felder ausf&uuml;llen</div>
         </div>
-        <div class="sign-step-arrow">›</div>
+        <div class="sign-step-arrow">&#8250;</div>
         <div class="sign-step">
           <div class="sign-step-num" id="step-num-2">2</div>
           <div class="sign-step-label" id="step-lbl-2">Unterschreiben</div>
         </div>
-        <div class="sign-step-arrow">›</div>
+        <div class="sign-step-arrow">&#8250;</div>
         <div class="sign-step">
           <div class="sign-step-num" id="step-num-3">3</div>
           <div class="sign-step-label" id="step-lbl-3">Hochladen</div>
@@ -409,34 +424,15 @@
 (async function() {
   'use strict';
 
-  // Relativer Pfad → immer same-origin (egal ob custom domain oder azurestaticapps.net)
   var API_URL       = '/api/status';
   var UPDATE_SECRET = '5838bff96f7347e7848c0610bb26baea';
 
-  // ── PDF-Signatur-Konfiguration ───────────────────────────────────────────
-  // pdfUrl  : Relativer Pfad zur PDF-Vorlage im GitHub-Repo
-  // page    : Seite (0 = erste Seite)
-  //
-  // Unterschrift-Position (Fallback, wenn kein AcroForm-Feld erkannt wird):
-  // signX / signY : Position in Punkten ab unten-links (PDF-Koordinaten)
-  // signW / signH : Größe der Unterschrift
-  //
-  // >> TIPP: Stellen Sie sicher, dass die PDFs ein AcroForm-Unterschriftenfeld
-  // >> mit "Unterschrift" im Feldnamen enthalten – dann wird die Position
-  // >> automatisch aus dem PDF übernommen. <<
   var SIGN_CONFIG = {
     sepa: {
       pdfUrl: 'formulare/sepa-mandat.pdf',
-      // Mehrere Unterschrift-Positionen (gleiche Unterschrift wird an alle Stellen gesetzt)
-      // Wenn AcroForm-Signaturfelder im PDF vorhanden sind, werden diese automatisch genutzt.
-      // Fallback-Positionen (PDF-Koordinaten, Ursprung unten-links):
       signatures: [
         { page: 0, signX: 80, signY: 100, signW: 220, signH: 50 },
-        // Zweite Unterschrift-Position – bitte nach Test anpassen:
-        // { page: 0, signX: 80, signY: 40, signW: 220, signH: 50 },
       ],
-      // Lesbare Feldnamen – bitte die internen PDF-Feldnamen (links) nach Test zuordnen:
-      // Format: 'interner PDF-Feldname': 'Anzeige-Label'
       fieldLabels: {
         'dxFormField13': 'Firma / Kontoinhaber',
         'dxFormField14': 'Straße, Hausnummer',
@@ -450,7 +446,6 @@
     },
     email_rechnung: {
       pdfUrl: 'formulare/email-rechnung.pdf',
-      // Signaturfeld "Unterschrift" ist als /Sig-Feld im PDF → wird automatisch erkannt
       signatures: [],
       fieldLabels: {
         'Firma':           'Firma',
@@ -461,7 +456,7 @@
     fernwartung: {
       pdfUrl: 'formulare/fernwartung.pdf',
       signatures: [],
-      showDate: false,  // Datum wird vom Kunden selbst eingetragen
+      showDate: false,
       fieldLabels: {
         'Kunde': 'Kunde / Firmenstempel',
         'Datum': 'Datum',
@@ -502,95 +497,91 @@
     }
   }
 
-  // ── Pflichtunterlagen (3 Dokumente) ────────────────────────────────────
+  // ── Pflichtunterlagen ─────────────────────────────────────────────────
   var BLOCK_A = [
     {
-      id: 'sepa', name: 'SEPA-Firmenlastschrift-Mandat', icon: '🏦',
+      id: 'sepa', name: 'SEPA-Firmenlastschrift-Mandat', icon: '&#127974;',
       desc: 'Unterzeichnetes SEPA-Mandat für die monatlichen Lastschriften. Das Original bitte zusätzlich Ihrer Bank übergeben.',
       steps: [
-        'Klicken Sie auf "Ausf&#252;llen &amp; Unterschreiben".',
-        'F&#252;llen Sie alle Felder aus und zeichnen Sie Ihre Unterschrift.',
-        'Klicken Sie auf "Unterschreiben &amp; hochladen" &#8211; das Dokument wird automatisch in Ihren Dokumenten-Ordner hochgeladen.',
-        'Original zus&#228;tzlich Ihrer Bank &#252;bergeben.',
+        'Klicken Sie auf "Ausfüllen &amp; Unterschreiben".',
+        'Füllen Sie alle Felder aus und zeichnen Sie Ihre Unterschrift.',
+        'Klicken Sie auf "Unterschreiben &amp; hochladen" – das Dokument wird automatisch in Ihren Dokumenten-Ordner hochgeladen.',
+        'Original zusätzlich Ihrer Bank übergeben.',
       ],
     },
     {
-      id: 'email_rechnung', name: 'E-Mail für Rechnungsversand', icon: '📬',
+      id: 'email_rechnung', name: 'E-Mail für Rechnungsversand', icon: '&#128236;',
       desc: 'E-Mail-Adresse für den digitalen Rechnungsversand.',
       steps: [
-        'Klicken Sie auf "Ausf&#252;llen &amp; Unterschreiben".',
-        'Tragen Sie die gew&#252;nschte Rechnungs-E-Mail-Adresse ein.',
-        'Zeichnen Sie Ihre Unterschrift und klicken Sie auf "Unterschreiben &amp; hochladen" &#8211; das Dokument wird automatisch gespeichert.',
+        'Klicken Sie auf "Ausfüllen &amp; Unterschreiben".',
+        'Tragen Sie die gewünschte Rechnungs-E-Mail-Adresse ein.',
+        'Zeichnen Sie Ihre Unterschrift und klicken Sie auf "Unterschreiben &amp; hochladen" – das Dokument wird automatisch gespeichert.',
       ],
     },
     {
-      id: 'fernwartung', name: 'Einverständniserklärung Fernwartung', icon: '💻',
+      id: 'fernwartung', name: 'Einverständniserklärung Fernwartung', icon: '&#128187;',
       desc: 'Schriftliche Einwilligung zur Fernwartung durch unsere Techniker.',
       steps: [
-        'Klicken Sie auf "Ausf&#252;llen &amp; Unterschreiben".',
-        'Lesen Sie das Dokument durch und f&#252;llen Sie alle Felder aus.',
-        'Zeichnen Sie Ihre Unterschrift und klicken Sie auf "Unterschreiben &amp; hochladen" &#8211; das Dokument wird automatisch gespeichert.',
+        'Klicken Sie auf "Ausfüllen &amp; Unterschreiben".',
+        'Lesen Sie das Dokument durch und füllen Sie alle Felder aus.',
+        'Zeichnen Sie Ihre Unterschrift und klicken Sie auf "Unterschreiben &amp; hochladen" – das Dokument wird automatisch gespeichert.',
       ],
     },
   ];
 
-  // ── Vorbereitungsunterlagen (AVV jetzt hier) ─────────────────────────
+  // ── Vorbereitungsunterlagen ───────────────────────────────────────────
   var BLOCK_B_BASE = [
     {
-      id: 'avv', name: 'Vertrag zur Auftragsverarbeitung (AVV)', icon: '📋',
+      id: 'avv', name: 'Vertrag zur Auftragsverarbeitung (AVV)', icon: '&#128203;', upload: true,
       desc: 'Vertrag und Anlage C bitte ausfüllen, unterschreiben und hochladen.',
       steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'AVV-Datei herunterladen (Vertrag + Anlage A, B, C).',
+        'AVV-Datei aus Ihrem Dokumenten-Ordner herunterladen (Vertrag + Anlage A, B, C).',
         'Vertrag und Anlage C vollständig ausfüllen und unterschreiben.',
-        'Vollständig ausgefüllten Vertrag zurück in den Ordner hochladen.',
-        'Diesen Schritt abhaken.',
+        'Vollständig ausgefüllten Vertrag hier hochladen.',
       ],
     },
     {
-      id: 'vorlagen', name: 'Vorlagen, Logos &amp; Briefbogen', icon: '🖼️',
+      id: 'vorlagen', name: 'Vorlagen, Logos &amp; Briefbogen', icon: '&#128444;', upload: true,
       desc: 'Briefbogen als Word-Dokument und Logo(s) hochladen, damit wir Ihre Vorlagen erstellen können.',
       steps: [
-        'Dokumente-Ordner über den Button rechts öffnen.',
-        'Briefbogen als Word-Dokument hochladen.',
-        'Logo-Datei(en) hochladen.',
-        'Diesen Schritt abhaken.',
+        'Briefbogen als Word-Dokument hier hochladen.',
+        'Logo-Datei(en) hier hochladen.',
       ],
     },
     {
-      id: 'debitoren', name: 'Liste der Debitoren-Nummern', icon: '📋',
+      id: 'debitoren', name: 'Liste der Debitoren-Nummern', icon: '&#128203;', upload: true,
       desc: 'Liste Ihrer Kunden/Patienten und Kostenträger (Pflegekassen, Krankenkassen, Sozialämter) bzw. eine Vorgabe dafür.',
-      steps: ['Dokumente-Ordner öffnen.', 'Ihre Debitoren-Liste hochladen.', 'Diesen Schritt abhaken.'],
+      steps: ['Ihre Debitoren-Liste hier hochladen.'],
     },
     {
-      id: 'mitarbeiter', name: 'Liste der Mitarbeiter-Nummern', icon: '👥',
+      id: 'mitarbeiter', name: 'Liste der Mitarbeiter-Nummern', icon: '&#128101;', upload: true,
       desc: 'Liste der Mitarbeiter-Nummern aus der Personalabrechnung.',
-      steps: ['Dokumente-Ordner öffnen.', 'Ihre Mitarbeiter-Liste hochladen.', 'Diesen Schritt abhaken.'],
+      steps: ['Ihre Mitarbeiter-Liste hier hochladen.'],
     },
     {
-      id: 'lohnarten', name: 'Liste der Lohnarten', icon: '💰',
+      id: 'lohnarten', name: 'Liste der Lohnarten', icon: '&#128176;', upload: true,
       desc: 'Liste der Lohnarten für Zuschläge, Stunden usw. aus der Personalabrechnung.',
-      steps: ['Dokumente-Ordner öffnen.', 'Ihre Lohnarten-Liste hochladen.', 'Diesen Schritt abhaken.'],
+      steps: ['Ihre Lohnarten-Liste hier hochladen.'],
     },
   ];
 
   var OPTIONAL_META = [
     {
-      id: 'verguetung', block: 'B', name: 'Vergütungsvereinbarung', icon: '📃',
+      id: 'verguetung', block: 'B', name: 'Vergütungsvereinbarung', icon: '&#128195;', upload: true,
       desc: 'Bitte laden Sie Ihre Vergütungsvereinbarung in den Ordner hoch.',
-      steps: ['Dokumente-Ordner öffnen.', 'Vergütungsvereinbarung hochladen.', 'Diesen Schritt abhaken.'],
+      steps: ['Vergütungsvereinbarung hier hochladen.'],
     },
     {
-      id: 'datenubernahme', block: 'B', name: 'Datenübernahme', icon: '💾',
+      id: 'datenubernahme', block: 'B', name: 'Datenübernahme', icon: '&#128190;', upload: true,
       desc: 'Übergabe Ihrer bestehenden Daten in das Komda-System.',
-      steps: ['Datenübernahme-Ordner öffnen.', 'Exportdatei hochladen.', 'Diesen Schritt abhaken.'],
+      steps: ['Exportdatei hier hochladen.'],
     },
   ];
 
   var FOLDER_LINKS = [
-    { id: 'zd_auftrag', icon: '📄', name: 'Auftragsbetätigung',                  hint: 'Ordner mit Ihren Auftragsbetätigungen',    param: 'spUrlAuftrag' },
-    { id: 'zd_mobile',  icon: '📱', name: 'Komda® Mobile Zugangsdaten',           hint: 'Ordner mit Ihren Mobile-Zugangsdaten',      param: 'spUrlMobile'  },
-    { id: 'zd_cloud',   icon: '☁️',  name: 'Komda® Cloud / Hosting Zugangsdaten', hint: 'Ordner mit Ihren Cloud-Zugangsdaten',       param: 'spUrlCloud'   },
+    { id: 'zd_auftrag', icon: '&#128196;', name: 'Auftragsbetätigung',                   hint: 'Ordner mit Ihren Auftragsbetätigungen',   param: 'spUrlAuftrag' },
+    { id: 'zd_mobile',  icon: '&#128242;', name: 'Komda® Mobile Zugangsdaten',            hint: 'Ordner mit Ihren Mobile-Zugangsdaten',       param: 'spUrlMobile'  },
+    { id: 'zd_cloud',   icon: '&#9729;',   name: 'Komda® Cloud / Hosting Zugangsdaten',  hint: 'Ordner mit Ihren Cloud-Zugangsdaten',        param: 'spUrlCloud'   },
   ];
 
   var activeOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
@@ -617,7 +608,7 @@
   var parentCustomer = loadFromParent();
   var status = (parentCustomer && parentCustomer.docs) ? Object.assign({}, parentCustomer.docs) : loadStatus();
 
-  // SharePoint is source of truth — overwrite local status with SP data (enables cross-device sync)
+  // SharePoint ist Source of Truth → Cross-Device-Sync
   if (apiConfig && apiConfig.docs) {
     Object.assign(status, apiConfig.docs);
     saveStatus(status);
@@ -625,23 +616,47 @@
 
   // ── renderItem ────────────────────────────────────────────────────────
   function renderItem(doc, blockClass) {
-    var isDone = !!status[doc.id];
-    var stepsHtml = '';
+    var isDone     = !!status[doc.id];
+    var hasSigning = !!SIGN_CONFIG[doc.id];
+    var hasUpload  = !!doc.upload;
+
+    var stepsHtml = '<ul class="step-list">';
     for (var s = 0; s < doc.steps.length; s++) {
       stepsHtml += '<li class="step-item"><span class="step-num ' + blockClass + '">' + (s+1) + '</span><span>' + doc.steps[s] + '</span></li>';
     }
-    var hasSigning = !!SIGN_CONFIG[doc.id];
+    stepsHtml += '</ul>';
+
+    // Upload-Zone (nur wenn aufgeklappt und noch nicht erledigt)
+    var uploadZoneHtml = '';
+    if (hasUpload && !isDone) {
+      uploadZoneHtml = '<div class="upload-zone" id="uz-' + doc.id + '"'
+        + ' ondragover="event.preventDefault();this.classList.add(\'drag-over\')"'
+        + ' ondragleave="this.classList.remove(\'drag-over\')"'
+        + ' ondrop="handleFileDrop(event,\'' + doc.id + '\')">'
+        + '<div class="upload-zone-hint">Datei hier hineinziehen oder auswählen</div>'
+        + '<div class="upload-zone-actions">'
+        + '<label class="upload-file-label">&#128193; Datei auswählen'
+        + '<input type="file" multiple style="display:none" onchange="handleFileSelect(event,\'' + doc.id + '\')">'
+        + '</label>'
+        + '</div>'
+        + '<div class="upload-result" id="ur-' + doc.id + '"></div>'
+        + '</div>';
+    }
+
     var actionHtml;
     if (isDone) {
       actionHtml = '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rükgängig</button>';
     } else if (hasSigning) {
       actionHtml = '<div class="check-btn-wrap">'
-        + '<button class="check-btn sign-btn" data-action="sign" data-id="' + doc.id + '">📝 Ausfüllen &amp; Unterschreiben</button>'
+        + '<button class="check-btn sign-btn" data-action="sign" data-id="' + doc.id + '">&#128221; Ausfüllen &amp; Unterschreiben</button>'
         + '<button class="check-btn manual-btn" data-action="done" data-id="' + doc.id + '">✓ Manuell abhaken</button>'
         + '</div>';
+    } else if (hasUpload) {
+      actionHtml = '<button class="check-btn upload-btn" data-action="toggle" data-id="' + doc.id + '">&#8679; Hochladen</button>';
     } else {
-      actionHtml = '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Erledigt</button>';
+      actionHtml = '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Abhaken</button>';
     }
+
     return '<div>'
       + '<div class="check-item">'
       + '<span class="status-badge ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '✓ Erledigt' : '● Offen') + '</span>'
@@ -658,7 +673,8 @@
       + ' Schritt-für-Schritt-Anleitung'
       + '</div>'
       + '<div class="steps-body" id="steps-' + doc.id + '">'
-      + '<ul class="step-list">' + stepsHtml + '</ul>'
+      + stepsHtml
+      + uploadZoneHtml
       + '</div>'
       + '</div>'
       + '</div>';
@@ -699,8 +715,8 @@
     document.getElementById('checklist-items').innerHTML = clHtml;
 
     document.getElementById('folder-btn-wrap').innerHTML = spUrl
-      ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">📁 Dokumenten-Ordner öffnen</a>'
-      : '<span class="folder-btn-big disabled">📁 Dokumenten-Ordner öffnen</span>';
+      ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">&#128193; Dokumenten-Ordner öffnen</a>'
+      : '<span class="folder-btn-big disabled">&#128193; Dokumenten-Ordner öffnen</span>';
 
     var flHtml = '<div class="file-section-label">Pflichtunterlagen</div>';
     for (var f = 0; f < BLOCK_A.length; f++) {
@@ -730,8 +746,8 @@
       zdHtml += '<div class="zd-row">'
         + '<div class="zd-icon">' + zd.icon + '</div>'
         + '<div class="zd-info"><div class="zd-name">' + zd.name + '</div><div class="zd-hint">' + zd.hint + '</div></div>'
-        + (zdUrl ? '<a class="zd-btn" href="' + zdUrl + '" target="_blank">⬇ Öffnen</a>'
-                 : '<span class="zd-btn disabled">⬇ Öffnen</span>')
+        + (zdUrl ? '<a class="zd-btn" href="' + zdUrl + '" target="_blank">&#8595; Öffnen</a>'
+                 : '<span class="zd-btn disabled">&#8595; Öffnen</span>')
         + '</div>';
     }
     document.getElementById('zugangsdaten-list').innerHTML = zdHtml;
@@ -783,8 +799,8 @@
   // ── Signing ──────────────────────────────────────────────────────────
   var currentSignDocId = null;
   var signDrawing = false;
-  var _pdfCache = {}; // { docId: ArrayBuffer }
-  var _sigPosCache = {}; // { docId: {x,y,w,h} or null }
+  var _pdfCache = {};
+  var _sigPosCache = {};
 
   window.openSignModal = async function(docId) {
     currentSignDocId = docId;
@@ -794,7 +810,6 @@
 
     document.getElementById('sign-modal-title').textContent = doc ? (doc.name) : 'Dokument unterschreiben';
 
-    // Inline PDF preview
     var previewWrap = document.getElementById('sign-pdf-preview-wrap');
     var pdfIframe   = document.getElementById('sign-pdf-iframe');
     var pdfLink     = document.getElementById('sign-pdf-link');
@@ -827,7 +842,6 @@
     }
 
     try {
-      // Load PDF (use cache to avoid double-fetch)
       if (!_pdfCache[docId]) {
         var resp = await fetch(cfg.pdfUrl);
         if (!resp.ok) throw new Error('PDF nicht gefunden: ' + cfg.pdfUrl + ' (HTTP ' + resp.status + ')');
@@ -848,7 +862,6 @@
           var name = field.getName();
           var nameLow = name.toLowerCase();
           var isSigByName = sigKeywords.some(function(kw) { return nameLow.indexOf(kw) !== -1; });
-          // Also detect by field type (/Sig) – e.g. dxFormField6 in SEPA PDF
           var isSigByType = false;
           try {
             var ftEntry = field.acroField.dict.get(PDFLib.PDFName.of('FT'));
@@ -857,7 +870,6 @@
           var isSig = isSigByName || isSigByType;
 
           if (isSig) {
-            // Auto-detect signature position from field rectangle
             try {
               var widgets = field.acroField.getWidgets();
               if (widgets.length > 0) {
@@ -867,29 +879,26 @@
                   '&#128204; Position auto-erkannt (x:' + Math.round(rect.x) + ' y:' + Math.round(rect.y) + ')';
               }
             } catch(e2) {}
-            return; // don't add signature field to text form
+            return;
           }
 
-          // Duck-typing: try getText() to confirm it's a text field
           try {
             var val = field.getText();
-            // Get y-position for sorting in reading order (top-down)
             var sortY = 0;
             try {
               var w = field.acroField.getWidgets()[0];
               var r2 = w.getRectangle();
-              sortY = -(r2.y); // negate: higher y_pdf = higher on page = lower sortY
+              sortY = -(r2.y);
             } catch(e) {}
             textFields.push({ field: field, name: name, val: val || '', sortY: sortY });
           } catch(e3) {}
         });
 
-        // Sort fields top-to-bottom (by descending PDF y coordinate)
         textFields.sort(function(a, b) { return a.sortY - b.sortY; });
 
         if (textFields.length > 0) {
           var cfgLabels = (cfg && cfg.fieldLabels) ? cfg.fieldLabels : {};
-          fieldsHtml += '<div class="sign-fields-label">Formularfelder ausf&#252;llen:</div>';
+          fieldsHtml += '<div class="sign-fields-label">Formularfelder ausfüllen:</div>';
           fieldsHtml += '<div class="sign-fields-grid">';
           textFields.forEach(function(tf, idx) {
             var rawName = tf.name;
@@ -897,7 +906,6 @@
             if (cfgLabels[rawName]) {
               label = cfgLabels[rawName];
             } else {
-              // Auto-label: strip generic prefixes, camelCase split, fallback "Feld N"
               label = rawName
                 .replace(/^(txt|fld|field|input|form|dx\s*form\s*field)/i, '')
                 .replace(/_/g, ' ')
@@ -906,7 +914,6 @@
               if (!label || /^\d+$/.test(label)) label = 'Feld ' + (idx + 1);
               else label = label.charAt(0).toUpperCase() + label.slice(1);
             }
-
             fieldsHtml += '<div class="sign-field-item">'
               + '<label class="sign-field-label">' + label + '</label>'
               + '<input type="text" class="sign-field-input" data-field="' + rawName + '"'
@@ -954,32 +961,27 @@
     btn.classList.toggle('open', open);
   };
 
-  // Update step indicator: step 1 active while filling fields, step 2 when pad has ink
+  // Update step indicator
   function _updateSteps(filledFields, hasSig) {
     var s1n = document.getElementById('step-num-1'), s1l = document.getElementById('step-lbl-1');
     var s2n = document.getElementById('step-num-2'), s2l = document.getElementById('step-lbl-2');
     var s3n = document.getElementById('step-num-3'), s3l = document.getElementById('step-lbl-3');
     if (!s1n) return;
-    // Step 1
     if (filledFields && hasSig) { s1n.className = 'sign-step-num done'; }
     else if (!filledFields)     { s1n.className = 'sign-step-num active'; s1l.className = 'sign-step-label active'; }
     else                        { s1n.className = 'sign-step-num done'; }
     s1l.className = 'sign-step-label' + ((!filledFields) ? ' active' : '');
-    // Step 2
-    if (hasSig)                { s2n.className = 'sign-step-num done'; s2l.className = 'sign-step-label'; }
-    else if (filledFields)     { s2n.className = 'sign-step-num active'; s2l.className = 'sign-step-label active'; }
-    else                       { s2n.className = 'sign-step-num'; s2l.className = 'sign-step-label'; }
-    // Step 3 (always pending until upload)
+    if (hasSig)            { s2n.className = 'sign-step-num done'; s2l.className = 'sign-step-label'; }
+    else if (filledFields) { s2n.className = 'sign-step-num active'; s2l.className = 'sign-step-label active'; }
+    else                   { s2n.className = 'sign-step-num'; s2l.className = 'sign-step-label'; }
     s3n.className = 'sign-step-num' + (hasSig ? ' active' : '');
     s3l.className = 'sign-step-label' + (hasSig ? ' active' : '');
   }
-  // Expose for canvas draw handler
   window._updateSteps = _updateSteps;
 
   window.closeSignModal = function() {
     document.getElementById('sign-modal').classList.remove('open');
     document.body.style.overflow = '';
-    // Reset PDF toggle
     var c = document.getElementById('sign-pdf-collapse');
     var b = document.getElementById('sign-pdf-toggle');
     if (c) c.classList.remove('open');
@@ -992,8 +994,6 @@
     if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  // Helper: Uint8Array / ArrayBuffer → Base64 (chunk-based, no stack overflow)
-  // IMPORTANT: always pass a Uint8Array (not .buffer) to get the exact byte range
   function _buf2b64(input) {
     var bytes = (input instanceof Uint8Array) ? input : new Uint8Array(input);
     var out = '';
@@ -1004,7 +1004,6 @@
     return btoa(out);
   }
 
-  // Helper: trigger browser download as fallback
   function _downloadPdf(bytes, filename) {
     var blob = new Blob([bytes], { type: 'application/pdf' });
     var url  = URL.createObjectURL(blob);
@@ -1030,13 +1029,9 @@
     btn.disabled = true;
 
     try {
-      // Reload fresh from cached bytes to avoid stale mutations
       var pdfDoc = await PDFLib.PDFDocument.load(_pdfCache[currentSignDocId]);
       var pages  = pdfDoc.getPages();
 
-      // ── Fill text fields + flatten ────────────────────────────
-      // Flatten embeds AcroForm values as static PDF content so
-      // they are visible in all viewers and cannot be edited further.
       try {
         var form = pdfDoc.getForm();
         var inputs = document.querySelectorAll('.sign-field-input');
@@ -1046,28 +1041,20 @@
           if (!val) return;
           try { form.getTextField(fn).setText(val); } catch(e) {}
         });
-        form.flatten(); // embed values as visible text
+        form.flatten();
       } catch(e) {}
 
-      // ── Embed signature image (once, reused for all positions) ─
       var sigDataUrl = canvas.toDataURL('image/png');
       var sigBuf = await fetch(sigDataUrl).then(function(r) { return r.arrayBuffer(); });
       var sigImg = await pdfDoc.embedPng(sigBuf);
       var dateStr = new Date().toLocaleDateString('de-DE');
 
-      // ── Determine signature position(s) ──────────────────────
-      // Support both old single-position config (signX/Y/W/H) and
-      // new multi-position array (cfg.signatures).
       var sigPositions = [];
-
-      // Auto-detected positions from AcroForm signature fields
       var autoPos = _sigPosCache[currentSignDocId];
       if (autoPos) {
         sigPositions.push({ page: cfg.signatures ? (cfg.signatures[0] && cfg.signatures[0].page || 0) : (cfg.page || 0),
           x: autoPos.x, y: autoPos.y, w: autoPos.w, h: autoPos.h });
       }
-
-      // Fallback: from cfg.signatures array or legacy cfg.signX/Y/W/H
       if (sigPositions.length === 0) {
         if (cfg.signatures && cfg.signatures.length > 0) {
           cfg.signatures.forEach(function(s) {
@@ -1078,108 +1065,70 @@
         }
       }
 
-      // ── Draw signature at each position ──────────────────────
-      // Preserve canvas aspect ratio so signature is never squished
       var sigCanvas = document.getElementById('sign-pad');
-      var canvasRatio = sigCanvas.width / sigCanvas.height; // e.g. 620/140 ≈ 4.43
+      var canvasRatio = sigCanvas.width / sigCanvas.height;
       sigPositions.forEach(function(sp) {
         var page = pages[Math.min(sp.page, pages.length - 1)];
         var drawW, drawH;
-        if (sp.w / sp.h > canvasRatio) {
-          // Field wider than canvas ratio → constrain by height
-          drawH = sp.h;
-          drawW = drawH * canvasRatio;
-        } else {
-          // Field narrower than canvas ratio → constrain by width
-          drawW = sp.w;
-          drawH = drawW / canvasRatio;
-        }
+        if (sp.w / sp.h > canvasRatio) { drawH = sp.h; drawW = drawH * canvasRatio; }
+        else { drawW = sp.w; drawH = drawW / canvasRatio; }
         page.drawImage(sigImg, { x: sp.x, y: sp.y, width: drawW, height: drawH, opacity: 1 });
         if (cfg.showDate !== false) {
-          page.drawText(dateStr, {
-            x: sp.x, y: Math.max(sp.y - 13, 5),
-            size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3),
-          });
+          page.drawText(dateStr, { x: sp.x, y: Math.max(sp.y - 13, 5), size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3) });
         }
       });
 
-      // ── Build filename ────────────────────────────────────────
       var docObj = null;
       for (var j = 0; j < ALL_DOCS.length; j++) { if (ALL_DOCS[j].id === currentSignDocId) { docObj = ALL_DOCS[j]; break; } }
       var safeDocName = (docObj ? docObj.name.replace(/[^\wäöüÄÖÜß\s\-]/g, '').trim() : currentSignDocId);
       var filename = safeDocName + '_unterschrieben.pdf';
 
-      // ── Save PDF (returns Uint8Array) ─────────────────────────
-      var signedBytes = await pdfDoc.save(); // Uint8Array
+      var signedBytes = await pdfDoc.save();
       var docId = currentSignDocId;
 
-      // ── Try upload to SharePoint ──────────────────────────────
       var uploadSpUrl = (apiConfig && apiConfig.spUrl) || (parentCustomer && parentCustomer.spUrl) || params.get('spUrl') || '';
       var custId = '';
       try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
 
-      var uploaded    = false;
-      var uploadError = '';
+      var uploaded = false, uploadError = '';
 
       if (custId && uploadSpUrl && !isPreview) {
         btn.textContent = '☁ Wird hochgeladen…';
         try {
-          // Pass Uint8Array directly – do NOT use .buffer (would include unused memory)
           var b64 = _buf2b64(signedBytes);
           var uploadResp = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              secret:   UPDATE_SECRET,
-              custId:   custId,
-              docId:    docId,
-              value:    true,
-              file:     b64,
-              filename: filename,
-              spUrl:    uploadSpUrl,
-            }),
+            body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, file: b64, filename: filename, spUrl: uploadSpUrl }),
           });
           var uploadData = await uploadResp.json();
-          if (uploadData.ok && uploadData.uploaded) {
-            uploaded = true;
-          } else {
-            uploadError = uploadData.uploadError || uploadData.error || 'Unbekannter Fehler';
-          }
-        } catch(e) {
-          uploadError = e.message;
-        }
+          if (uploadData.ok && uploadData.uploaded) { uploaded = true; }
+          else { uploadError = uploadData.uploadError || uploadData.error || 'Unbekannter Fehler'; }
+        } catch(e) { uploadError = e.message; }
       }
 
-      // ── Mark as done + close modal ────────────────────────────
       window.closeSignModal();
       status[docId] = true;
       saveStatus(status);
-      if (!uploaded) {
-        syncToParent(docId, true); // status-only POST (no file)
-      }
+      if (!uploaded) { syncToParent(docId, true); }
       render();
 
-      // ── Result feedback ───────────────────────────────────────
       if (uploaded) {
-        // Offer download of the signed PDF
         _downloadPdf(signedBytes, filename);
-
         var note = document.createElement('div');
         note.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;max-width:380px;cursor:default';
-        // Build a download link inside the toast for re-download
         var blobUrl = URL.createObjectURL(new Blob([signedBytes], {type:'application/pdf'}));
         note.innerHTML = '✓ Dokument hochgeladen &amp; heruntergeladen!'
           + '<div style="font-size:12px;font-weight:400;margin-top:6px">'
-          + '<a href="' + blobUrl + '" download="' + filename + '" '
-          + 'style="color:#fff;text-decoration:underline;">&#128196; Erneut herunterladen</a>'
+          + '<a href="' + blobUrl + '" download="' + filename + '" style="color:#fff;text-decoration:underline;">&#128196; Erneut herunterladen</a>'
           + '</div>';
         document.body.appendChild(note);
         setTimeout(function() { note.remove(); URL.revokeObjectURL(blobUrl); }, 30000);
       } else {
         _downloadPdf(signedBytes, filename);
         var msg = 'Das Dokument wurde heruntergeladen.';
-        if (uploadError) msg += '\n\nHinweis: Automatischer Upload fehlgeschlagen (' + uploadError + ').\nBitte laden Sie die Datei manuell in Ihren Dokumenten-Ordner hoch.';
-        else if (!uploadSpUrl) msg += '\n\nBitte laden Sie die Datei anschließend in Ihren Dokumenten-Ordner hoch.';
+        if (uploadError) msg += '\n\nHinweis: Upload fehlgeschlagen (' + uploadError + ').\nBitte manuell hochladen.';
+        else if (!uploadSpUrl) msg += '\n\nBitte die Datei in Ihren Dokumenten-Ordner hochladen.';
         setTimeout(function() { alert(msg); }, 300);
       }
 
@@ -1191,12 +1140,11 @@
     }
   };
 
-  // Close modal on backdrop click
   document.getElementById('sign-modal').addEventListener('click', function(e) {
     if (e.target === this) window.closeSignModal();
   });
 
-  // ── Signature pad setup ──────────────────────────────────────────────
+  // ── Signature pad ──────────────────────────────────────────────────
   (function setupSignPad() {
     var canvas = document.getElementById('sign-pad');
     if (!canvas) return;
@@ -1212,7 +1160,6 @@
     canvas.addEventListener('mousemove', function(e) { if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
     function _afterStroke() {
       signDrawing = false;
-      // Update steps: check if any field has a value
       var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
       if (window._updateSteps) window._updateSteps(anyFilled, true);
     }
@@ -1222,6 +1169,63 @@
     canvas.addEventListener('touchmove',  function(e) { if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, { passive: false });
     canvas.addEventListener('touchend',   _afterStroke);
   })();
+
+  // ── Upload-Handler ──────────────────────────────────────────────────
+  async function uploadDocFile(docId, file) {
+    var resultEl = document.getElementById('ur-' + docId);
+    if (resultEl) { resultEl.className = 'upload-result working'; resultEl.textContent = '⧗ Wird hochgeladen…'; }
+
+    var spUrl = (apiConfig && apiConfig.spUrl) || params.get('spUrl') || '';
+    var custId = '';
+    try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
+
+    if (!spUrl || !custId || isPreview) {
+      var blobUrl = URL.createObjectURL(file);
+      var a = document.createElement('a'); a.href = blobUrl; a.download = file.name; a.click();
+      URL.revokeObjectURL(blobUrl);
+      if (resultEl) { resultEl.className = 'upload-result ok'; resultEl.textContent = '✓ Heruntergeladen (kein Upload-Ziel konfiguriert)'; }
+      return;
+    }
+
+    try {
+      var arrayBuf = await file.arrayBuffer();
+      var bytes    = new Uint8Array(arrayBuf);
+      var b64      = _buf2b64(bytes);
+
+      var resp = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, file: b64, filename: file.name, spUrl: spUrl }),
+      });
+      var data = await resp.json();
+
+      if (data.ok && data.uploaded) {
+        if (resultEl) { resultEl.className = 'upload-result ok'; resultEl.textContent = '✓ Erfolgreich hochgeladen!'; }
+        status[docId] = true;
+        saveStatus(status);
+        render();
+      } else {
+        var errMsg = data.uploadError || data.error || 'Unbekannter Fehler';
+        if (resultEl) { resultEl.className = 'upload-result err'; resultEl.textContent = '✗ Fehler: ' + errMsg; }
+      }
+    } catch(e) {
+      if (resultEl) { resultEl.className = 'upload-result err'; resultEl.textContent = '✗ ' + e.message; }
+    }
+  }
+
+  window.handleFileDrop = function(event, docId) {
+    event.preventDefault();
+    var zone = document.getElementById('uz-' + docId);
+    if (zone) zone.classList.remove('drag-over');
+    var files = event.dataTransfer.files;
+    if (files && files.length > 0) uploadDocFile(docId, files[0]);
+  };
+
+  window.handleFileSelect = function(event, docId) {
+    var files = event.target.files;
+    if (files && files.length > 0) uploadDocFile(docId, files[0]);
+    event.target.value = '';
+  };
 
   render();
 })();
