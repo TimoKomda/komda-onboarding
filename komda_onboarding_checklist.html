@@ -238,6 +238,11 @@
     .sign-field-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
     .sign-field-input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:#fff;transition:border-color .15s}
     .sign-field-input:focus{outline:none;border-color:var(--red)}
+    .sign-fields-subsection-title{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+    .sign-wb-group{margin-bottom:6px}
+    .sign-wb-group-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px}
+    .sign-add-wb-btn{display:inline-flex;align-items:center;gap:6px;margin-top:4px;margin-bottom:12px;padding:7px 14px;border:1.5px dashed var(--red);border-radius:8px;background:transparent;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
+    .sign-add-wb-btn:hover{background:rgba(200,30,30,.06)}
 
     /* Signature pad */
     .sign-divider{border:none;border-top:1px solid var(--border-lt);margin:18px 0}
@@ -466,37 +471,45 @@
       pdfUrl: 'formulare/avv.pdf',
       signatures: [],
       showDate: false,
+      hiddenFields: ['OldenburgDatum'],
       autoFill: {
         'OldenburgDatum': function() {
           return 'Oldenburg, ' + new Date().toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
         },
       },
+      coreFieldOrder: ['Firma', 'Strasse', 'PlzOrt', 'OrtDatum'],
+      wbGroups: [
+        ['WB1_Name', 'WB1_Funktion', 'WB1_Telefon', 'WB1_Email'],
+        ['WB2_Name', 'WB2_Funktion', 'WB2_Telefon', 'WB2_Email'],
+        ['WB3_Name', 'WB3_Funktion', 'WB3_Telefon', 'WB3_Email'],
+        ['WB4_Name', 'WB4_Funktion', 'WB4_Telefon', 'WB4_Email'],
+        ['WB5_Name', 'WB5_Funktion', 'WB5_Telefon', 'WB5_Email'],
+      ],
       fieldLabels: {
-        'Firma':          'Firma / Kundenname',
-        'Strasse':        'Straße',
-        'PlzOrt':         'PLZ / Ort',
-        'OrtDatum':       'Ort und Datum (Unterschriftsort)',
-        'WB1_Name':       'Weisungsbefugte(r) 1 – Vor- und Nachname',
-        'WB1_Funktion':   'Weisungsbefugte(r) 1 – Funktion',
-        'WB1_Telefon':    'Weisungsbefugte(r) 1 – Telefon',
-        'WB1_Email':      'Weisungsbefugte(r) 1 – E-Mail',
-        'WB2_Name':       'Weisungsbefugte(r) 2 – Vor- und Nachname',
-        'WB2_Funktion':   'Weisungsbefugte(r) 2 – Funktion',
-        'WB2_Telefon':    'Weisungsbefugte(r) 2 – Telefon',
-        'WB2_Email':      'Weisungsbefugte(r) 2 – E-Mail',
-        'WB3_Name':       'Weisungsbefugte(r) 3 – Vor- und Nachname',
-        'WB3_Funktion':   'Weisungsbefugte(r) 3 – Funktion',
-        'WB3_Telefon':    'Weisungsbefugte(r) 3 – Telefon',
-        'WB3_Email':      'Weisungsbefugte(r) 3 – E-Mail',
-        'WB4_Name':       'Weisungsbefugte(r) 4 – Vor- und Nachname',
-        'WB4_Funktion':   'Weisungsbefugte(r) 4 – Funktion',
-        'WB4_Telefon':    'Weisungsbefugte(r) 4 – Telefon',
-        'WB4_Email':      'Weisungsbefugte(r) 4 – E-Mail',
-        'WB5_Name':       'Weisungsbefugte(r) 5 – Vor- und Nachname',
-        'WB5_Funktion':   'Weisungsbefugte(r) 5 – Funktion',
-        'WB5_Telefon':    'Weisungsbefugte(r) 5 – Telefon',
-        'WB5_Email':      'Weisungsbefugte(r) 5 – E-Mail',
-        'OldenburgDatum': 'Komda – Standort und Datum (auto)',
+        'Firma':        'Firma / Kundenname',
+        'Strasse':      'Straße',
+        'PlzOrt':       'PLZ / Ort',
+        'OrtDatum':     'Ort und Datum (Unterschriftsort)',
+        'WB1_Name':     'Vor- und Nachname',
+        'WB1_Funktion': 'Funktion',
+        'WB1_Telefon':  'Telefon',
+        'WB1_Email':    'E-Mail',
+        'WB2_Name':     'Vor- und Nachname',
+        'WB2_Funktion': 'Funktion',
+        'WB2_Telefon':  'Telefon',
+        'WB2_Email':    'E-Mail',
+        'WB3_Name':     'Vor- und Nachname',
+        'WB3_Funktion': 'Funktion',
+        'WB3_Telefon':  'Telefon',
+        'WB3_Email':    'E-Mail',
+        'WB4_Name':     'Vor- und Nachname',
+        'WB4_Funktion': 'Funktion',
+        'WB4_Telefon':  'Telefon',
+        'WB4_Email':    'E-Mail',
+        'WB5_Name':     'Vor- und Nachname',
+        'WB5_Funktion': 'Funktion',
+        'WB5_Telefon':  'Telefon',
+        'WB5_Email':    'E-Mail',
       },
     },
   };
@@ -936,29 +949,80 @@
 
         if (textFields.length > 0) {
           var cfgLabels = (cfg && cfg.fieldLabels) ? cfg.fieldLabels : {};
-          fieldsHtml += '<div class="sign-fields-label">Formularfelder ausfüllen:</div>';
-          fieldsHtml += '<div class="sign-fields-grid">';
-          textFields.forEach(function(tf, idx) {
-            var rawName = tf.name;
-            var label;
-            if (cfgLabels[rawName]) {
-              label = cfgLabels[rawName];
-            } else {
-              label = rawName
-                .replace(/^(txt|fld|field|input|form|dx\s*form\s*field)/i, '')
-                .replace(/_/g, ' ')
-                .replace(/([a-z])([A-Z])/g, '$1 $2')
-                .trim();
-              if (!label || /^\d+$/.test(label)) label = 'Feld ' + (idx + 1);
-              else label = label.charAt(0).toUpperCase() + label.slice(1);
+
+          // ── AVV custom layout: WB groups + core fields ──────────────────
+          if (cfg && cfg.wbGroups) {
+            var fieldMap = {};
+            textFields.forEach(function(tf) { fieldMap[tf.name] = tf; });
+            var hiddenFieldNames = cfg.hiddenFields || [];
+
+            function makeFieldInput(name) {
+              var tf = fieldMap[name];
+              var val = tf ? tf.val.replace(/"/g, '&quot;') : '';
+              var label = cfgLabels[name] || name.replace(/_/g, ' ');
+              return '<div class="sign-field-item">'
+                + '<label class="sign-field-label">' + label + '</label>'
+                + '<input type="text" class="sign-field-input" data-field="' + name + '"'
+                + ' value="' + val + '" placeholder="' + label + '" /></div>';
             }
-            fieldsHtml += '<div class="sign-field-item">'
-              + '<label class="sign-field-label">' + label + '</label>'
-              + '<input type="text" class="sign-field-input" data-field="' + rawName + '"'
-              + ' value="' + tf.val.replace(/"/g, '&quot;') + '"'
-              + ' placeholder="' + label + '" /></div>';
-          });
-          fieldsHtml += '</div>';
+
+            fieldsHtml = '<div class="sign-fields-label">Formularfelder ausfüllen:</div>';
+
+            // WB section first (top)
+            fieldsHtml += '<div class="sign-fields-subsection-title">Weisungsbefugte(r)</div>';
+            fieldsHtml += '<div id="sign-wb-container">';
+            fieldsHtml += '<div class="sign-wb-group" data-wb="1">';
+            fieldsHtml += '<div class="sign-wb-group-label">Weisungsbefugte(r) 1</div>';
+            fieldsHtml += '<div class="sign-fields-grid">';
+            cfg.wbGroups[0].forEach(function(name) { fieldsHtml += makeFieldInput(name); });
+            fieldsHtml += '</div></div>';
+            fieldsHtml += '</div>'; // #sign-wb-container
+
+            if (cfg.wbGroups.length > 1) {
+              fieldsHtml += '<button type="button" class="sign-add-wb-btn" id="sign-add-wb-btn" onclick="window.addSignWbGroup()">'
+                + '&#43; Weiteren Weisungsbefugten hinzuf&#252;gen'
+                + '</button>';
+            }
+
+            // Core fields below WB (Firma, Strasse, PlzOrt, OrtDatum)
+            if (cfg.coreFieldOrder && cfg.coreFieldOrder.length > 0) {
+              fieldsHtml += '<div class="sign-fields-subsection-title">Vertragsdaten</div>';
+              fieldsHtml += '<div class="sign-fields-grid">';
+              cfg.coreFieldOrder.forEach(function(name) { fieldsHtml += makeFieldInput(name); });
+              fieldsHtml += '</div>';
+            }
+
+            // Hidden auto-fill inputs (not visible, but picked up by save logic)
+            hiddenFieldNames.forEach(function(name) {
+              fieldsHtml += '<input type="hidden" class="sign-field-input" data-field="' + name + '" value="" />';
+            });
+
+          // ── Generic layout ───────────────────────────────────────────────
+          } else {
+            fieldsHtml += '<div class="sign-fields-label">Formularfelder ausfüllen:</div>';
+            fieldsHtml += '<div class="sign-fields-grid">';
+            textFields.forEach(function(tf, idx) {
+              var rawName = tf.name;
+              var label;
+              if (cfgLabels[rawName]) {
+                label = cfgLabels[rawName];
+              } else {
+                label = rawName
+                  .replace(/^(txt|fld|field|input|form|dx\s*form\s*field)/i, '')
+                  .replace(/_/g, ' ')
+                  .replace(/([a-z])([A-Z])/g, '$1 $2')
+                  .trim();
+                if (!label || /^\d+$/.test(label)) label = 'Feld ' + (idx + 1);
+                else label = label.charAt(0).toUpperCase() + label.slice(1);
+              }
+              fieldsHtml += '<div class="sign-field-item">'
+                + '<label class="sign-field-label">' + label + '</label>'
+                + '<input type="text" class="sign-field-input" data-field="' + rawName + '"'
+                + ' value="' + tf.val.replace(/"/g, '&quot;') + '"'
+                + ' placeholder="' + label + '" /></div>';
+            });
+            fieldsHtml += '</div>';
+          }
         } else if (_sigPosCache[docId]) {
           fieldsHtml = '<p class="sign-no-fields">Keine Textfelder erkannt &#8211; bitte nur unterschreiben.</p>';
         } else {
@@ -971,12 +1035,48 @@
 
       document.getElementById('sign-form-fields').innerHTML = fieldsHtml;
 
-      // Apply autoFill values (e.g. OldenburgDatum with today's date)
+      // Apply autoFill values (hidden inputs included)
       if (cfg && cfg.autoFill) {
         Object.keys(cfg.autoFill).forEach(function(fn) {
           var el = document.querySelector('.sign-field-input[data-field="' + fn + '"]');
           if (el) el.value = cfg.autoFill[fn]();
         });
+      }
+
+      // ── WB group expansion handler ───────────────────────────────────────
+      if (cfg && cfg.wbGroups) {
+        var _currentWbCount = 1;
+        var _wbGroupsCfg = cfg.wbGroups;
+        var _wbLabelsCfg = cfg.fieldLabels || {};
+        window.addSignWbGroup = function() {
+          if (_currentWbCount >= _wbGroupsCfg.length) return;
+          _currentWbCount++;
+          var group = _wbGroupsCfg[_currentWbCount - 1];
+          var html = '<div class="sign-wb-group" data-wb="' + _currentWbCount + '">';
+          html += '<div class="sign-wb-group-label">Weisungsbefugte(r) ' + _currentWbCount + '</div>';
+          html += '<div class="sign-fields-grid">';
+          group.forEach(function(name) {
+            var label = _wbLabelsCfg[name] || name.replace(/_/g, ' ');
+            html += '<div class="sign-field-item">'
+              + '<label class="sign-field-label">' + label + '</label>'
+              + '<input type="text" class="sign-field-input" data-field="' + name + '"'
+              + ' value="" placeholder="' + label + '" /></div>';
+          });
+          html += '</div></div>';
+          var container = document.getElementById('sign-wb-container');
+          if (container) container.insertAdjacentHTML('beforeend', html);
+          if (_currentWbCount >= _wbGroupsCfg.length) {
+            var addBtn = document.getElementById('sign-add-wb-btn');
+            if (addBtn) addBtn.style.display = 'none';
+          }
+          // Re-bind input listeners for newly added fields
+          document.querySelectorAll('.sign-field-input').forEach(function(inp) {
+            inp.oninput = function() {
+              var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
+              if (window._updateSteps) window._updateSteps(anyFilled, false);
+            };
+          });
+        };
       }
 
       // Update steps on field input
