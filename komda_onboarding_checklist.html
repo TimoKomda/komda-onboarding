@@ -23,7 +23,7 @@
 
     .page-header{background:var(--red);box-shadow:0 2px 16px rgba(196,27,27,.25)}
     .header-inner{max-width:1060px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:16px}
-    .logo-svg{flex-shrink:0;filter:drop-shadow(0 1px 5px rgba(0,0,0,0.30))}
+    .logo-svg{flex-shrink:0;border-radius:50%;overflow:hidden}
     .header-text-wrap{flex:1}
     .header-title{font-size:20px;font-weight:700;color:#fff}
     .header-subtitle{font-size:14px;color:rgba(255,255,255,0.85);margin-top:3px;font-weight:400}
@@ -277,18 +277,7 @@
 
 <div class="page-header">
   <div class="header-inner">
-    <svg class="logo-svg" width="48" height="48" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <!-- Red circle background (slightly darker than header for depth) -->
-      <circle cx="50" cy="50" r="50" fill="#991010"/>
-      <!-- K – vertical bar -->
-      <polygon points="25,12 39,12 39,88 25,88" fill="white"/>
-      <!-- K – upper arm -->
-      <polygon points="39,12 80,12 80,32 39,52" fill="white"/>
-      <!-- K – lower arm -->
-      <polygon points="39,56 62,56 82,88 57,88" fill="white"/>
-      <!-- Diagonal slash cutting through junction (brand detail) -->
-      <polygon points="26,45 40,14 50,16 32,50" fill="#991010"/>
-    </svg>
+    <img class="logo-svg" src="https://komda-software.de/_uploads/Komda_Logo_icon.png" alt="Komda Logo" width="48" height="48">
     <div class="header-text-wrap">
       <div class="header-title" id="header-title">Willkommen zu Ihrem Komda&reg; Software Onboarding</div>
       <div class="header-subtitle" id="header-subtitle"></div>
