@@ -469,7 +469,7 @@
     },
     avv: {
       pdfUrl: 'formulare/avv.pdf',
-      signatures: [],
+      signatures: [{ page: 12 }],
       showDate: false,
       hiddenFields: ['OldenburgDatum'],
       autoFill: {
@@ -968,7 +968,15 @@
 
             fieldsHtml = '<div class="sign-fields-label">Formularfelder ausfüllen:</div>';
 
-            // WB section first (top)
+            // Vertragsdaten first (Firma, Strasse, PlzOrt, OrtDatum)
+            if (cfg.coreFieldOrder && cfg.coreFieldOrder.length > 0) {
+              fieldsHtml += '<div class="sign-fields-subsection-title">Vertragsdaten</div>';
+              fieldsHtml += '<div class="sign-fields-grid">';
+              cfg.coreFieldOrder.forEach(function(name) { fieldsHtml += makeFieldInput(name); });
+              fieldsHtml += '</div>';
+            }
+
+            // Weisungsbefugte below
             fieldsHtml += '<div class="sign-fields-subsection-title">Weisungsbefugte(r)</div>';
             fieldsHtml += '<div id="sign-wb-container">';
             fieldsHtml += '<div class="sign-wb-group" data-wb="1">';
@@ -982,14 +990,6 @@
               fieldsHtml += '<button type="button" class="sign-add-wb-btn" id="sign-add-wb-btn" onclick="window.addSignWbGroup()">'
                 + '&#43; Weiteren Weisungsbefugten hinzuf&#252;gen'
                 + '</button>';
-            }
-
-            // Core fields below WB (Firma, Strasse, PlzOrt, OrtDatum)
-            if (cfg.coreFieldOrder && cfg.coreFieldOrder.length > 0) {
-              fieldsHtml += '<div class="sign-fields-subsection-title">Vertragsdaten</div>';
-              fieldsHtml += '<div class="sign-fields-grid">';
-              cfg.coreFieldOrder.forEach(function(name) { fieldsHtml += makeFieldInput(name); });
-              fieldsHtml += '</div>';
             }
 
             // Hidden auto-fill inputs (not visible, but picked up by save logic)
