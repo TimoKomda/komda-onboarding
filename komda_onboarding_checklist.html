@@ -558,10 +558,15 @@
 
   // ── Erstschulung-Datum ───────────────────────────────────────────────
   if (apiConfig && apiConfig.erstschulung) {
-    var escRaw = apiConfig.erstschulung; // ISO: YYYY-MM-DD
+    var escRaw = apiConfig.erstschulung;
     var escFormatted = escRaw;
-    var escParts = escRaw.split('-');
-    if (escParts.length === 3) escFormatted = escParts[2] + '.' + escParts[1] + '.' + escParts[0];
+    try {
+      var escDate = new Date(escRaw);
+      if (!isNaN(escDate)) {
+        escFormatted = escDate.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'})
+          + ', ' + escDate.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) + ' Uhr';
+      }
+    } catch(e) {}
     var escDateEl = document.getElementById('erstschulung-date');
     var escWrapEl = document.getElementById('header-erstschulung');
     if (escDateEl) escDateEl.textContent = escFormatted;
