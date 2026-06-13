@@ -91,6 +91,62 @@ def _is_sharing_link(sp_url: str) -> bool:
     return bool(re.search(r'/:[a-z]+:/', sp_url))
 
 
+def sp_list_subfolder(sp_url: str, subfolder_name: str) -> list:
+    """
+    List files in a named subfolder of the SharePoint folder identified by sp_url.
+    Returns [{name, size, downloadUrl}, ...].
+    """
+    app_token = get_app_token()
+    headers = {"Authorization": f"Bearer {app_token}"}
+
+    if _is_sharing_link(sp_url):
+        share_token = _encode_sharing_token(sp_url)
+        resolve_url = (
+            f"https://graph.microsoft.com/v1.0/shares/{share_token}"
+            f"/driveItem?$select=id,parentReference"
+        )
+        req = urllib.request.Request(resolve_url, headers=headers)
+        with urllib.request.urlopen(req) as resp:
+            item = json.loads(resp.read())
+        drive_id = item["parentReference"]["driveId"]
+        parent_id = item["id"]
+        children_url = (
+            f"https://graph.microsoft.com/v1.0/drives/{drive_id}"
+            f"/items/{parent_id}:/{urllib.parse.quote(subfolder_name, safe='')}:/children"
+            f"?$select=name,size,file,@microsoft.graph.downloadUrl"
+        )
+    else:
+        parsed = urllib.parse.urlparse(sp_url)
+        path = urllib.parse.unquote(parsed.path)
+        m = re.match(r"^/sites/[^/]+/[^/]+/(.+)$", path)
+        if m:
+            folder_path = m.group(1)
+        else:
+            m2 = re.match(r"^/[^/]+/[^/]+/(.+)$", path)
+            folder_path = m2.group(1) if m2 else path.lstrip("/")
+        children_url = (
+            f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
+            f"/drive/root:/{urllib.parse.quote(folder_path, safe='/')}"
+            f"/{urllib.parse.quote(subfolder_name, safe='')}:/children"
+            f"?$select=name,size,file,@microsoft.graph.downloadUrl"
+        )
+
+    req = urllib.request.Request(children_url, headers=headers)
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read())
+
+    files = []
+    for entry in data.get("value", []):
+        if "file" not in entry:
+            continue  # skip folders
+        files.append({
+            "name":        entry.get("name", ""),
+            "size":        entry.get("size", 0),
+            "downloadUrl": entry.get("@microsoft.graph.downloadUrl", ""),
+        })
+    return files
+
+
 def _encode_sharing_token(url: str) -> str:
     """Encode a sharing URL as a Graph API shares token (u!<base64>)."""
     b64 = base64.b64encode(url.encode('utf-8')).decode()
@@ -191,11 +247,37 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
 
     if req.method == "GET":
         token_param = req.params.get("token", "").strip()
+        action      = req.params.get("action", "").strip()
+
         if not token_param:
             return func.HttpResponse(
                 json.dumps({"ok": True, "service": "komda-onboarding"}),
                 status_code=200, headers=CORS_HEADERS
             )
+
+        # ── Action: list files in a subfolder ───────────────────────────────
+        if action == "list-folder":
+            folder_name = req.params.get("folder", "Datenübernahme").strip()
+            try:
+                item_id = decode_token(token_param)
+                fields  = sp_get_item(item_id)
+                sp_url  = fields.get("SPUrl", "")
+                if not sp_url:
+                    return func.HttpResponse(
+                        json.dumps({"ok": False, "error": "Kein SharePoint-Ordner konfiguriert"}),
+                        status_code=200, headers=CORS_HEADERS
+                    )
+                files = sp_list_subfolder(sp_url, folder_name)
+                return func.HttpResponse(
+                    json.dumps({"ok": True, "files": files}),
+                    status_code=200, headers=CORS_HEADERS
+                )
+            except Exception as exc:
+                return func.HttpResponse(
+                    json.dumps({"ok": False, "error": str(exc)}),
+                    status_code=200, headers=CORS_HEADERS
+                )
+
         try:
             item_id = decode_token(token_param)
             fields  = sp_get_item(item_id)
