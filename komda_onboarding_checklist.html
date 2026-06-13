@@ -65,6 +65,15 @@
 
     /* Upload zone */
     .upload-zone{border:2px dashed var(--border);border-radius:10px;padding:14px 16px;text-align:center;margin:8px 22px 14px 54px;cursor:default;transition:border-color .2s,background .2s}
+    .download-zone{background:#f0f7ff;border:1px solid #b8cef0;border-radius:10px;padding:14px 18px;margin:8px 22px 8px 54px}
+    .download-zone-title{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:4px}
+    .download-zone-sub{font-size:11px;color:var(--muted);margin-bottom:10px}
+    .download-zone-files{display:flex;flex-direction:column;gap:6px}
+    .dl-file-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;background:#fff;border:1px solid #b8cef0;border-radius:8px;color:var(--blue);font-size:12px;font-weight:600;text-decoration:none;transition:background .15s}
+    .dl-file-btn:hover{background:#ddeeff}
+    .dl-file-btn-icon{font-size:14px}
+    .dl-load-btn{padding:7px 14px;background:var(--blue-bg);color:var(--blue);border:1px solid #b8cef0;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s}
+    .dl-load-btn:hover{background:#d4e4ff}
     .upload-zone.drag-over{border-color:var(--blue);background:#e8f0ff}
     .upload-zone-hint{font-size:12px;color:var(--muted);margin-bottom:10px}
     .upload-zone-actions{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
@@ -658,8 +667,13 @@
     },
     {
       id: 'datenubernahme', block: 'B', name: 'Datenübernahme', icon: '&#128190;', upload: true,
-      desc: 'Übergabe Ihrer bestehenden Daten in das Komda-System.',
-      steps: ['Exportdatei hier hochladen.'],
+      downloadFolder: 'Datenübernahme',
+      desc: 'Übergabe Ihrer bestehenden Daten in das Komda® System.',
+      steps: [
+        'Klicken Sie auf <strong>„Vorlagen herunterladen"</strong> und laden Sie beide Excel-Musterdateien herunter.',
+        'Befüllen Sie die Dateien vollständig mit Ihren bestehenden Daten gemäß den Vorgaben in den Dateien.',
+        'Laden Sie die ausgefüllten Dateien anschließend über <strong>„Hochladen"</strong> wieder hoch.',
+      ],
     },
   ];
 
@@ -710,6 +724,20 @@
       stepsHtml += '<li class="step-item"><span class="step-num ' + blockClass + '">' + (s+1) + '</span><span>' + doc.steps[s] + '</span></li>';
     }
     stepsHtml += '</ul>';
+
+    // Download-Zone (für Datenübernahme-Templates)
+    var downloadZoneHtml = '';
+    if (doc.downloadFolder && !isDone) {
+      downloadZoneHtml = '<div class="download-zone">'
+        + '<div class="download-zone-title">&#8681; Vorlagen herunterladen</div>'
+        + '<div class="download-zone-sub">Laden Sie die Excel-Musterdateien herunter, befüllen Sie diese und laden Sie sie anschließend hoch.</div>'
+        + '<div class="download-zone-files" id="dl-' + doc.id + '">'
+        + (token
+            ? '<button class="dl-load-btn" onclick="loadDownloadTemplates(\'' + doc.id + '\',\'' + doc.downloadFolder + '\')">&#8681; Vorlagen anzeigen</button>'
+            : '<span style="font-size:12px;color:var(--muted)">Nicht verfügbar (kein Zugangstoken)</span>')
+        + '</div>'
+        + '</div>';
+    }
 
     // Upload-Zone (nur wenn aufgeklappt und noch nicht erledigt)
     var uploadZoneHtml = '';
@@ -762,6 +790,7 @@
       + '</div>'
       + '<div class="steps-body" id="steps-' + doc.id + '">'
       + stepsHtml
+      + downloadZoneHtml
       + uploadZoneHtml
       + '</div>'
       + '</div>'
@@ -1431,6 +1460,37 @@
   };
 
   render();
+
+  // ── Download-Vorlagen (Datenübernahme) ──────────────────────────────
+  window.loadDownloadTemplates = async function(docId, folderName) {
+    var el = document.getElementById('dl-' + docId);
+    if (!el) return;
+    el.innerHTML = '<span style="font-size:12px;color:var(--muted)">&#8987; Wird geladen…</span>';
+    try {
+      var resp = await fetch(
+        API_URL + '?action=list-folder'
+        + '&token=' + encodeURIComponent(token)
+        + '&folder=' + encodeURIComponent(folderName)
+      );
+      var data = await resp.json();
+      if (!data.ok || !data.files || data.files.length === 0) {
+        el.innerHTML = '<span style="font-size:12px;color:var(--muted)">Keine Dateien im Ordner gefunden.</span>';
+        return;
+      }
+      var html = data.files.map(function(f) {
+        var sizeKb = f.size ? ' (' + Math.round(f.size / 1024) + ' KB)' : '';
+        return '<a href="' + f.downloadUrl + '" download="' + f.name + '" class="dl-file-btn">'
+          + '<span class="dl-file-btn-icon">&#8681;</span>'
+          + '<span>' + f.name + '</span>'
+          + '<span style="font-size:10px;color:var(--muted);margin-left:auto">' + sizeKb + '</span>'
+          + '</a>';
+      }).join('');
+      el.innerHTML = html;
+    } catch(e) {
+      el.innerHTML = '<span style="font-size:12px;color:var(--red)">&#9888; Fehler beim Laden der Dateien.</span>';
+    }
+  };
+
 })();
 </script>
 </body>
