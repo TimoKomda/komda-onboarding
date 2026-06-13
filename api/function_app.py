@@ -30,7 +30,7 @@ DOC_FIELD = {
 }
 
 GET_SELECT_FIELDS = (
-    "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,"
+    "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme"
@@ -210,6 +210,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "spUrlMobile":  fields.get("SPUrlMobile",  ""),
                     "spUrlAuftrag": fields.get("SPUrlAuftrag", ""),
                     "optionen":     fields.get("Optionen",     ""),
+                    "erstschulung": fields.get("Erstschulung", ""),
                     "docs":         docs,
                 }),
                 status_code=200, headers=CORS_HEADERS
