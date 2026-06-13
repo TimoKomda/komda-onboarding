@@ -312,9 +312,10 @@
   </div>
 
   <div class="intro-card">
-    <div class="intro-title">&#128203; Ihr Onboarding-Leitfaden</div>
+    <div class="intro-title" id="intro-title">&#128203; Ihr Onboarding-Leitfaden</div>
     <div class="intro-body">
-      <p>Herzlich willkommen zu Ihrem Komda&reg; Software Onboarding! Diese Checkliste begleitet Sie Schritt f&uuml;r Schritt bis zum erfolgreichen Start Ihres neuen Systems.</p>
+      <p>Herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!</p>
+      <p>Diese Checkliste begleitet Sie Schritt f&uuml;r Schritt bis zum erfolgreichen Start mit Komda&reg; Software.</p>
       <p><strong>Was Sie erwartet:</strong> Zun&auml;chst ben&ouml;tigen wir einige <strong>Pflichtunterlagen</strong> von Ihnen &ndash; erst wenn diese bei uns eingegangen sind, k&ouml;nnen wir gemeinsam Liefer- und Schulungstermine abstimmen. Sie k&ouml;nnen die Dokumente direkt im Browser ausf&uuml;llen, unterschreiben und herunterladen.</p>
       <p>Im zweiten Schritt bitten wir Sie, <strong>Vorbereitungsunterlagen</strong> bereitzustellen. Diese helfen uns, Ihre Schulungen optimal auf Ihr Unternehmen abzustimmen.</p>
     </div>
@@ -567,6 +568,8 @@
     var anredeDec = decodeURIComponent(params.get('anrede') || '');
     var nameDec   = decodeURIComponent(params.get('name')   || '');
     document.title = 'Komda Onboarding - ' + firmaDec;
+    var introTitleEl = document.getElementById('intro-title');
+    if (introTitleEl) introTitleEl.innerHTML = '&#128203; Ihr Onboarding-Leitfaden &ndash; ' + firmaDec;
     var subEl = document.getElementById('header-subtitle');
     if (subEl) {
       var greeting = 'Guten Tag';
