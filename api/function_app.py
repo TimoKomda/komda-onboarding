@@ -27,13 +27,14 @@ DOC_FIELD = {
     "lohnarten":      "DocLohnarten",
     "verguetung":     "DocVerguetung",
     "datenubernahme": "DocDatenubernahme",
+    "preisliste":     "DocPreisliste",
 }
 
 GET_SELECT_FIELDS = (
-    "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
+    "Kundennummer,Sachbearbeiter,SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
-    "DocVerguetung,DocDatenubernahme"
+    "DocVerguetung,DocDatenubernahme,DocPreisliste"
 )
 
 CORS_HEADERS = {
@@ -286,14 +287,16 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     for doc_id, sp_field in DOC_FIELD.items()}
             return func.HttpResponse(
                 json.dumps({
-                    "ok":           True,
-                    "spUrl":        fields.get("SPUrl",        ""),
-                    "spUrlCloud":   fields.get("SPUrlCloud",   ""),
-                    "spUrlMobile":  fields.get("SPUrlMobile",  ""),
-                    "spUrlAuftrag": fields.get("SPUrlAuftrag", ""),
-                    "optionen":     fields.get("Optionen",     ""),
-                    "erstschulung": fields.get("Erstschulung", ""),
-                    "docs":         docs,
+                    "ok":             True,
+                    "kundennummer":   fields.get("Kundennummer",   ""),
+                    "sachbearbeiter": fields.get("Sachbearbeiter", ""),
+                    "spUrl":          fields.get("SPUrl",          ""),
+                    "spUrlCloud":     fields.get("SPUrlCloud",     ""),
+                    "spUrlMobile":    fields.get("SPUrlMobile",    ""),
+                    "spUrlAuftrag":   fields.get("SPUrlAuftrag",   ""),
+                    "optionen":       fields.get("Optionen",       ""),
+                    "erstschulung":   fields.get("Erstschulung",   ""),
+                    "docs":           docs,
                 }),
                 status_code=200, headers=CORS_HEADERS
             )
