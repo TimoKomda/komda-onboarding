@@ -741,9 +741,11 @@
     { id: 'zd_cloud',   icon: '&#9729;',   name: 'Komda® Cloud / Hosting Zugangsdaten',  hint: 'Ordner mit Ihren Cloud-Zugangsdaten',        param: 'spUrlCloud'   },
   ];
 
-  var activeOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
+  var allOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
+  var activeOpts = allOpts.filter(function(o) { return !o.startsWith('!'); });
+  var disabledIds = allOpts.filter(function(o) { return o.startsWith('!'); }).map(function(o) { return o.slice(1); });
   var BLOCK_B_ACTIVE = OPTIONAL_META.filter(function(o) { return o.block === 'B' && activeOpts.indexOf(o.id) !== -1; })
-    .concat(BLOCK_B_BASE);
+    .concat(BLOCK_B_BASE.filter(function(o) { return disabledIds.indexOf(o.id) === -1; }));
   var ALL_DOCS = BLOCK_A.concat(BLOCK_B_ACTIVE);
 
   // ── LocalStorage ─────────────────────────────────────────────────────
