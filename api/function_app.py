@@ -34,7 +34,7 @@ GET_SELECT_FIELDS = (
     "Kundennummer,Sachbearbeiter,SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
-    "DocVerguetung,DocDatenubernahme,DocPreisliste"
+    "DocVerguetung,DocDatenubernahme,DocPreisliste,LogoUrl"
 )
 
 CORS_HEADERS = {
