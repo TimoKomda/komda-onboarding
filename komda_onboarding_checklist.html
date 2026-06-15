@@ -351,7 +351,7 @@
   </div>
 
   <div class="intro-card">
-    <div class="intro-title" id="intro-title">&#128203; Ihr Onboarding-Leitfaden<div class="intro-title-right" id="intro-title-right"></div></div>
+    <div class="intro-title" id="intro-title"><span id="intro-title-text">&#128203; Ihr Onboarding-Leitfaden</span><div class="intro-title-right" id="intro-title-right"></div></div>
     <div class="intro-body">
       <p id="intro-greeting">Herzlich willkommen!</p>
       <p>Diese Checkliste begleitet Sie Schritt f&uuml;r Schritt bis zum erfolgreichen Start mit Komda&reg; Software.</p>
@@ -676,8 +676,8 @@
     var anredeDec = decodeURIComponent(params.get('anrede') || '');
     var nameDec   = decodeURIComponent(params.get('name')   || '');
     document.title = 'Komda Onboarding - ' + firmaDec;
-    var introTitleEl = document.getElementById('intro-title');
-    if (introTitleEl) introTitleEl.innerHTML = '&#128203; Ihr Onboarding-Leitfaden';
+    var introTitleTextEl = document.getElementById('intro-title-text');
+    // Titeltext bleibt statisch; nur rechter Bereich wird befüllt
     var introGreetEl = document.getElementById('intro-greeting');
     if (introGreetEl) {
       var formalGreet = '';
