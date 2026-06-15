@@ -50,10 +50,15 @@
     .col-card-title{font-size:15px;font-weight:700;color:var(--text)}
     .col-card-count{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);background:var(--gray-bg);padding:3px 10px;border-radius:20px}
 
-    .progress-v-track{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--border-lt);z-index:1;pointer-events:none}
-    .progress-v-fill{position:absolute;top:0;left:0;width:100%;height:0%;background:var(--red);transition:height .6s ease}
-    .progress-v-fill.partial{background:var(--orange)}
-    .progress-v-fill.done-full{background:var(--green)}
+    .progress-v-bars{position:absolute;left:0;top:0;bottom:0;display:flex;gap:2px;z-index:1;pointer-events:none}
+    .progress-v-track{position:relative;width:5px;height:100%;background:var(--border-lt)}
+    .progress-v-fill{position:absolute;bottom:0;left:0;width:100%;height:0%;transition:height .6s ease}
+    .progress-v-fill.col-a{background:var(--red)}
+    .progress-v-fill.col-a.partial{background:var(--orange)}
+    .progress-v-fill.col-a.done-full{background:var(--green)}
+    .progress-v-fill.col-b{background:var(--border-lt)}
+    .progress-v-fill.col-b.partial{background:#a78bfa}
+    .progress-v-fill.col-b.done-full{background:#7c3aed}
 
     .section-bar{padding:12px 22px 10px;border-bottom:1px solid var(--border-lt);background:#fafaf9}
     .section-bar-title{font-size:13px;font-weight:700;color:var(--text)}
@@ -331,8 +336,9 @@
   <div class="two-col">
 
     <div class="col-card">
-      <div class="progress-v-track">
-        <div class="progress-v-fill" id="progress-side-fill"></div>
+      <div class="progress-v-bars">
+        <div class="progress-v-track"><div class="progress-v-fill col-a" id="progress-side-fill-a"></div></div>
+        <div class="progress-v-track"><div class="progress-v-fill col-b" id="progress-side-fill-b"></div></div>
       </div>
       <div class="col-card-header">
         <span style="font-size:18px">&#128203;</span>
@@ -428,6 +434,7 @@
           <span>&#128196; Dokument zur Ansicht &ouml;ffnen</span>
           <span class="toggle-arrow">&#9660;</span>
         </button>
+        <p style="font-size:11px;color:var(--muted);margin:-6px 0 12px;line-height:1.5">&#9888;&#65039; Bitte versuchen Sie <strong>nicht</strong>, Daten oder Unterschriften direkt in der PDF einzutragen &ndash; das Dokument dient rein der Ansicht. Nutzen Sie bitte ausschlie&szlig;lich die Formularfelder und das Unterschriftenfeld unterhalb.</p>
         <div class="sign-pdf-collapse" id="sign-pdf-collapse">
           <iframe id="sign-pdf-iframe" src="" title="Dokument-Vorschau"
             style="width:100%;height:320px;border:1px solid var(--border);border-radius:8px;background:#f9f9f9"></iframe>
@@ -489,10 +496,26 @@
       signatures: [
         { page: 0, signX: 80, signY: 100, signW: 220, signH: 50 },
       ],
+      // wbGroups: [] triggers the custom layout path (no WB section rendered)
+      wbGroups: [],
+      // coreFieldOrder: virtual fields Strasse_v + PlzOrt_v are combined into dxFormField15
+      coreFieldOrder: ['dxFormField14', 'Strasse_v', 'PlzOrt_v', 'dxFormField1', 'dxFormField2', 'dxFormField3', 'dxFormField4', 'dxFormField5'],
+      // dxFormField13 = Mandatsreferenz → auto-filled with Kundennummer, hidden from user
+      hiddenFields: ['dxFormField13'],
+      autoFill: {
+        'dxFormField13': function() {
+          return (typeof apiConfig !== 'undefined' && apiConfig && apiConfig.kundennummer) ? String(apiConfig.kundennummer) : '';
+        },
+      },
+      // Combine two user inputs into the multiline Anschrift PDF field
+      combineFields: {
+        'dxFormField15': ['Strasse_v', 'PlzOrt_v'],
+      },
       fieldLabels: {
-        'dxFormField13': 'Firma / Kontoinhaber',
-        'dxFormField14': 'Straße, Hausnummer',
-        'dxFormField15': 'PLZ, Ort',
+        'dxFormField13': 'Mandatsreferenz (Kundennummer)',
+        'dxFormField14': 'Name des Zahlungspflichtigen / Firma',
+        'Strasse_v':     'Straße, Hausnummer',
+        'PlzOrt_v':      'PLZ, Ort',
         'dxFormField1':  'Kreditinstitut',
         'dxFormField2':  'IBAN',
         'dxFormField3':  'BIC',
@@ -538,7 +561,7 @@
       ],
       fieldLabels: {
         'Firma':        'Firma / Kundenname',
-        'Strasse':      'Straße',
+        'Strasse':      'Straße und Hausnummer',
         'PlzOrt':       'PLZ / Ort',
         'OrtDatum':     'Ort und Datum (Unterschriftsort)',
         'WB1_Name':     'Vor- und Nachname',
@@ -663,10 +686,11 @@
   var BLOCK_B_BASE = [
     {
       id: 'vorlagen', name: 'Vorlagen, Logos &amp; Briefbogen', icon: '&#128444;', upload: true,
-      desc: 'Briefbogen als Word-Dokument und Logo(s) hochladen, damit wir Ihre Vorlagen erstellen können.',
+      desc: 'Briefbogen als Word-Dokument, Logo(s) sowie eine Beispielrechnung hochladen, damit wir Ihre Vorlagen erstellen können.',
       steps: [
         'Briefbogen als Word-Dokument hier hochladen.',
         'Logo-Datei(en) hier hochladen.',
+        'Eine <strong>Beispielrechnung</strong> hochladen (damit wir Ihr Rechnungslayout kennenlernen).',
       ],
     },
     {
@@ -691,6 +715,11 @@
       id: 'verguetung', block: 'B', name: 'Vergütungsvereinbarung', icon: '&#128195;', upload: true,
       desc: 'Bitte laden Sie Ihre Vergütungsvereinbarung in den Ordner hoch.',
       steps: ['Vergütungsvereinbarung hier hochladen.'],
+    },
+    {
+      id: 'preisliste', block: 'B', name: 'Preisliste', icon: '&#128200;', upload: true,
+      desc: 'Bitte laden Sie Ihre aktuellen Preislisten hoch.',
+      steps: ['Preisliste hier hochladen.'],
     },
     {
       id: 'datenubernahme', block: 'B', name: 'Datenübernahme', icon: '&#128190;', upload: true,
@@ -827,7 +856,6 @@
   function render() {
     var done = 0;
     for (var i = 0; i < ALL_DOCS.length; i++) { if (status[ALL_DOCS[i].id]) done++; }
-    var pct = ALL_DOCS.length > 0 ? Math.round((done / ALL_DOCS.length) * 100) : 0;
 
     var spUrl        = (apiConfig && apiConfig.spUrl)        || (parentCustomer && parentCustomer.spUrl)        || params.get('spUrl')        || '';
     var spUrlCloud   = (apiConfig && apiConfig.spUrlCloud)   || (parentCustomer && parentCustomer.spUrlCloud)   || params.get('spUrlCloud')   || '';
@@ -835,16 +863,39 @@
     var spUrlAuftrag = (apiConfig && apiConfig.spUrlAuftrag) || (parentCustomer && parentCustomer.spUrlAuftrag) || params.get('spUrlAuftrag') || '';
     var folderUrls   = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag };
 
-    var sideFill = document.getElementById('progress-side-fill');
-    if (sideFill) {
-      sideFill.style.height = pct + '%';
-      sideFill.className = 'progress-v-fill' + (pct === 100 ? ' done-full' : pct > 0 ? ' partial' : '');
-    }
     var doneA = 0; for (var ai = 0; ai < BLOCK_A.length; ai++) { if (status[BLOCK_A[ai].id]) doneA++; }
     var doneB = 0; for (var bi = 0; bi < BLOCK_B_ACTIVE.length; bi++) { if (status[BLOCK_B_ACTIVE[bi].id]) doneB++; }
-    document.getElementById('check-count-a').textContent = 'Pflicht ' + doneA + '/' + BLOCK_A.length;
-    document.getElementById('check-count-b').textContent = 'Vorbereitung ' + doneB + '/' + BLOCK_B_ACTIVE.length;
-    document.getElementById('done-card').classList.toggle('visible', pct === 100);
+
+    // Pflicht-Balken (Block A)
+    var fillA = document.getElementById('progress-side-fill-a');
+    if (fillA) {
+      var pctA = BLOCK_A.length > 0 ? Math.round((doneA / BLOCK_A.length) * 100) : 0;
+      fillA.style.height = pctA + '%';
+      fillA.className = 'progress-v-fill col-a' + (doneA === BLOCK_A.length && BLOCK_A.length > 0 ? ' done-full' : pctA > 0 ? ' partial' : '');
+    }
+    // Vorbereitung-Balken (Block B)
+    var fillB = document.getElementById('progress-side-fill-b');
+    if (fillB) {
+      var pctB = BLOCK_B_ACTIVE.length > 0 ? Math.round((doneB / BLOCK_B_ACTIVE.length) * 100) : 0;
+      fillB.style.height = pctB + '%';
+      fillB.className = 'progress-v-fill col-b' + (doneB === BLOCK_B_ACTIVE.length && BLOCK_B_ACTIVE.length > 0 ? ' done-full' : pctB > 0 ? ' partial' : '');
+    }
+
+    // Counter-Badges
+    var countElA = document.getElementById('check-count-a');
+    var countElB = document.getElementById('check-count-b');
+    if (countElA) {
+      countElA.textContent = 'Pflicht ' + doneA + '/' + BLOCK_A.length;
+      if (doneA === BLOCK_A.length && BLOCK_A.length > 0) {
+        countElA.style.background = 'var(--green)'; countElA.style.color = '#fff';
+      } else {
+        countElA.style.background = ''; countElA.style.color = '';
+      }
+    }
+    if (countElB) {
+      countElB.textContent = 'Vorbereitung ' + doneB + '/' + BLOCK_B_ACTIVE.length;
+    }
+    document.getElementById('done-card').classList.toggle('visible', done === ALL_DOCS.length && ALL_DOCS.length > 0);
 
     var clHtml = '<div class="section-bar">'
       + '<div class="section-bar-title">Pflichtunterlagen</div>'
@@ -1072,28 +1123,31 @@
 
             fieldsHtml = '<div class="sign-fields-label">Formularfelder ausfüllen:</div>';
 
-            // Vertragsdaten first (Firma, Strasse, PlzOrt, OrtDatum)
+            // Core fields (Vertragsdaten / Pflichtfelder)
             if (cfg.coreFieldOrder && cfg.coreFieldOrder.length > 0) {
-              fieldsHtml += '<div class="sign-fields-subsection-title">Vertragsdaten</div>';
+              if (cfg.wbGroups.length > 0) {
+                fieldsHtml += '<div class="sign-fields-subsection-title">Vertragsdaten</div>';
+              }
               fieldsHtml += '<div class="sign-fields-grid">';
               cfg.coreFieldOrder.forEach(function(name) { fieldsHtml += makeFieldInput(name); });
               fieldsHtml += '</div>';
             }
 
-            // Weisungsbefugte below
-            fieldsHtml += '<div class="sign-fields-subsection-title">Weisungsbefugte(r)</div>';
-            fieldsHtml += '<div id="sign-wb-container">';
-            fieldsHtml += '<div class="sign-wb-group" data-wb="1">';
-            fieldsHtml += '<div class="sign-wb-group-label">Weisungsbefugte(r) 1</div>';
-            fieldsHtml += '<div class="sign-fields-grid">';
-            cfg.wbGroups[0].forEach(function(name) { fieldsHtml += makeFieldInput(name); });
-            fieldsHtml += '</div></div>';
-            fieldsHtml += '</div>'; // #sign-wb-container
-
-            if (cfg.wbGroups.length > 1) {
-              fieldsHtml += '<button type="button" class="sign-add-wb-btn" id="sign-add-wb-btn" onclick="window.addSignWbGroup()">'
-                + '&#43; Weiteren Weisungsbefugten hinzuf&#252;gen'
-                + '</button>';
+            // Weisungsbefugte – nur wenn vorhanden
+            if (cfg.wbGroups.length > 0) {
+              fieldsHtml += '<div class="sign-fields-subsection-title">Weisungsbefugte(r)</div>';
+              fieldsHtml += '<div id="sign-wb-container">';
+              fieldsHtml += '<div class="sign-wb-group" data-wb="1">';
+              fieldsHtml += '<div class="sign-wb-group-label">Weisungsbefugte(r) 1</div>';
+              fieldsHtml += '<div class="sign-fields-grid">';
+              cfg.wbGroups[0].forEach(function(name) { fieldsHtml += makeFieldInput(name); });
+              fieldsHtml += '</div></div>';
+              fieldsHtml += '</div>'; // #sign-wb-container
+              if (cfg.wbGroups.length > 1) {
+                fieldsHtml += '<button type="button" class="sign-add-wb-btn" id="sign-add-wb-btn" onclick="window.addSignWbGroup()">'
+                  + '&#43; Weiteren Weisungsbefugten hinzuf&#252;gen'
+                  + '</button>';
+              }
             }
 
             // Hidden auto-fill inputs (not visible, but picked up by save logic)
@@ -1255,332 +1309,4 @@
       window._uploadedSigDataUrl = e.target.result;
       var preview = document.getElementById('sig-upload-preview');
       var clearBtn = document.getElementById('sig-upload-clear');
-      if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
-      if (clearBtn) clearBtn.style.display = '';
-      var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
-      if (window._updateSteps) window._updateSteps(anyFilled, true);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  window.clearSigUpload = function() {
-    window._uploadedSigDataUrl = null;
-    var input = document.getElementById('sig-file-input');
-    var preview = document.getElementById('sig-upload-preview');
-    var clearBtn = document.getElementById('sig-upload-clear');
-    if (input) input.value = '';
-    if (preview) { preview.src = ''; preview.style.display = 'none'; }
-    if (clearBtn) clearBtn.style.display = 'none';
-    var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
-    var hasSig = (function() {
-      var c = document.getElementById('sign-pad');
-      if (!c) return false;
-      var d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
-      for (var i = 3; i < d.length; i += 4) { if (d[i] > 10) return true; }
-      return false;
-    })();
-    if (window._updateSteps) window._updateSteps(anyFilled, hasSig);
-  };
-
-  function _buf2b64(input) {
-    var bytes = (input instanceof Uint8Array) ? input : new Uint8Array(input);
-    var out = '';
-    var chunk = 8192;
-    for (var i = 0; i < bytes.length; i += chunk) {
-      out += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
-    }
-    return btoa(out);
-  }
-
-  function _downloadPdf(bytes, filename) {
-    var blob = new Blob([bytes], { type: 'application/pdf' });
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 8000);
-  }
-
-  window.applySignature = async function() {
-    var canvas = document.getElementById('sign-pad');
-    var ctx = canvas.getContext('2d');
-    var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    // ── Pflichtfelder prüfen ────────────────────────────────────────────
-    var reqInputs = document.querySelectorAll('.sign-field-input[data-required="1"]');
-    var missing = [];
-    reqInputs.forEach(function(inp) {
-      if (!inp.value.trim()) {
-        inp.style.borderColor = 'var(--red)';
-        inp.style.background = '#fff5f5';
-        missing.push(inp.getAttribute('placeholder') || inp.getAttribute('data-field'));
-      } else {
-        inp.style.borderColor = '';
-        inp.style.background = '';
-      }
-    });
-    if (missing.length > 0) {
-      alert('Bitte füllen Sie alle Pflichtfelder aus:\n\n• ' + missing.join('\n• '));
-      return;
-    }
-
-    var isEmpty = true;
-    for (var i = 0; i < data.length; i += 4) { if (data[i+3] > 0) { isEmpty = false; break; } }
-    var hasUploadedSig = !!window._uploadedSigDataUrl;
-    if (isEmpty && !hasUploadedSig) { alert('Bitte zeichnen Sie Ihre Unterschrift oder laden Sie eine Unterschrift-Datei hoch.'); return; }
-
-    var cfg = SIGN_CONFIG[currentSignDocId];
-    if (!cfg || !_pdfCache[currentSignDocId]) { alert('PDF nicht geladen. Bitte Modal schließen und erneut öffnen.'); return; }
-
-    var btn = document.getElementById('sign-confirm-btn');
-    btn.textContent = '⏳ Wird verarbeitet…';
-    btn.disabled = true;
-
-    try {
-      var pdfDoc = await PDFLib.PDFDocument.load(_pdfCache[currentSignDocId]);
-      var pages  = pdfDoc.getPages();
-
-      try {
-        var form = pdfDoc.getForm();
-        var inputs = document.querySelectorAll('.sign-field-input');
-        inputs.forEach(function(inp) {
-          var fn  = inp.getAttribute('data-field');
-          var val = inp.value.trim();
-          if (!val) return;
-          try { form.getTextField(fn).setText(val); } catch(e) {}
-        });
-        form.flatten();
-      } catch(e) {}
-
-      var sigDataUrl;
-      if (!isEmpty) {
-        sigDataUrl = canvas.toDataURL('image/png');
-      } else {
-        // Hochgeladenes Bild via Canvas in PNG normalisieren
-        sigDataUrl = await new Promise(function(resolve) {
-          var img = new Image();
-          img.onload = function() {
-            var tc = document.createElement('canvas');
-            tc.width = img.naturalWidth; tc.height = img.naturalHeight;
-            tc.getContext('2d').drawImage(img, 0, 0);
-            resolve(tc.toDataURL('image/png'));
-          };
-          img.src = window._uploadedSigDataUrl;
-        });
-      }
-      var sigBuf = await fetch(sigDataUrl).then(function(r) { return r.arrayBuffer(); });
-      var sigImg = await pdfDoc.embedPng(sigBuf);
-      var dateStr = new Date().toLocaleDateString('de-DE');
-
-      var sigPositions = [];
-      var autoPos = _sigPosCache[currentSignDocId];
-      if (autoPos) {
-        sigPositions.push({ page: cfg.signatures ? (cfg.signatures[0] && cfg.signatures[0].page || 0) : (cfg.page || 0),
-          x: autoPos.x, y: autoPos.y, w: autoPos.w, h: autoPos.h });
-      }
-      if (sigPositions.length === 0) {
-        if (cfg.signatures && cfg.signatures.length > 0) {
-          cfg.signatures.forEach(function(s) {
-            sigPositions.push({ page: s.page || 0, x: s.signX || 80, y: s.signY || 100, w: s.signW || 220, h: s.signH || 50 });
-          });
-        } else {
-          sigPositions.push({ page: cfg.page || 0, x: cfg.signX || 80, y: cfg.signY || 100, w: cfg.signW || 220, h: cfg.signH || 50 });
-        }
-      }
-
-      var canvasRatio = sigImg.width / sigImg.height;
-      sigPositions.forEach(function(sp) {
-        var page = pages[Math.min(sp.page, pages.length - 1)];
-        var drawW, drawH;
-        if (sp.w / sp.h > canvasRatio) { drawH = sp.h; drawW = drawH * canvasRatio; }
-        else { drawW = sp.w; drawH = drawW / canvasRatio; }
-        page.drawImage(sigImg, { x: sp.x, y: sp.y, width: drawW, height: drawH, opacity: 1 });
-        if (cfg.showDate !== false) {
-          page.drawText(dateStr, { x: sp.x, y: Math.max(sp.y - 13, 5), size: 8, color: PDFLib.rgb(0.3, 0.3, 0.3) });
-        }
-      });
-
-      var docObj = null;
-      for (var j = 0; j < ALL_DOCS.length; j++) { if (ALL_DOCS[j].id === currentSignDocId) { docObj = ALL_DOCS[j]; break; } }
-      var safeDocName = (docObj ? docObj.name.replace(/[^\wäöüÄÖÜß\s\-]/g, '').trim() : currentSignDocId);
-      var filename = safeDocName + '_unterschrieben.pdf';
-
-      var signedBytes = await pdfDoc.save();
-      var docId = currentSignDocId;
-
-      var uploadSpUrl = (apiConfig && apiConfig.spUrl) || (parentCustomer && parentCustomer.spUrl) || params.get('spUrl') || '';
-      var custId = '';
-      try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
-
-      var uploaded = false, uploadError = '';
-
-      if (custId && uploadSpUrl && !isPreview) {
-        btn.textContent = '☁ Wird hochgeladen…';
-        try {
-          var b64 = _buf2b64(signedBytes);
-          var uploadResp = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, file: b64, filename: filename, spUrl: uploadSpUrl }),
-          });
-          var uploadData = await uploadResp.json();
-          if (uploadData.ok && uploadData.uploaded) { uploaded = true; }
-          else { uploadError = uploadData.uploadError || uploadData.error || 'Unbekannter Fehler'; }
-        } catch(e) { uploadError = e.message; }
-      }
-
-      window.closeSignModal();
-      status[docId] = true;
-      saveStatus(status);
-      if (!uploaded) { syncToParent(docId, true); }
-      render();
-
-      if (uploaded) {
-        _downloadPdf(signedBytes, filename);
-        var note = document.createElement('div');
-        note.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,.15);z-index:9999;max-width:380px;cursor:default';
-        var blobUrl = URL.createObjectURL(new Blob([signedBytes], {type:'application/pdf'}));
-        note.innerHTML = '✓ Dokument hochgeladen &amp; heruntergeladen!'
-          + '<div style="font-size:12px;font-weight:400;margin-top:6px">'
-          + '<a href="' + blobUrl + '" download="' + filename + '" style="color:#fff;text-decoration:underline;">&#128196; Erneut herunterladen</a>'
-          + '</div>';
-        document.body.appendChild(note);
-        setTimeout(function() { note.remove(); URL.revokeObjectURL(blobUrl); }, 30000);
-      } else {
-        _downloadPdf(signedBytes, filename);
-        var msg = 'Das Dokument wurde heruntergeladen.';
-        if (uploadError) msg += '\n\nHinweis: Upload fehlgeschlagen (' + uploadError + ').\nBitte manuell hochladen.';
-        else if (!uploadSpUrl) msg += '\n\nBitte die Datei in Ihren Dokumenten-Ordner hochladen.';
-        setTimeout(function() { alert(msg); }, 300);
-      }
-
-    } catch(e) {
-      console.error('Signing error:', e);
-      alert('Fehler beim Verarbeiten:\n' + e.message);
-      btn.textContent = '☁ Unterschreiben & hochladen';
-      btn.disabled = false;
-    }
-  };
-
-  document.getElementById('sign-modal').addEventListener('click', function(e) {
-    if (e.target === this) window.closeSignModal();
-  });
-
-  // ── Signature pad ──────────────────────────────────────────────────
-  (function setupSignPad() {
-    var canvas = document.getElementById('sign-pad');
-    if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    ctx.strokeStyle = '#1a1917'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    function getPos(e) {
-      var rect = canvas.getBoundingClientRect();
-      var sx = canvas.width / rect.width, sy = canvas.height / rect.height;
-      var src = e.touches ? e.touches[0] : e;
-      return { x: (src.clientX - rect.left) * sx, y: (src.clientY - rect.top) * sy };
-    }
-    canvas.addEventListener('mousedown', function(e) { signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
-    canvas.addEventListener('mousemove', function(e) { if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
-    function _afterStroke() {
-      signDrawing = false;
-      var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
-      if (window._updateSteps) window._updateSteps(anyFilled, true);
-    }
-    canvas.addEventListener('mouseup',    _afterStroke);
-    canvas.addEventListener('mouseleave', function() { signDrawing = false; });
-    canvas.addEventListener('touchstart', function(e) { signDrawing = true; var p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); e.preventDefault(); }, { passive: false });
-    canvas.addEventListener('touchmove',  function(e) { if (!signDrawing) return; var p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, { passive: false });
-    canvas.addEventListener('touchend',   _afterStroke);
-  })();
-
-  // ── Upload-Handler ──────────────────────────────────────────────────
-  async function uploadDocFile(docId, file) {
-    var resultEl = document.getElementById('ur-' + docId);
-    if (resultEl) { resultEl.className = 'upload-result working'; resultEl.textContent = '⧗ Wird hochgeladen…'; }
-
-    var spUrl = (apiConfig && apiConfig.spUrl) || params.get('spUrl') || '';
-    var custId = '';
-    try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
-
-    if (!spUrl || !custId || isPreview) {
-      var blobUrl = URL.createObjectURL(file);
-      var a = document.createElement('a'); a.href = blobUrl; a.download = file.name; a.click();
-      URL.revokeObjectURL(blobUrl);
-      if (resultEl) { resultEl.className = 'upload-result ok'; resultEl.textContent = '✓ Heruntergeladen (kein Upload-Ziel konfiguriert)'; }
-      return;
-    }
-
-    try {
-      var arrayBuf = await file.arrayBuffer();
-      var bytes    = new Uint8Array(arrayBuf);
-      var b64      = _buf2b64(bytes);
-
-      var resp = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, file: b64, filename: file.name, spUrl: spUrl }),
-      });
-      var data = await resp.json();
-
-      if (data.ok && data.uploaded) {
-        if (resultEl) { resultEl.className = 'upload-result ok'; resultEl.textContent = '✓ Erfolgreich hochgeladen!'; }
-        status[docId] = true;
-        saveStatus(status);
-        render();
-      } else {
-        var errMsg = data.uploadError || data.error || 'Unbekannter Fehler';
-        if (resultEl) { resultEl.className = 'upload-result err'; resultEl.textContent = '✗ Fehler: ' + errMsg; }
-      }
-    } catch(e) {
-      if (resultEl) { resultEl.className = 'upload-result err'; resultEl.textContent = '✗ ' + e.message; }
-    }
-  }
-
-  window.handleFileDrop = function(event, docId) {
-    event.preventDefault();
-    var zone = document.getElementById('uz-' + docId);
-    if (zone) zone.classList.remove('drag-over');
-    var files = event.dataTransfer.files;
-    if (files && files.length > 0) uploadDocFile(docId, files[0]);
-  };
-
-  window.handleFileSelect = function(event, docId) {
-    var files = event.target.files;
-    if (files && files.length > 0) uploadDocFile(docId, files[0]);
-    event.target.value = '';
-  };
-
-  render();
-
-  // ── Download-Vorlagen (Datenübernahme) ──────────────────────────────
-  window.loadDownloadTemplates = async function(docId, folderName) {
-    var el = document.getElementById('dl-' + docId);
-    if (!el) return;
-    el.innerHTML = '<span style="font-size:12px;color:var(--muted)">&#8987; Wird geladen…</span>';
-    try {
-      var resp = await fetch(
-        API_URL + '?action=list-folder'
-        + '&token=' + encodeURIComponent(token)
-        + '&folder=' + encodeURIComponent(folderName)
-      );
-      var data = await resp.json();
-      if (!data.ok || !data.files || data.files.length === 0) {
-        el.innerHTML = '<span style="font-size:12px;color:var(--muted)">Keine Dateien im Ordner gefunden.</span>';
-        return;
-      }
-      var html = data.files.map(function(f) {
-        var sizeKb = f.size ? ' (' + Math.round(f.size / 1024) + ' KB)' : '';
-        return '<a href="' + f.downloadUrl + '" download="' + f.name + '" class="dl-file-btn">'
-          + '<span class="dl-file-btn-icon">&#8681;</span>'
-          + '<span>' + f.name + '</span>'
-          + '<span style="font-size:10px;color:var(--muted);margin-left:auto">' + sizeKb + '</span>'
-          + '</a>';
-      }).join('');
-      el.innerHTML = html;
-    } catch(e) {
-      el.innerHTML = '<span style="font-size:12px;color:var(--red)">&#9888; Fehler beim Laden der Dateien.</span>';
-    }
-  };
-
-})();
-</script>
-</body>
-</html>
+      if (preview) { preview.src = e.target.result; preview.style.display
