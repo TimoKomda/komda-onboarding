@@ -297,6 +297,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "optionen":       fields.get("Optionen",       ""),
                     "erstschulung":   fields.get("Erstschulung",   ""),
                     "docs":           docs,
+                    "logoUrl":        fields.get("LogoUrl", ""),
                 }),
                 status_code=200, headers=CORS_HEADERS
             )
