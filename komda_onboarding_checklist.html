@@ -499,7 +499,7 @@
       // wbGroups: [] triggers the custom layout path (no WB section rendered)
       wbGroups: [],
       // coreFieldOrder: virtual fields Strasse_v + PlzOrt_v are combined into dxFormField15
-      coreFieldOrder: ['dxFormField14', 'Strasse_v', 'PlzOrt_v', 'dxFormField1', 'dxFormField2', 'dxFormField3', 'dxFormField4', 'dxFormField5'],
+      coreFieldOrder: ['Firma_v', 'Name_v', 'Strasse_v', 'PlzOrt_v', 'dxFormField1', 'dxFormField2', 'dxFormField3', 'dxFormField4', 'dxFormField5'],
       // dxFormField13 = Mandatsreferenz → auto-filled with Kundennummer, hidden from user
       hiddenFields: ['dxFormField13'],
       autoFill: {
@@ -507,13 +507,15 @@
           return (typeof apiConfig !== 'undefined' && apiConfig && apiConfig.kundennummer) ? String(apiConfig.kundennummer) : '';
         },
       },
-      // Combine two user inputs into the multiline Anschrift PDF field
+      // Combine virtual inputs into multiline PDF fields
       combineFields: {
+        'dxFormField14': ['Firma_v', 'Name_v'],
         'dxFormField15': ['Strasse_v', 'PlzOrt_v'],
       },
       fieldLabels: {
         'dxFormField13': 'Mandatsreferenz (Kundennummer)',
-        'dxFormField14': 'Name des Zahlungspflichtigen / Firma',
+        'Firma_v':       'Firma',
+        'Name_v':        'Name des Zahlungspflichtigen (Kontoinhaber)',
         'Strasse_v':     'Straße, Hausnummer',
         'PlzOrt_v':      'PLZ, Ort',
         'dxFormField1':  'Kreditinstitut',
@@ -1386,13 +1388,35 @@
 
       try {
         var form = pdfDoc.getForm();
-        var inputs = document.querySelectorAll('.sign-field-input');
-        inputs.forEach(function(inp) {
-          var fn  = inp.getAttribute('data-field');
+        var cfg2 = SIGN_CONFIG[currentSignDocId] || {};
+        // Collect all input values (including virtual fields)
+        var inputVals = {};
+        document.querySelectorAll('.sign-field-input').forEach(function(inp) {
+          var fn = inp.getAttribute('data-field');
           var val = inp.value.trim();
-          if (!val) return;
-          try { form.getTextField(fn).setText(val); } catch(e) {}
+          if (fn && val) inputVals[fn] = val;
         });
+        // Build set of virtual fields used by combineFields
+        var virtualFields = {};
+        if (cfg2.combineFields) {
+          Object.keys(cfg2.combineFields).forEach(function(targetField) {
+            cfg2.combineFields[targetField].forEach(function(src) { virtualFields[src] = true; });
+          });
+        }
+        // Write real PDF fields (skip virtual ones)
+        Object.keys(inputVals).forEach(function(fn) {
+          if (virtualFields[fn]) return;
+          try { form.getTextField(fn).setText(inputVals[fn]); } catch(e) {}
+        });
+        // Handle combineFields: merge virtual inputs into target PDF field
+        if (cfg2.combineFields) {
+          Object.keys(cfg2.combineFields).forEach(function(targetField) {
+            var parts = cfg2.combineFields[targetField].map(function(src) { return inputVals[src] || ''; }).filter(Boolean);
+            if (parts.length > 0) {
+              try { form.getTextField(targetField).setText(parts.join('\n')); } catch(e) {}
+            }
+          });
+        }
         form.flatten();
       } catch(e) {}
 
