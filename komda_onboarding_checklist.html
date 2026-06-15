@@ -274,6 +274,13 @@
 
     .sign-footer{display:flex;gap:10px;justify-content:flex-end;padding-top:16px;border-top:1px solid var(--border-lt);margin-top:18px}
     .sign-cancel-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--gray-bg);color:var(--muted)}
+    .sig-or-divider{position:relative;text-align:center;margin:10px 0}
+    .sig-or-divider::before{content:'';position:absolute;left:0;top:50%;width:100%;height:1px;background:var(--border-lt);z-index:0}
+    .sig-or-divider span{position:relative;z-index:1;background:#fff;padding:0 10px;font-size:11px;color:var(--muted);font-weight:600}
+    .sig-upload-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+    .sig-upload-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid var(--border);background:var(--gray-bg);color:var(--muted);transition:background .15s}
+    .sig-upload-btn:hover{background:var(--blue-bg);border-color:#b8cef0;color:var(--blue)}
+    .col-card-count-b{background:var(--blue-bg);color:var(--blue)}
     .sign-confirm-btn{padding:10px 22px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:var(--red);color:#fff;transition:background .15s}
     .sign-confirm-btn:hover{background:var(--red-dark)}
     .sign-confirm-btn:disabled{opacity:.6;cursor:default}
@@ -330,7 +337,10 @@
       <div class="col-card-header">
         <span style="font-size:18px">&#128203;</span>
         <span class="col-card-title">Onboarding-Checkliste</span>
-        <span class="col-card-count" id="check-count">0 / 0 erledigt</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <span class="col-card-count" id="check-count-a">Pflicht 0/0</span>
+          <span class="col-card-count col-card-count-b" id="check-count-b">Vorbereitung 0/0</span>
+        </div>
       </div>
       <div id="checklist-items"></div>
     </div>
@@ -440,6 +450,14 @@
       <div class="sign-pad-actions">
         <button class="sign-clear-btn" onclick="clearSignPad()">&#10005; L&ouml;schen</button>
         <span class="sign-pos-info" id="sign-pos-info"></span>
+      </div>
+
+      <div class="sig-or-divider"><span>oder</span></div>
+      <div class="sig-upload-row">
+        <label class="sig-upload-btn" for="sig-file-input">&#128247; Unterschrift hochladen</label>
+        <input type="file" id="sig-file-input" accept="image/*" style="display:none" onchange="handleSigUpload(this)">
+        <img id="sig-upload-preview" alt="Unterschrift" style="display:none;max-height:56px;border-radius:6px;border:1px solid var(--border)">
+        <button id="sig-upload-clear" class="sign-clear-btn" style="display:none" onclick="clearSigUpload()">&#10005; Entfernen</button>
       </div>
 
       <div class="sign-footer">
@@ -693,9 +711,8 @@
   ];
 
   var activeOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
-  var BLOCK_B_ACTIVE = BLOCK_B_BASE.concat(
-    OPTIONAL_META.filter(function(o) { return o.block === 'B' && activeOpts.indexOf(o.id) !== -1; })
-  );
+  var BLOCK_B_ACTIVE = OPTIONAL_META.filter(function(o) { return o.block === 'B' && activeOpts.indexOf(o.id) !== -1; })
+    .concat(BLOCK_B_BASE);
   var ALL_DOCS = BLOCK_A.concat(BLOCK_B_ACTIVE);
 
   // ── LocalStorage ─────────────────────────────────────────────────────
@@ -823,7 +840,10 @@
       sideFill.style.height = pct + '%';
       sideFill.className = 'progress-v-fill' + (pct === 100 ? ' done-full' : pct > 0 ? ' partial' : '');
     }
-    document.getElementById('check-count').textContent = done + ' / ' + ALL_DOCS.length + ' erledigt';
+    var doneA = 0; for (var ai = 0; ai < BLOCK_A.length; ai++) { if (status[BLOCK_A[ai].id]) doneA++; }
+    var doneB = 0; for (var bi = 0; bi < BLOCK_B_ACTIVE.length; bi++) { if (status[BLOCK_B_ACTIVE[bi].id]) doneB++; }
+    document.getElementById('check-count-a').textContent = 'Pflicht ' + doneA + '/' + BLOCK_A.length;
+    document.getElementById('check-count-b').textContent = 'Vorbereitung ' + doneB + '/' + BLOCK_B_ACTIVE.length;
     document.getElementById('done-card').classList.toggle('visible', pct === 100);
 
     var clHtml = '<div class="section-bar">'
@@ -952,6 +972,13 @@
     var infoEl = document.getElementById('sign-modal-info');
     if (infoEl) infoEl.style.display = '';
     clearSignPad();
+    window._uploadedSigDataUrl = null;
+    var _prev = document.getElementById('sig-upload-preview');
+    var _clr = document.getElementById('sig-upload-clear');
+    var _inp = document.getElementById('sig-file-input');
+    if (_prev) { _prev.src = ''; _prev.style.display = 'none'; }
+    if (_clr) _clr.style.display = 'none';
+    if (_inp) _inp.value = '';
 
     var confirmBtn = document.getElementById('sign-confirm-btn');
     confirmBtn.textContent = '☁ Unterschreiben & hochladen';
@@ -1210,11 +1237,49 @@
     if (c) c.classList.remove('open');
     if (b) b.classList.remove('open');
     currentSignDocId = null;
+    if (window.clearSigUpload) window.clearSigUpload();
   };
 
   window.clearSignPad = function() {
     var canvas = document.getElementById('sign-pad');
     if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  window._uploadedSigDataUrl = null;
+
+  window.handleSigUpload = function(input) {
+    var file = input.files && input.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      window._uploadedSigDataUrl = e.target.result;
+      var preview = document.getElementById('sig-upload-preview');
+      var clearBtn = document.getElementById('sig-upload-clear');
+      if (preview) { preview.src = e.target.result; preview.style.display = 'block'; }
+      if (clearBtn) clearBtn.style.display = '';
+      var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
+      if (window._updateSteps) window._updateSteps(anyFilled, true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  window.clearSigUpload = function() {
+    window._uploadedSigDataUrl = null;
+    var input = document.getElementById('sig-file-input');
+    var preview = document.getElementById('sig-upload-preview');
+    var clearBtn = document.getElementById('sig-upload-clear');
+    if (input) input.value = '';
+    if (preview) { preview.src = ''; preview.style.display = 'none'; }
+    if (clearBtn) clearBtn.style.display = 'none';
+    var anyFilled = Array.from(document.querySelectorAll('.sign-field-input')).some(function(i){ return i.value.trim(); });
+    var hasSig = (function() {
+      var c = document.getElementById('sign-pad');
+      if (!c) return false;
+      var d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+      for (var i = 3; i < d.length; i += 4) { if (d[i] > 10) return true; }
+      return false;
+    })();
+    if (window._updateSteps) window._updateSteps(anyFilled, hasSig);
   };
 
   function _buf2b64(input) {
@@ -1260,7 +1325,8 @@
 
     var isEmpty = true;
     for (var i = 0; i < data.length; i += 4) { if (data[i+3] > 0) { isEmpty = false; break; } }
-    if (isEmpty) { alert('Bitte zeichnen Sie zunächst Ihre Unterschrift.'); return; }
+    var hasUploadedSig = !!window._uploadedSigDataUrl;
+    if (isEmpty && !hasUploadedSig) { alert('Bitte zeichnen Sie Ihre Unterschrift oder laden Sie eine Unterschrift-Datei hoch.'); return; }
 
     var cfg = SIGN_CONFIG[currentSignDocId];
     if (!cfg || !_pdfCache[currentSignDocId]) { alert('PDF nicht geladen. Bitte Modal schließen und erneut öffnen.'); return; }
@@ -1285,7 +1351,22 @@
         form.flatten();
       } catch(e) {}
 
-      var sigDataUrl = canvas.toDataURL('image/png');
+      var sigDataUrl;
+      if (!isEmpty) {
+        sigDataUrl = canvas.toDataURL('image/png');
+      } else {
+        // Hochgeladenes Bild via Canvas in PNG normalisieren
+        sigDataUrl = await new Promise(function(resolve) {
+          var img = new Image();
+          img.onload = function() {
+            var tc = document.createElement('canvas');
+            tc.width = img.naturalWidth; tc.height = img.naturalHeight;
+            tc.getContext('2d').drawImage(img, 0, 0);
+            resolve(tc.toDataURL('image/png'));
+          };
+          img.src = window._uploadedSigDataUrl;
+        });
+      }
       var sigBuf = await fetch(sigDataUrl).then(function(r) { return r.arrayBuffer(); });
       var sigImg = await pdfDoc.embedPng(sigBuf);
       var dateStr = new Date().toLocaleDateString('de-DE');
@@ -1306,8 +1387,7 @@
         }
       }
 
-      var sigCanvas = document.getElementById('sign-pad');
-      var canvasRatio = sigCanvas.width / sigCanvas.height;
+      var canvasRatio = sigImg.width / sigImg.height;
       sigPositions.forEach(function(sp) {
         var page = pages[Math.min(sp.page, pages.length - 1)];
         var drawW, drawH;
