@@ -60,7 +60,7 @@
     .col-card-title{font-size:12px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.08em}
     .col-card-count{margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);background:var(--gray-bg);padding:3px 10px;border-radius:20px}
 
-    .progress-v-bars{position:absolute;left:0;top:0;bottom:0;display:flex;gap:2px;z-index:1;pointer-events:none}
+    .progress-v-bars{position:absolute;left:0;top:0;bottom:0;display:flex;gap:0;z-index:1;pointer-events:none}
     .progress-v-track{position:relative;width:5px;height:100%;background:var(--border-lt)}
     .progress-v-fill{position:absolute;bottom:0;left:0;width:100%;height:0%;transition:height .6s ease}
     .progress-v-fill.col-a{background:var(--red)}
@@ -70,7 +70,7 @@
     .progress-v-fill.col-b.partial{background:#a78bfa}
     .progress-v-fill.col-b.done-full{background:#7c3aed}
 
-    .section-bar{padding:10px 22px 9px;border-bottom:1px solid var(--border-lt);background:#f5f3f0;border-left:3px solid var(--red)}
+    .section-bar{padding:10px 22px 9px;border-bottom:1px solid var(--border-lt);background:#f5f3f0}
     .section-bar-title{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.1em}
     .section-bar-hint{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
 
@@ -302,18 +302,22 @@
     .sign-confirm-btn:hover{background:var(--red-dark)}
     .sign-confirm-btn:disabled{opacity:.6;cursor:default}
 
-    footer{background:var(--red);color:rgba(255,255,255,.75);font-size:12px;padding:28px 24px 32px}
-    .footer-inner{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:14px}
-    .footer-logo{height:36px;width:auto;opacity:.85}
-    .footer-contact{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:12px}
-    .footer-contact-item{display:flex;align-items:center;gap:5px;color:rgba(255,255,255,.8)}
-    .footer-contact-item a{color:rgba(255,255,255,.8);text-decoration:none}
-    .footer-contact-item a:hover{color:#fff;text-decoration:underline}
-    .footer-divider{width:60px;height:1px;background:rgba(255,255,255,.25)}
-    .footer-copy{font-size:11px;color:rgba(255,255,255,.5)}
-    .footer-links{display:flex;justify-content:center;gap:20px;flex-wrap:wrap}
-    .footer-links a{color:rgba(255,255,255,.65);text-decoration:none;transition:color .15s;font-size:11px}
-    .footer-links a:hover{color:#fff}
+    footer{background:#3d3b3b;color:rgba(255,255,255,.7);font-size:13px;padding:40px 24px 24px}
+    .footer-inner{max-width:1200px;margin:0 auto}
+    .footer-cols{display:grid;grid-template-columns:2fr 1fr 1fr;gap:40px;margin-bottom:32px}
+    @media(max-width:700px){.footer-cols{grid-template-columns:1fr;gap:24px}}
+    .footer-col-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:14px;letter-spacing:.02em}
+    .footer-col-text{font-size:12px;color:rgba(255,255,255,.65);line-height:1.8}
+    .footer-col-text a{color:rgba(255,255,255,.65);text-decoration:none}
+    .footer-col-text a:hover{color:#fff}
+    .footer-col-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+    .footer-col-list li a{font-size:12px;color:rgba(255,255,255,.65);text-decoration:none;transition:color .15s}
+    .footer-col-list li a:hover{color:#fff}
+    .footer-bottom{border-top:1px solid rgba(255,255,255,.12);padding-top:18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+    .footer-copy{font-size:11px;color:rgba(255,255,255,.4)}
+    .footer-bottom-links{display:flex;gap:18px}
+    .footer-bottom-links a{font-size:11px;color:rgba(255,255,255,.45);text-decoration:none;transition:color .15s}
+    .footer-bottom-links a:hover{color:#fff}
     .files-box{display:none!important}
   </style>
 </head>
@@ -497,27 +501,39 @@
 
 <footer>
   <div class="footer-inner">
-    <img class="footer-logo" src="https://komda-software.de/_uploads/Komda_Logo_horizontal_Subline_negative.png" alt="Komda® Software">
-    <div class="footer-contact">
-      <div class="footer-contact-item">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.65 2 2 0 0 1 3.57 1.5h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.81-1.81a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <a href="tel:+494419358900">0441 / 9 35 89 - 0</a>
+    <div class="footer-cols">
+      <div>
+        <div class="footer-col-title">Komda Software GmbH</div>
+        <div class="footer-col-text">
+          Als deutscher Hersteller f&uuml;r Software in der Pflegebranche begleiten wir Sie auf dem Weg in die Zukunft &mdash; einfach, intuitiv und sicher. Erleben Sie die Vorteile der Komda&reg; Produktvielfalt.
+        </div>
       </div>
-      <div class="footer-contact-item">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        <a href="mailto:info@komda-software.de">info@komda-software.de</a>
+      <div>
+        <div class="footer-col-title">Komda&reg; Software</div>
+        <ul class="footer-col-list">
+          <li><a href="https://komda-software.de/" target="_blank" rel="noopener">Zur&uuml;ck zur Startseite</a></li>
+          <li><a href="https://komda-software.de/firma/" target="_blank" rel="noopener">Lernen Sie uns kennen</a></li>
+          <li><a href="https://komda-software.de/kontakt/" target="_blank" rel="noopener">Jetzt Kontakt aufnehmen</a></li>
+          <li><a href="https://komda-software.de/news/" target="_blank" rel="noopener">Aktuelle Informationen</a></li>
+        </ul>
       </div>
-      <div class="footer-contact-item">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        Am Patentbusch 5 | 26125 Oldenburg
+      <div>
+        <div class="footer-col-title">Kontakt</div>
+        <div class="footer-col-text">
+          Komda Software GmbH<br>
+          Am Patentbusch 5, 26125 Oldenburg<br>
+          <a href="tel:+494419358900">0441 / 9 35 89 - 0</a><br>
+          <a href="mailto:info@komda-software.de">info@komda-software.de</a>
+        </div>
       </div>
     </div>
-    <div class="footer-divider"></div>
-    <div class="footer-links">
-      <a href="https://komda-software.de/impressum/" target="_blank" rel="noopener">Impressum</a>
-      <a href="https://komda-software.de/datenschutz/" target="_blank" rel="noopener">Datenschutz</a>
+    <div class="footer-bottom">
+      <div class="footer-copy">&copy; 2026 Komda Software GmbH &middot; Alle Rechte vorbehalten</div>
+      <div class="footer-bottom-links">
+        <a href="https://komda-software.de/impressum/" target="_blank" rel="noopener">Impressum</a>
+        <a href="https://komda-software.de/datenschutz/" target="_blank" rel="noopener">Datenschutz</a>
+      </div>
     </div>
-    <div class="footer-copy">&copy; 2026 Komda Software GmbH &middot; Alle Rechte vorbehalten</div>
   </div>
 </footer>
 
