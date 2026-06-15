@@ -277,8 +277,10 @@
     .sign-field-input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;color:var(--text);background:#fff;transition:border-color .15s}
     .sign-field-input:focus{outline:none;border-color:var(--red)}
     .sign-fields-subsection-title{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
-    .sign-wb-group{margin-bottom:6px}
-    .sign-wb-group-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px}
+    .sign-wb-group{margin-bottom:6px;position:relative}
+    .sign-wb-group-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+    .sign-wb-remove-btn{margin-left:4px;font-size:11px;color:var(--red);cursor:pointer;border:none;background:none;padding:0 4px;line-height:1;font-weight:700;opacity:.7}
+    .sign-wb-remove-btn:hover{opacity:1}
     .sign-add-wb-btn{display:inline-flex;align-items:center;gap:6px;margin-top:4px;margin-bottom:12px;padding:7px 14px;border:1.5px dashed var(--red);border-radius:8px;background:transparent;color:var(--red);font-size:13px;font-weight:600;cursor:pointer;transition:background .15s}
     .sign-add-wb-btn:hover{background:rgba(200,30,30,.06)}
 
@@ -1296,12 +1298,33 @@
         var _currentWbCount = 1;
         var _wbGroupsCfg = cfg.wbGroups;
         var _wbLabelsCfg = cfg.fieldLabels || {};
+        window.removeSignWbGroup = function(btn) {
+          var group = btn.closest('.sign-wb-group');
+          if (!group) return;
+          group.remove();
+          _currentWbCount--;
+          // Re-number remaining groups (ab 2)
+          var container = document.getElementById('sign-wb-container');
+          if (container) {
+            var groups = container.querySelectorAll('.sign-wb-group');
+            groups.forEach(function(g, i) {
+              var lbl = g.querySelector('.sign-wb-group-label span');
+              if (lbl) lbl.textContent = 'Weisungsbefugte(r) ' + (i + 1);
+              g.setAttribute('data-wb', i + 1);
+            });
+          }
+          // Add-Button wieder einblenden
+          var addBtn = document.getElementById('sign-add-wb-btn');
+          if (addBtn && _currentWbCount < _wbGroupsCfg.length) addBtn.style.display = '';
+        };
+
         window.addSignWbGroup = function() {
           if (_currentWbCount >= _wbGroupsCfg.length) return;
           _currentWbCount++;
           var group = _wbGroupsCfg[_currentWbCount - 1];
           var html = '<div class="sign-wb-group" data-wb="' + _currentWbCount + '">';
-          html += '<div class="sign-wb-group-label">Weisungsbefugte(r) ' + _currentWbCount + '</div>';
+          html += '<div class="sign-wb-group-label"><span>Weisungsbefugte(r) ' + _currentWbCount + '</span>'
+               + '<button type="button" class="sign-wb-remove-btn" onclick="removeSignWbGroup(this)" title="Entfernen">✕</button></div>';
           html += '<div class="sign-fields-grid">';
           group.forEach(function(name) {
             var label = _wbLabelsCfg[name] || name.replace(/_/g, ' ');
