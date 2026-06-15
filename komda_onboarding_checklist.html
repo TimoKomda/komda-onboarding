@@ -643,7 +643,7 @@
     var nameDec   = decodeURIComponent(params.get('name')   || '');
     document.title = 'Komda Onboarding - ' + firmaDec;
     var introTitleEl = document.getElementById('intro-title');
-    if (introTitleEl) introTitleEl.innerHTML = '&#128203; Ihr Onboarding-Leitfaden &ndash; ' + firmaDec;
+    if (introTitleEl) introTitleEl.innerHTML = '&#128203; Ihr Onboarding-Leitfaden';
     var introGreetEl = document.getElementById('intro-greeting');
     if (introGreetEl) {
       var ap = '';
@@ -652,18 +652,10 @@
       } else if (nameDec) {
         ap = nameDec;
       }
-      introGreetEl.innerHTML = ap ? 'Herzlich willkommen, ' + ap + ',<br>zu Ihrem Komda® Software Onboarding!' : 'Herzlich willkommen!';
+      introGreetEl.innerHTML = ap ? 'Herzlich willkommen ' + ap + ',<br>zu Ihrem Komda® Software Onboarding!' : 'Herzlich willkommen!';
     }
     var subEl = document.getElementById('header-subtitle');
-    if (subEl) {
-      var greeting = 'Guten Tag';
-      if (anredeDec && nameDec) {
-        greeting = anredeDec === 'SGDH' ? 'Sehr geehrte Damen und Herren' : 'Guten Tag, ' + anredeDec + ' ' + nameDec;
-      } else if (nameDec) {
-        greeting = 'Guten Tag, ' + nameDec;
-      }
-      subEl.textContent = greeting + '!';
-    }
+    if (subEl) { subEl.textContent = firmaDec; }
   }
 
   // ── Erstschulung-Datum ───────────────────────────────────────────────
