@@ -48,6 +48,9 @@
 
     .intro-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);padding:22px 28px;margin-bottom:22px}
     .intro-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+    .intro-title-right{margin-left:auto;display:flex;align-items:center;flex-shrink:0}
+    .intro-title-logo{max-height:40px;max-width:180px;width:auto;object-fit:contain;border-radius:4px}
+    .intro-title-firma{font-size:13px;font-weight:600;color:var(--muted);white-space:nowrap}
     .intro-body p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:6px}
     .intro-body p:last-child{margin-bottom:0}
     .intro-body strong{color:var(--text)}
@@ -348,7 +351,7 @@
   </div>
 
   <div class="intro-card">
-    <div class="intro-title" id="intro-title">&#128203; Ihr Onboarding-Leitfaden</div>
+    <div class="intro-title" id="intro-title">&#128203; Ihr Onboarding-Leitfaden<div class="intro-title-right" id="intro-title-right"></div></div>
     <div class="intro-body">
       <p id="intro-greeting">Herzlich willkommen!</p>
       <p>Diese Checkliste begleitet Sie Schritt f&uuml;r Schritt bis zum erfolgreichen Start mit Komda&reg; Software.</p>
@@ -518,9 +521,9 @@
       <div>
         <div class="footer-col-title">Produktvielfalt</div>
         <ul class="footer-col-list">
-          <li><a href="https://komda-software.de/produkte/station%C3%A4re-pflege/" target="_blank" rel="noopener">Software f&uuml;r station&auml;re Pflege</a></li>
-          <li><a href="https://komda-software.de/produkte/teilstation%C3%A4re-pflege/" target="_blank" rel="noopener">Software f&uuml;r teilstation&auml;re Pflege</a></li>
-          <li><a href="https://komda-software.de/produkte/ambulante-pflege/" target="_blank" rel="noopener">Software f&uuml;r ambulante Pflege</a></li>
+          <li><a href="https://komda-software.de/pflegesoftware/software-stationare-pflege/" target="_blank" rel="noopener">Software f&uuml;r station&auml;re Pflege</a></li>
+          <li><a href="https://komda-software.de/pflegesoftware/software-teilstationare-pflege/" target="_blank" rel="noopener">Software f&uuml;r teilstation&auml;re Pflege</a></li>
+          <li><a href="https://komda-software.de/pflegesoftware/software-ambulante-pflege/" target="_blank" rel="noopener">Software f&uuml;r ambulante Pflege</a></li>
           <li><a href="https://komda-software.de/produkte/betreuungsdienste/" target="_blank" rel="noopener">Software f&uuml;r Betreuungsdienste</a></li>
         </ul>
       </div>
@@ -677,16 +680,35 @@
     if (introTitleEl) introTitleEl.innerHTML = '&#128203; Ihr Onboarding-Leitfaden';
     var introGreetEl = document.getElementById('intro-greeting');
     if (introGreetEl) {
-      var ap = '';
-      if (anredeDec && nameDec) {
-        ap = anredeDec === 'SGDH' ? 'Sehr geehrte Damen und Herren' : (anredeDec + ' ' + nameDec);
+      var formalGreet = '';
+      if (anredeDec === 'SGDH') {
+        formalGreet = 'Sehr geehrte Damen und Herren,';
+      } else if (anredeDec === 'Herr' && nameDec) {
+        formalGreet = 'Sehr geehrter Herr ' + nameDec + ',';
+      } else if (anredeDec && nameDec) {
+        formalGreet = 'Sehr geehrte ' + anredeDec + ' ' + nameDec + ',';
       } else if (nameDec) {
-        ap = nameDec;
+        formalGreet = 'Guten Tag ' + nameDec + ',';
       }
-      introGreetEl.innerHTML = ap ? 'Herzlich willkommen ' + ap + ',<br>zu Ihrem Komda® Software Onboarding!' : 'Herzlich willkommen!';
+      introGreetEl.innerHTML = formalGreet
+        ? formalGreet + '<br>herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!'
+        : 'Herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!';
     }
-    var subEl = document.getElementById('header-subtitle');
-    if (subEl) { subEl.textContent = firmaDec; }
+    // Logo oder Firmenname rechts in der Intro-Karte
+    var logoParam = params.get('logo') || '';
+    var introRight = document.getElementById('intro-title-right');
+    if (introRight) {
+      if (logoParam) {
+        var img = document.createElement('img');
+        img.src = decodeURIComponent(logoParam);
+        img.className = 'intro-title-logo';
+        img.alt = firmaDec;
+        introRight.appendChild(img);
+      } else {
+        introRight.textContent = firmaDec;
+        introRight.className = 'intro-title-right intro-title-firma';
+      }
+    }
   }
 
   // ── Erstschulung-Datum ───────────────────────────────────────────────
