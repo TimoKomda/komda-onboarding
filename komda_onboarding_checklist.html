@@ -694,13 +694,13 @@
         ? formalGreet + '<br>herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!'
         : 'Herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!';
     }
-    // Logo oder Firmenname rechts in der Intro-Karte
-    var logoParam = params.get('logo') || '';
+    // Logo aus apiConfig oder Firmenname rechts in der Intro-Karte
     var introRight = document.getElementById('intro-title-right');
     if (introRight) {
-      if (logoParam) {
+      var logoSrc = (apiConfig && apiConfig.logoUrl) ? apiConfig.logoUrl : '';
+      if (logoSrc) {
         var img = document.createElement('img');
-        img.src = decodeURIComponent(logoParam);
+        img.src = logoSrc;
         img.className = 'intro-title-logo';
         img.alt = firmaDec;
         introRight.appendChild(img);
