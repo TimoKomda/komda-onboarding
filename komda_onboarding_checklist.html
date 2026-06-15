@@ -9,7 +9,7 @@
   <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <style>
     :root {
-      --red:#780f0f; --red-dark:#5e0c0c; --red-pale:#fde8e8;
+      --red:#c41b1b; --red-dark:#9a1515; --red-pale:#fdeaea;
       --bg:#f3f1ee; --card:#fff; --border:#e5e2de; --border-lt:#eeebe8;
       --text:#1a1917; --muted:#706b66;
       --green:#107c41; --green-bg:#e8f5ee;
@@ -34,10 +34,6 @@
     /* top row: logo left | contact right */
     .header-top-row{max-width:1200px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:1px solid rgba(255,255,255,.15)}
     .header-logo{height:58px;width:auto;display:block}
-    .header-contact-group{display:flex;gap:20px;align-items:center}
-    .header-contact-item{display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.9)}
-    .header-contact-item a{color:rgba(255,255,255,.9);text-decoration:none}
-    .header-contact-item a:hover{color:#fff;text-decoration:underline}
     /* bottom row: onboarding info */
     .header-onboarding-row{max-width:1200px;margin:0 auto;padding:12px 28px 16px}
     .header-title{font-size:19px;font-weight:700;color:#fff}
@@ -50,9 +46,8 @@
 
     .page-body{max-width:1060px;margin:0 auto;padding:28px 24px 60px}
 
-    .intro-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);overflow:hidden;margin-bottom:22px}
-    .intro-title{font-size:15px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;background:var(--red);padding:14px 22px;letter-spacing:.02em}
-    .intro-body{padding:18px 22px 20px}
+    .intro-card{background:var(--card);border-radius:var(--radius-lg);border:1px solid var(--border-lt);box-shadow:var(--shadow-sm);padding:22px 28px;margin-bottom:22px}
+    .intro-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
     .intro-body p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:6px}
     .intro-body p:last-child{margin-bottom:0}
     .intro-body strong{color:var(--text)}
@@ -332,20 +327,6 @@
 <div class="page-header">
   <div class="header-top-row">
     <img class="header-logo" src="https://komda-software.de/_uploads/Komda_Logo_horizontal_Subline_negative.png" alt="Komda® Software">
-    <div class="header-contact-group">
-      <div class="header-contact-item">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.58 3.65 2 2 0 0 1 3.57 1.5h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.18 6.18l1.81-1.81a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-        <a href="tel:+494419358900">0441 / 9 35 89 - 0</a>
-      </div>
-      <div class="header-contact-item">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-        <a href="mailto:info@komda-software.de">info@komda-software.de</a>
-      </div>
-      <div class="header-contact-item">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        Am Patentbusch 5 | 26125 Oldenburg
-      </div>
-    </div>
   </div>
   <div class="header-onboarding-row">
     <div class="header-title" id="header-title">Willkommen zu Ihrem Onboarding</div>
