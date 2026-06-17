@@ -154,7 +154,7 @@ def _encode_sharing_token(url: str) -> str:
     return 'u!' + b64.rstrip('=').replace('/', '_').replace('+', '-')
 
 
-def sp_upload_via_sharing_link(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
+def sp_upload_via_sharing_link(sp_url: str, filename: str, file_bytes: bytes, subfolder: str = "") -> tuple:
     """
     Upload to a SharePoint folder identified by a sharing link.
     Uses /v1.0/shares/{token}/driveItem to resolve the folder, then uploads.
@@ -172,20 +172,27 @@ def sp_upload_via_sharing_link(sp_url: str, filename: str, file_bytes: bytes) ->
     drive_id = item['parentReference']['driveId']
     item_id  = item['id']
 
-    upload_url = (
-        f"https://graph.microsoft.com/v1.0/drives/{drive_id}"
-        f"/items/{item_id}:/{urllib.parse.quote(safe_name)}:/content"
-    )
+    if subfolder:
+        safe_sub = urllib.parse.quote(subfolder, safe='')
+        upload_url = (
+            f"https://graph.microsoft.com/v1.0/drives/{drive_id}"
+            f"/items/{item_id}:/{safe_sub}/{urllib.parse.quote(safe_name)}:/content"
+        )
+    else:
+        upload_url = (
+            f"https://graph.microsoft.com/v1.0/drives/{drive_id}"
+            f"/items/{item_id}:/{urllib.parse.quote(safe_name)}:/content"
+        )
     req = urllib.request.Request(
         upload_url, data=file_bytes, method="PUT",
         headers={"Authorization": f"Bearer {app_token}", "Content-Type": "application/octet-stream"},
     )
     with urllib.request.urlopen(req) as resp:
         resp.read()
-    return True, f"driveId={drive_id} item={item_id} file={safe_name}"
+    return True, f"driveId={drive_id} item={item_id} sub={subfolder} file={safe_name}"
 
 
-def sp_upload_via_path(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
+def sp_upload_via_path(sp_url: str, filename: str, file_bytes: bytes, subfolder: str = "") -> tuple:
     """
     Upload to a SharePoint folder identified by a direct URL.
     e.g. https://tenant.sharepoint.com/sites/ZSH/Shared Documents/Onboarding/Kunde
@@ -202,6 +209,9 @@ def sp_upload_via_path(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
         m2 = re.match(r'^/[^/]+/[^/]+/(.+)$', path)
         folder_path = m2.group(1) if m2 else path.lstrip('/')
 
+    if subfolder:
+        folder_path = folder_path.rstrip('/') + '/' + subfolder
+
     app_token  = get_app_token()
     upload_url = (
         f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
@@ -216,17 +226,17 @@ def sp_upload_via_path(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
     return True, f"path={folder_path}/{safe_name}"
 
 
-def sp_upload_file(sp_url: str, filename: str, file_bytes: bytes) -> tuple:
+def sp_upload_file(sp_url: str, filename: str, file_bytes: bytes, subfolder: str = "") -> tuple:
     """
-    Upload a file to a SharePoint folder.
+    Upload a file to a SharePoint folder (optionally into a named subfolder).
     Automatically detects sharing links (/:f:/ etc.) vs. direct folder URLs.
     Returns (success: bool, debug_message: str).
     """
     try:
         if _is_sharing_link(sp_url):
-            return sp_upload_via_sharing_link(sp_url, filename, file_bytes)
+            return sp_upload_via_sharing_link(sp_url, filename, file_bytes, subfolder)
         else:
-            return sp_upload_via_path(sp_url, filename, file_bytes)
+            return sp_upload_via_path(sp_url, filename, file_bytes, subfolder)
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")
         return False, f"HTTP {e.code}: {body[:300]}"
@@ -322,13 +332,14 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
             status_code=401, headers=CORS_HEADERS
         )
 
-    cust_id  = str(body.get("custId",  "")).strip()
-    doc_id   = str(body.get("docId",   "")).strip()
-    value    = bool(body.get("value",  False))
-    file_b64 = str(body.get("file",    "")).strip()
-    filename = str(body.get("filename","")).strip()
-    sp_url   = str(body.get("spUrl",   "")).strip()
-    field    = DOC_FIELD.get(doc_id)
+    cust_id   = str(body.get("custId",    "")).strip()
+    doc_id    = str(body.get("docId",     "")).strip()
+    value     = bool(body.get("value",    False))
+    file_b64  = str(body.get("file",      "")).strip()
+    filename  = str(body.get("filename",  "")).strip()
+    sp_url    = str(body.get("spUrl",     "")).strip()
+    subfolder = str(body.get("subfolder", "")).strip()
+    field     = DOC_FIELD.get(doc_id)
 
     if not field or not cust_id:
         return func.HttpResponse(
@@ -342,7 +353,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     if file_b64 and filename and sp_url:
         try:
             file_bytes = base64.b64decode(file_b64)
-            uploaded, upload_error = sp_upload_file(sp_url, filename, file_bytes)
+            uploaded, upload_error = sp_upload_file(sp_url, filename, file_bytes, subfolder)
         except Exception as ex:
             upload_error = str(ex)
 
