@@ -1690,9 +1690,28 @@
   })();
 
   // ── Upload-Handler ──────────────────────────────────────────────────
-  async function uploadDocFile(docId, file) {
+  // Lädt eine einzelne Datei hoch, gibt {ok, name, error} zurück
+  async function uploadSingleFile(docId, file, custId, spUrl, uploadSubfolder) {
+    try {
+      var arrayBuf = await file.arrayBuffer();
+      var b64 = _buf2b64(new Uint8Array(arrayBuf));
+      var resp = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, file: b64, filename: file.name, spUrl: spUrl, subfolder: uploadSubfolder }),
+      });
+      var data = await resp.json();
+      if (data.ok && data.uploaded) return { ok: true, name: file.name };
+      return { ok: false, name: file.name, error: data.uploadError || data.error || 'Unbekannter Fehler' };
+    } catch(e) {
+      return { ok: false, name: file.name, error: e.message };
+    }
+  }
+
+  async function uploadDocFiles(docId, fileList) {
     var resultEl = document.getElementById('ur-' + docId);
-    if (resultEl) { resultEl.className = 'upload-result working'; resultEl.textContent = '⧗ Wird hochgeladen…'; }
+    var files = Array.from(fileList);
+    if (!files.length) return;
 
     var docCfg = ALL_DOCS.find(function(d){ return d.id === docId; }) || {};
     var uploadSubfolder = docCfg.uploadFolder || '';
@@ -1700,38 +1719,48 @@
     var custId = '';
     try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
 
+    // Kein Upload-Ziel: alle Dateien herunterladen
     if (!spUrl || !custId || isPreview) {
-      var blobUrl = URL.createObjectURL(file);
-      var a = document.createElement('a'); a.href = blobUrl; a.download = file.name; a.click();
-      URL.revokeObjectURL(blobUrl);
-      if (resultEl) { resultEl.className = 'upload-result ok'; resultEl.textContent = '✓ Heruntergeladen (kein Upload-Ziel konfiguriert)'; }
+      files.forEach(function(f) {
+        var blobUrl = URL.createObjectURL(f);
+        var a = document.createElement('a'); a.href = blobUrl; a.download = f.name; a.click();
+        URL.revokeObjectURL(blobUrl);
+      });
+      if (resultEl) { resultEl.className = 'upload-result ok'; resultEl.textContent = '✓ ' + files.length + ' Datei(en) heruntergeladen (kein Upload-Ziel)'; }
       return;
     }
 
-    try {
-      var arrayBuf = await file.arrayBuffer();
-      var bytes    = new Uint8Array(arrayBuf);
-      var b64      = _buf2b64(bytes);
-
-      var resp = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, file: b64, filename: file.name, spUrl: spUrl, subfolder: uploadSubfolder }),
-      });
-      var data = await resp.json();
-
-      if (data.ok && data.uploaded) {
-        if (resultEl) { resultEl.className = 'upload-result ok'; resultEl.textContent = '✓ Erfolgreich hochgeladen!'; }
-        status[docId] = true;
-        saveStatus(status);
-        render();
-      } else {
-        var errMsg = data.uploadError || data.error || 'Unbekannter Fehler';
-        if (resultEl) { resultEl.className = 'upload-result err'; resultEl.textContent = '✗ Fehler: ' + errMsg; }
-      }
-    } catch(e) {
-      if (resultEl) { resultEl.className = 'upload-result err'; resultEl.textContent = '✗ ' + e.message; }
+    // Fortschrittsanzeige
+    if (resultEl) {
+      resultEl.className = 'upload-result working';
+      resultEl.textContent = '⧗ 0 / ' + files.length + ' hochgeladen…';
     }
+
+    var ok = 0, errors = [];
+    for (var i = 0; i < files.length; i++) {
+      if (resultEl) resultEl.textContent = '⧗ ' + i + ' / ' + files.length + ' hochgeladen…';
+      var res = await uploadSingleFile(docId, files[i], custId, spUrl, uploadSubfolder);
+      if (res.ok) { ok++; } else { errors.push(res.name + ': ' + res.error); }
+    }
+
+    if (errors.length === 0) {
+      if (resultEl) { resultEl.className = 'upload-result ok'; resultEl.textContent = '✓ ' + ok + ' Datei(en) erfolgreich hochgeladen!'; }
+      status[docId] = true;
+      saveStatus(status);
+      render();
+    } else if (ok > 0) {
+      if (resultEl) { resultEl.className = 'upload-result err'; resultEl.textContent = '⚠ ' + ok + ' hochgeladen, ' + errors.length + ' Fehler: ' + errors.join(' | '); }
+      status[docId] = true;
+      saveStatus(status);
+      render();
+    } else {
+      if (resultEl) { resultEl.className = 'upload-result err'; resultEl.textContent = '✗ ' + errors.join(' | '); }
+    }
+  }
+
+  // Abwärtskompatibel: Einzeldatei-Wrapper
+  async function uploadDocFile(docId, file) {
+    return uploadDocFiles(docId, [file]);
   }
 
   window.handleFileDrop = function(event, docId) {
@@ -1739,12 +1768,12 @@
     var zone = document.getElementById('uz-' + docId);
     if (zone) zone.classList.remove('drag-over');
     var files = event.dataTransfer.files;
-    if (files && files.length > 0) uploadDocFile(docId, files[0]);
+    if (files && files.length > 0) uploadDocFiles(docId, files);
   };
 
   window.handleFileSelect = function(event, docId) {
     var files = event.target.files;
-    if (files && files.length > 0) uploadDocFile(docId, files[0]);
+    if (files && files.length > 0) uploadDocFiles(docId, files);
     event.target.value = '';
   };
 
