@@ -902,12 +902,20 @@
         + ' ondragover="event.preventDefault();this.classList.add(\'drag-over\')"'
         + ' ondragleave="this.classList.remove(\'drag-over\')"'
         + ' ondrop="handleFileDrop(event,\'' + doc.id + '\')">'
-        + '<div class="upload-zone-hint">Datei hier hineinziehen oder auswählen</div>'
+        + '<div class="upload-zone-hint">Dateien hier hineinziehen oder auswählen</div>'
         + '<div class="upload-zone-actions">'
-        + '<label class="upload-file-label">&#128193; Datei auswählen'
+        + '<label class="upload-file-label">&#128193; Dateien auswählen'
         + '<input type="file" multiple style="display:none" onchange="handleFileSelect(event,\'' + doc.id + '\')">'
         + '</label>'
         + '</div>'
+        + '<div class="upload-staging" id="us-' + doc.id + '" style="display:none">'
+        + '<div class="upload-staging-title">Ausgewählte Dateien</div>'
+        + '<div class="upload-staging-list" id="us-list-' + doc.id + '"></div>'
+        + '<div class="upload-staging-actions">'
+        + '<label class="upload-staging-add">+ Weitere hinzufügen<input type="file" multiple style="display:none" onchange="handleFileAdd(event,\'' + doc.id + '\')">'
+        + '</label>'
+        + '<button class="upload-staging-go" onclick="startStagedUpload(\'' + doc.id + '\')">&#128228; Jetzt hochladen</button>'
+        + '</div></div>'
         + '<div class="upload-result" id="ur-' + doc.id + '"></div>'
         + '</div>';
     }
@@ -1690,6 +1698,50 @@
   })();
 
   // ── Upload-Handler ──────────────────────────────────────────────────
+  // ── Datei-Staging ────────────────────────────────────────────────────
+  var _staged = {}; // docId → File[]
+
+  function showStaging(docId) {
+    var stagingEl = document.getElementById('us-' + docId);
+    var listEl    = document.getElementById('us-list-' + docId);
+    if (!stagingEl || !listEl) return;
+    var files = _staged[docId] || [];
+    if (files.length === 0) { stagingEl.style.display = 'none'; return; }
+    stagingEl.style.display = '';
+    listEl.innerHTML = files.map(function(f, i) {
+      var size = f.size > 1024*1024 ? (f.size/1024/1024).toFixed(1)+' MB' : Math.round(f.size/1024)+' KB';
+      return '<div class="upload-staging-item">'
+        + '<span>📄 ' + f.name + ' <span style="color:var(--muted);font-size:10px">(' + size + ')</span></span>'
+        + '<button onclick="removeStagedFile(\'' + docId + '\',' + i + ')" title="Entfernen">✕</button>'
+        + '</div>';
+    }).join('');
+  }
+
+  window.removeStagedFile = function(docId, idx) {
+    if (_staged[docId]) _staged[docId].splice(idx, 1);
+    showStaging(docId);
+  };
+
+  function addToStaged(docId, fileList) {
+    if (!_staged[docId]) _staged[docId] = [];
+    Array.from(fileList).forEach(function(f) { _staged[docId].push(f); });
+    showStaging(docId);
+  }
+
+  window.handleFileAdd = function(event, docId) {
+    addToStaged(docId, event.target.files);
+    event.target.value = '';
+  };
+
+  window.startStagedUpload = async function(docId) {
+    var files = _staged[docId] || [];
+    if (!files.length) return;
+    _staged[docId] = [];
+    var stagingEl = document.getElementById('us-' + docId);
+    if (stagingEl) stagingEl.style.display = 'none';
+    await uploadDocFiles(docId, files);
+  };
+
   // Lädt eine einzelne Datei hoch, gibt {ok, name, error} zurück
   async function uploadSingleFile(docId, file, custId, spUrl, uploadSubfolder) {
     try {
@@ -1768,12 +1820,12 @@
     var zone = document.getElementById('uz-' + docId);
     if (zone) zone.classList.remove('drag-over');
     var files = event.dataTransfer.files;
-    if (files && files.length > 0) uploadDocFiles(docId, files);
+    if (files && files.length > 0) addToStaged(docId, files);
   };
 
   window.handleFileSelect = function(event, docId) {
     var files = event.target.files;
-    if (files && files.length > 0) uploadDocFiles(docId, files);
+    if (files && files.length > 0) addToStaged(docId, files);
     event.target.value = '';
   };
 
