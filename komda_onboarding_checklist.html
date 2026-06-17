@@ -365,6 +365,12 @@
     </div>
   </div>
 
+  <div class="done-card" id="done-card">
+    <div class="done-icon">&#127881;</div>
+    <div class="done-title">Onboarding vollst&auml;ndig!</div>
+    <div class="done-sub">Herzlichen Gl&uuml;ckwunsch &ndash; alle Unterlagen sind eingegangen.<br>Unser Team meldet sich bei Ihnen zum weiteren Vorgehen.</div>
+  </div>
+
   <div class="two-col">
 
     <div class="col-card">
@@ -805,17 +811,17 @@
 
   var OPTIONAL_META = [
     {
-      id: 'verguetung', block: 'B', name: 'Vergütungsvereinbarung', icon: '&#128195;', upload: true,
+      id: 'verguetung', block: 'B', name: 'Vergütungsvereinbarung', icon: '&#128195;', upload: true, uploadFolder: 'Vergütungsvereinbarung und Preislisten',
       desc: 'Bitte laden Sie Ihre Vergütungsvereinbarung in den Ordner hoch.',
       steps: ['Vergütungsvereinbarung hier hochladen.'],
     },
     {
-      id: 'preisliste', block: 'B', name: 'Preisliste', icon: '&#128200;', upload: true,
+      id: 'preisliste', block: 'B', name: 'Preisliste', icon: '&#128200;', upload: true, uploadFolder: 'Vergütungsvereinbarung und Preislisten',
       desc: 'Bitte laden Sie Ihre aktuellen Preislisten hoch.',
       steps: ['Preisliste hier hochladen.'],
     },
     {
-      id: 'datenubernahme', block: 'B', name: 'Datenübernahme', icon: '&#128190;', upload: true,
+      id: 'datenubernahme', block: 'B', name: 'Datenübernahme', icon: '&#128190;', upload: true, uploadFolder: 'Datenübernahme',
       downloadFolder: 'Datenübernahme',
       desc: 'Übergabe Ihrer bestehenden Daten in das Komda® System.',
       steps: [
@@ -1688,6 +1694,8 @@
     var resultEl = document.getElementById('ur-' + docId);
     if (resultEl) { resultEl.className = 'upload-result working'; resultEl.textContent = '⧗ Wird hochgeladen…'; }
 
+    var docCfg = ALL_DOCS.find(function(d){ return d.id === docId; }) || {};
+    var uploadSubfolder = docCfg.uploadFolder || '';
     var spUrl = (apiConfig && apiConfig.spUrl) || params.get('spUrl') || '';
     var custId = '';
     try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
@@ -1708,7 +1716,7 @@
       var resp = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, file: b64, filename: file.name, spUrl: spUrl }),
+        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, file: b64, filename: file.name, spUrl: spUrl, subfolder: uploadSubfolder }),
       });
       var data = await resp.json();
 
