@@ -682,72 +682,69 @@
   var isPreview  = params.get('preview') === '1';
 
   var apiConfig = null;
-  if (token && !isPreview) {
-    try {
-      var apiResp = await fetch(API_URL + '?token=' + encodeURIComponent(token));
-      var apiData = await apiResp.json();
-      if (apiData.ok) apiConfig = apiData;
-    } catch(e) {}
-  }
-
   if (isPreview) document.getElementById('preview-banner').classList.add('visible');
 
-  if (kundeParam) {
-    var firmaDec  = decodeURIComponent(kundeParam);
-    var anredeDec = decodeURIComponent(params.get('anrede') || '');
-    var nameDec   = decodeURIComponent(params.get('name')   || '');
-    document.title = 'Komda Onboarding - ' + firmaDec;
-    var introTitleTextEl = document.getElementById('intro-title-text');
-    // Titeltext bleibt statisch; nur rechter Bereich wird befüllt
-    var introGreetEl = document.getElementById('intro-greeting');
-    if (introGreetEl) {
-      var formalGreet = '';
-      if (anredeDec === 'SGDH') {
-        formalGreet = 'Sehr geehrte Damen und Herren,';
-      } else if (anredeDec === 'Herr' && nameDec) {
-        formalGreet = 'Sehr geehrter Herr ' + nameDec + ',';
-      } else if (anredeDec && nameDec) {
-        formalGreet = 'Sehr geehrte ' + anredeDec + ' ' + nameDec + ',';
-      } else if (nameDec) {
-        formalGreet = 'Guten Tag ' + nameDec + ',';
-      }
-      introGreetEl.innerHTML = formalGreet
-        ? formalGreet + '<br>herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!'
-        : 'Herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!';
-    }
-    // Logo aus apiConfig oder Firmenname rechts in der Intro-Karte
-    var introRight = document.getElementById('intro-title-right');
-    if (introRight) {
-      var logoSrc = (apiConfig && apiConfig.logoUrl) ? apiConfig.logoUrl : '';
-      if (logoSrc) {
-        var img = document.createElement('img');
-        img.src = logoSrc;
-        img.className = 'intro-title-logo';
-        img.alt = firmaDec;
-        introRight.appendChild(img);
-      } else {
-        introRight.textContent = firmaDec;
-        introRight.className = 'intro-title-right intro-title-firma';
-      }
-    }
+  // API-Call non-blocking: erst rendern, dann mit frischen Daten nochmal
+  var _apiFetchPromise = null;
+  if (token && !isPreview) {
+    _apiFetchPromise = fetch(API_URL + '?token=' + encodeURIComponent(token))
+      .then(function(r) { return r.json(); })
+      .catch(function() { return null; });
   }
 
-  // ── Erstschulung-Datum ───────────────────────────────────────────────
-  if (apiConfig && apiConfig.erstschulung) {
-    try {
-      var escDate = new Date(apiConfig.erstschulung);
-      if (!isNaN(escDate)) {
-        var escDateStr = escDate.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
-        var escTimeStr = escDate.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
-        var escDateEl = document.getElementById('erstschulung-panel-date');
-        var escTimeEl = document.getElementById('erstschulung-panel-time');
-        var escPanel  = document.getElementById('erstschulung-panel');
-        if (escDateEl) escDateEl.textContent = escDateStr;
-        if (escTimeEl) escTimeEl.textContent = escTimeStr;
-        if (escPanel)  escPanel.style.display = 'block';
+  var firmaDec = kundeParam ? decodeURIComponent(kundeParam) : '';
+  var anredeDec = decodeURIComponent(params.get('anrede') || '');
+  var nameDec   = decodeURIComponent(params.get('name')   || '');
+
+  function applyCustomerUI() {
+    if (kundeParam) {
+      document.title = 'Komda Onboarding - ' + firmaDec;
+      var introGreetEl = document.getElementById('intro-greeting');
+      if (introGreetEl) {
+        var formalGreet = '';
+        if (anredeDec === 'SGDH') {
+          formalGreet = 'Sehr geehrte Damen und Herren,';
+        } else if (anredeDec === 'Herr' && nameDec) {
+          formalGreet = 'Sehr geehrter Herr ' + nameDec + ',';
+        } else if (anredeDec && nameDec) {
+          formalGreet = 'Sehr geehrte ' + anredeDec + ' ' + nameDec + ',';
+        } else if (nameDec) {
+          formalGreet = 'Guten Tag ' + nameDec + ',';
+        }
+        introGreetEl.innerHTML = formalGreet
+          ? formalGreet + '<br>herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!'
+          : 'Herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!';
       }
-    } catch(e) {}
+      var introRight = document.getElementById('intro-title-right');
+      if (introRight) {
+        introRight.innerHTML = '';
+        var logoSrc = (apiConfig && apiConfig.logoUrl) ? apiConfig.logoUrl : '';
+        if (logoSrc) {
+          var img = document.createElement('img');
+          img.src = logoSrc; img.className = 'intro-title-logo'; img.alt = firmaDec;
+          introRight.appendChild(img);
+        } else {
+          introRight.textContent = firmaDec;
+          introRight.className = 'intro-title-right intro-title-firma';
+        }
+      }
+    }
+    // Erstschulung
+    if (apiConfig && apiConfig.erstschulung) {
+      try {
+        var escDate = new Date(apiConfig.erstschulung);
+        if (!isNaN(escDate)) {
+          var escDateEl = document.getElementById('erstschulung-panel-date');
+          var escTimeEl = document.getElementById('erstschulung-panel-time');
+          var escPanel  = document.getElementById('erstschulung-panel');
+          if (escDateEl) escDateEl.textContent = escDate.toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+          if (escTimeEl) escTimeEl.textContent = escDate.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit'}) + ' Uhr';
+          if (escPanel)  escPanel.style.display = 'block';
+        }
+      } catch(e) {}
+    }
   }
+  applyCustomerUI();
 
   // ── Pflichtunterlagen ─────────────────────────────────────────────────
   var BLOCK_A = [
@@ -848,12 +845,17 @@
     { id: 'zd_cloud',   icon: '&#9729;',   name: 'Komda® Cloud / Hosting Zugangsdaten',  hint: 'Ordner mit Ihren Cloud-Zugangsdaten',        param: 'spUrlCloud'   },
   ];
 
-  var allOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
-  var activeOpts = allOpts.filter(function(o) { return !o.startsWith('!'); });
-  var disabledIds = allOpts.filter(function(o) { return o.startsWith('!'); }).map(function(o) { return o.slice(1); });
-  var BLOCK_B_ACTIVE = OPTIONAL_META.filter(function(o) { return o.block === 'B' && activeOpts.indexOf(o.id) !== -1; })
-    .concat(BLOCK_B_BASE.filter(function(o) { return disabledIds.indexOf(o.id) === -1; }));
-  var ALL_DOCS = BLOCK_A.concat(BLOCK_B_ACTIVE);
+  var BLOCK_B_ACTIVE = [];
+  var ALL_DOCS = [];
+  function buildDocList() {
+    var allOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
+    var activeOpts = allOpts.filter(function(o) { return !o.startsWith('!'); });
+    var disabledIds = allOpts.filter(function(o) { return o.startsWith('!'); }).map(function(o) { return o.slice(1); });
+    BLOCK_B_ACTIVE = OPTIONAL_META.filter(function(o) { return o.block === 'B' && activeOpts.indexOf(o.id) !== -1; })
+      .concat(BLOCK_B_BASE.filter(function(o) { return disabledIds.indexOf(o.id) === -1; }));
+    ALL_DOCS = BLOCK_A.concat(BLOCK_B_ACTIVE);
+  }
+  buildDocList();
 
   // ── LocalStorage ─────────────────────────────────────────────────────
   function ls_get(k) { try { return localStorage.getItem(k); } catch(e) { return null; } }
@@ -1863,6 +1865,20 @@
   };
 
   render();
+
+  // API-Ergebnis verarbeiten sobald es da ist (non-blocking)
+  if (_apiFetchPromise) {
+    _apiFetchPromise.then(function(apiData) {
+      if (!apiData || !apiData.ok) return;
+      apiConfig = apiData;
+      // Status aus API mit lokalem mergen (API hat Vorrang)
+      if (apiConfig.docs) Object.assign(status, apiConfig.docs);
+      saveStatus(status);
+      buildDocList();
+      applyCustomerUI();
+      render();
+    });
+  }
 })();
 </script>
 </body>
