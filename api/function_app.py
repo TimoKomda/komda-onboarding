@@ -1,5 +1,6 @@
 import azure.functions as func
 import base64
+import datetime
 import json
 import os
 import re
@@ -16,6 +17,12 @@ SITE_ID       = os.environ.get("SITE_ID", "")
 LIST_ID       = os.environ.get("LIST_ID", "")
 UPDATE_SECRET = os.environ.get("UPDATE_SECRET", "")
 
+# Notification settings
+# NOTIFY_FROM_EMAIL : UPN/E-Mail of the mailbox used to send notifications (must have Mail.Send permission)
+# NOTIFY_EMAILS     : comma-separated list of recipients for all notifications
+NOTIFY_FROM   = os.environ.get("NOTIFY_FROM_EMAIL", "")
+NOTIFY_EMAILS = os.environ.get("NOTIFY_EMAILS", "")
+
 DOC_FIELD = {
     "sepa":           "DocSepa",
     "email_rechnung": "DocEmailRechnung",
@@ -31,11 +38,21 @@ DOC_FIELD = {
 }
 
 GET_SELECT_FIELDS = (
-    "Kundennummer,Sachbearbeiter,SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
+    "Kundennummer,Firma,Sachbearbeiter,SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme,DocPreisliste,LogoUrl"
 )
+
+# Block A = mandatory documents
+BLOCK_A_FIELDS = ["DocSepa", "DocEmailRechnung", "DocFernwartung", "DocAvv"]
+BLOCK_A_IDS    = {"sepa", "email_rechnung", "fernwartung", "avv"}
+BLOCK_A_LABELS = {
+    "DocSepa":           "SEPA-Mandat",
+    "DocEmailRechnung":  "E-Mail Rechnung",
+    "DocFernwartung":    "Fernwartungsvereinbarung",
+    "DocAvv":            "AVV",
+}
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin":  "*",
@@ -244,6 +261,95 @@ def sp_upload_file(sp_url: str, filename: str, file_bytes: bytes, subfolder: str
         return False, str(ex)
 
 
+# ── Notification helpers ────────────────────────────────────────────────────
+
+
+def _get_notify_recipients() -> list:
+    """Return list of email addresses from NOTIFY_EMAILS env var."""
+    return [e.strip() for e in NOTIFY_EMAILS.split(",") if e.strip()]
+
+
+def send_email(subject: str, body: str, recipients: list) -> None:
+    """Send a plain-text email via Microsoft Graph using the NOTIFY_FROM mailbox."""
+    if not recipients or not NOTIFY_FROM:
+        return
+    token = get_app_token()
+    payload = json.dumps({
+        "message": {
+            "subject": subject,
+            "body": {"contentType": "Text", "content": body},
+            "toRecipients": [{"emailAddress": {"address": r}} for r in recipients],
+        },
+        "saveToSentItems": False,
+    }).encode()
+    url = f"https://graph.microsoft.com/v1.0/users/{urllib.parse.quote(NOTIFY_FROM)}/sendMail"
+    req = urllib.request.Request(url, data=payload, method="POST", headers={
+        "Authorization": f"Bearer {token}",
+        "Content-Type":  "application/json",
+    })
+    try:
+        with urllib.request.urlopen(req) as resp:
+            resp.read()
+    except Exception:
+        pass  # Don't let notification failure break the main request
+
+
+def send_completion_email(item_id: str) -> None:
+    """Send notification when all Block A docs are complete for a customer."""
+    recipients = _get_notify_recipients()
+    if not recipients or not NOTIFY_FROM:
+        return
+    try:
+        fields = sp_get_item(item_id)
+        if not all(fields.get(f, False) for f in BLOCK_A_FIELDS):
+            return  # not yet complete
+        kundennummer   = fields.get("Kundennummer",   "")
+        firma          = fields.get("Firma",           "")
+        sachbearbeiter = fields.get("Sachbearbeiter", "")
+        subject = f"✅ Onboarding: Pflichtunterlagen vollständig – {kundennummer} {firma}".strip()
+        body = (
+            f"Alle Pflichtunterlagen für den Kunden {firma} (Kundennummer: {kundennummer}) "
+            f"wurden vollständig hochgeladen und stehen im Portal bereit.\n\n"
+            f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
+            f"Bitte prüfen Sie das Onboarding-Portal für weitere Details."
+        )
+        send_email(subject, body, recipients)
+    except Exception:
+        pass
+
+
+def sp_list_all_customers() -> list:
+    """Fetch all customer items from the SharePoint list."""
+    token = get_app_token()
+    fields = (
+        "id,Kundennummer,Firma,Sachbearbeiter,Erstschulung,"
+        "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv"
+    )
+    url = (
+        f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
+        f"/lists/{LIST_ID}/items"
+        f"?$expand=fields($select={fields})&$top=500"
+    )
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    with urllib.request.urlopen(req) as resp:
+        data = json.loads(resp.read())
+    return data.get("value", [])
+
+
+def business_days_until(target_date: datetime.date) -> int:
+    """Count business days (Mon–Fri) from today up to (not including) target_date."""
+    today = datetime.date.today()
+    if target_date <= today:
+        return 0
+    days = 0
+    current = today
+    while current < target_date:
+        if current.weekday() < 5:  # Mon=0 … Fri=4
+            days += 1
+        current += datetime.timedelta(days=1)
+    return days
+
+
 def decode_token(token: str) -> str:
     padded = token + "=" * (4 - len(token) % 4 if len(token) % 4 else 0)
     return base64.b64decode(padded).decode("utf-8")
@@ -360,6 +466,9 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     # Always update the boolean status field
     try:
         sp_patch(cust_id, field, value)
+        # If a Block A doc was just marked complete, check if all are now done → notify
+        if value and doc_id in BLOCK_A_IDS:
+            send_completion_email(cust_id)
         return func.HttpResponse(
             json.dumps({"ok": True, "uploaded": uploaded, "uploadError": upload_error}),
             status_code=200, headers=CORS_HEADERS
@@ -369,3 +478,63 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
             json.dumps({"error": str(exc), "uploaded": uploaded}),
             status_code=500, headers=CORS_HEADERS
         )
+
+
+# ── Daily deadline check ─────────────────────────────────────────────────────
+# Runs every day at 07:00 UTC.
+# Sends a warning when Block A is incomplete and the training date is
+# exactly 7, 3 or 1 business day(s) away.
+
+@app.timer_trigger(schedule="0 0 7 * * *", arg_name="timer", run_on_startup=False)
+def check_deadline_notifications(timer: func.TimerRequest) -> None:
+    recipients = _get_notify_recipients()
+    if not recipients or not NOTIFY_FROM:
+        return
+
+    try:
+        customers = sp_list_all_customers()
+    except Exception:
+        return
+
+    for item in customers:
+        fields = item.get("fields", {})
+        erstschulung_str = fields.get("Erstschulung", "")
+        if not erstschulung_str:
+            continue
+
+        # Skip if Block A is already complete
+        if all(fields.get(f, False) for f in BLOCK_A_FIELDS):
+            continue
+
+        # Parse the training date (SharePoint returns ISO date or datetime)
+        try:
+            schulung_date = datetime.date.fromisoformat(erstschulung_str[:10])
+        except Exception:
+            continue
+
+        bdays = business_days_until(schulung_date)
+        if bdays not in (7, 3, 1):
+            continue  # only notify at these checkpoints
+
+        kundennummer   = fields.get("Kundennummer",   "")
+        firma          = fields.get("Firma",           "")
+        sachbearbeiter = fields.get("Sachbearbeiter", "")
+        missing = [
+            BLOCK_A_LABELS[f]
+            for f in BLOCK_A_FIELDS
+            if not fields.get(f, False)
+        ]
+        days_label = f"{bdays} Werktag{'e' if bdays != 1 else ''}"
+        subject = (
+            f"⚠️ Onboarding: Pflichtunterlagen fehlen – "
+            f"{schulung_date.strftime('%d.%m.%Y')} – {kundennummer} {firma}".strip()
+        )
+        body = (
+            f"Der Schulungstermin für {firma} (Kundennummer: {kundennummer}) "
+            f"ist am {schulung_date.strftime('%d.%m.%Y')} – noch {days_label}.\n\n"
+            f"Folgende Pflichtunterlagen wurden noch nicht hochgeladen:\n"
+            + "".join(f"  • {m}\n" for m in missing)
+            + f"\nZuständiger Betreuer: {sachbearbeiter}\n\n"
+            f"Bitte nehmen Sie Kontakt mit dem Kunden auf."
+        )
+        send_email(subject, body, recipients)
