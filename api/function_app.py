@@ -38,10 +38,10 @@ DOC_FIELD = {
 }
 
 GET_SELECT_FIELDS = (
-    "Kundennummer,Firma,Sachbearbeiter,SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
+    "Kundennummer,Firma,Email,Sachbearbeiter,SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
-    "DocVerguetung,DocDatenubernahme,DocPreisliste,LogoUrl"
+    "DocVerguetung,DocDatenubernahme,DocPreisliste,LogoUrl,SchulungDurchgefuehrt"
 )
 
 # Block A = Pflichtunterlagen (Vertragsunterlagen)
@@ -357,8 +357,9 @@ def sp_list_all_customers() -> list:
     """Fetch all customer items from the SharePoint list."""
     token = get_app_token()
     fields = (
-        "id,Kundennummer,Firma,Sachbearbeiter,Erstschulung,"
-        "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv"
+        "id,Kundennummer,Firma,Email,Sachbearbeiter,Erstschulung,Optionen,SchulungDurchgefuehrt,"
+        "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
+        "DocDatenubernahme,DocVorlagen,DocVerguetung,DocPreisliste"
     )
     url = (
         f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
@@ -447,8 +448,9 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "spUrlAuftrag":   fields.get("SPUrlAuftrag",   ""),
                     "optionen":       fields.get("Optionen",       ""),
                     "erstschulung":   fields.get("Erstschulung",   ""),
-                    "docs":           docs,
-                    "logoUrl":        fields.get("LogoUrl", ""),
+                    "docs":                docs,
+                    "logoUrl":             fields.get("LogoUrl", ""),
+                    "schulungDurchgefuehrt": bool(fields.get("SchulungDurchgefuehrt", False)),
                 }),
                 status_code=200, headers=CORS_HEADERS
             )
@@ -474,6 +476,22 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
         )
 
     cust_id   = str(body.get("custId",    "")).strip()
+    action    = str(body.get("action",    "")).strip()
+
+    # ── Special action: mark training as completed ────────────────────────
+    if action == "schulung-abgeschlossen" and cust_id:
+        try:
+            sp_patch(cust_id, "SchulungDurchgefuehrt", True)
+            return func.HttpResponse(
+                json.dumps({"ok": True}),
+                status_code=200, headers=CORS_HEADERS
+            )
+        except Exception as exc:
+            return func.HttpResponse(
+                json.dumps({"error": str(exc)}),
+                status_code=500, headers=CORS_HEADERS
+            )
+
     doc_id    = str(body.get("docId",     "")).strip()
     value     = bool(body.get("value",    False))
     file_b64  = str(body.get("file",      "")).strip()
@@ -564,17 +582,42 @@ def check_deadline_notifications(timer: func.TimerRequest) -> None:
             if not fields.get(f, False):
                 missing.append(BLOCK_B_PFLICHT_LABELS.get(f, f))
 
-        days_label = f"{bdays} Werktag{'e' if bdays != 1 else ''}"
-        subject = (
+        days_label    = f"{bdays} Werktag{'e' if bdays != 1 else ''}"
+        missing_lines = "".join(f"  • {m}\n" for m in missing)
+
+        # ── Internal notification to Komda staff ────────────────────────────────────────────
+        internal_subject = (
             f"⚠️ Onboarding: Pflichtunterlagen fehlen – "
             f"{schulung_date.strftime('%d.%m.%Y')} – {kundennummer} {firma}".strip()
         )
-        body = (
+        internal_body = (
             f"Der Schulungstermin für {firma} (Kundennummer: {kundennummer}) "
             f"ist am {schulung_date.strftime('%d.%m.%Y')} – noch {days_label}.\n\n"
             "Folgende Pflichtunterlagen wurden noch nicht hochgeladen:\n"
-            + "".join(f"  \u2022 {m}\n" for m in missing)
+            + missing_lines
             + f"\nZuständig: {sachbearbeiter}\n\n"
             "Bitte nehmen Sie Kontakt mit dem Kunden auf."
         )
-        send_email(subject, body, recipients)
+        send_email(internal_subject, internal_body, recipients)
+
+        # ── Customer reminder email ─────────────────────────────────────────────────────
+        customer_email = fields.get("Email", "").strip()
+        if customer_email and NOTIFY_FROM:
+            customer_subject = (
+                f"Erinnerung: Ihr Komda® Onboarding – "
+                f"Schulung am {schulung_date.strftime('%d.%m.%Y')}"
+            )
+            customer_body = (
+                f"Sehr geehrte Damen und Herren,\n\n"
+                f"Ihr Schulungstermin bei Komda® Software ist am "
+                f"{schulung_date.strftime('%d.%m.%Y')} – noch {days_label}.\n\n"
+                f"Damit wir den Termin optimal vorbereiten können, benötigen wir "
+                f"noch folgende Unterlagen von Ihnen:\n"
+                + missing_lines
+                + "\nBitte laden Sie diese Dokumente über Ihr persönliches "
+                "Onboarding-Portal hoch.\n\n"
+                "Bei Fragen steht Ihnen Ihr Betreuer gerne zur Verfügung.\n\n"
+                "Mit freundlichen Grüßen\n"
+                "Ihr Komda® Software Team"
+            )
+            send_email(customer_subject, customer_body, [customer_email])
