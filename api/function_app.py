@@ -342,7 +342,7 @@ def _all_pflicht_complete(fields: dict) -> bool:
 
 
 def send_completion_email(item_id: str) -> None:
-    """Send notification when all Pflichtunterlagen (A + B Pflicht) are complete."""
+    """Notify INTERNAL staff when all Pflichtunterlagen (A + B Pflicht) are complete."""
     if not NOTIFY_FROM:
         return
     try:
@@ -371,7 +371,7 @@ def sp_list_all_customers() -> list:
     fields = (
         "id,Kundennummer,Firma,Email,Sachbearbeiter,Erstschulung,Optionen,SchulungDurchgefuehrt,"
         "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
-        "DocDatenubernahme,DocVorlagen,DocVerguetung,DocPreisliste,ZusatzEmails"
+        "DocDatenubernahme,DocVorlagen,DocVerguetung,DocPreisliste,ZusatzEmails,EmailCC"
     )
     url = (
         f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
@@ -615,9 +615,11 @@ def check_deadline_notifications(timer: func.TimerRequest) -> None:
         )
         send_email(internal_subject, internal_body, recipients)
 
-        # ── Customer reminder email ─────────────────────────────────────────────────────
+        # ── Customer reminder email (+ CC) ──────────────────────────────────────────────
         customer_email = fields.get("Email", "").strip()
         if customer_email and NOTIFY_FROM:
+            email_cc = [e.strip() for e in fields.get("EmailCC", "").split(",") if e.strip()]
+            customer_recipients = [customer_email] + email_cc
             customer_subject = (
                 f"Erinnerung: Ihr Komda® Onboarding – "
                 f"Schulung am {schulung_date.strftime('%d.%m.%Y')}"
@@ -635,4 +637,4 @@ def check_deadline_notifications(timer: func.TimerRequest) -> None:
                 "Mit freundlichen Grüßen\n"
                 "Ihr Komda® Software Team"
             )
-            send_email(customer_subject, customer_body, [customer_email])
+            send_email(customer_subject, customer_body, customer_recipients)
