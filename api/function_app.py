@@ -398,6 +398,9 @@ def send_completion_email(item_id: str) -> None:
         recipients = _get_all_recipients(fields)
         if not recipients:
             return
+        kundennummer = fields.get("Kundennummer", "").strip()
+        firma        = fields.get("Firma",        "").strip()
+        sachbearbeiter = fields.get("Sachbearbeiter", "").strip()
         subject = f"✅ Onboarding: Alle Pflichtunterlagen vollständig – {kundennummer} {firma}".strip()
         body = (
             f"Alle Pflichtunterlagen (Vertragsunterlagen und Vorbereitungsunterlagen) "
@@ -407,8 +410,9 @@ def send_completion_email(item_id: str) -> None:
             f"Bitte prüfen Sie das Onboarding-Portal für weitere Details."
         )
         send_email(subject, body, recipients)
-    except Exception:
-        pass
+    except Exception as exc:
+        import logging
+        logging.error("send_completion_email failed: %s", exc)
 
 
 def sp_list_all_customers() -> list:
