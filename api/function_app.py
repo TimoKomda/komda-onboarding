@@ -285,6 +285,19 @@ def _get_notify_recipients() -> list:
     return [e.strip() for e in NOTIFY_EMAILS.split(",") if e.strip()]
 
 
+def _get_all_recipients(fields: dict) -> list:
+    """Merge global NOTIFY_EMAILS with per-customer ZusatzEmails (deduped)."""
+    base = _get_notify_recipients()
+    extra = [e.strip() for e in fields.get("ZusatzEmails", "").split(",") if e.strip()]
+    seen = set()
+    result = []
+    for addr in base + extra:
+        if addr.lower() not in seen:
+            seen.add(addr.lower())
+            result.append(addr)
+    return result
+
+
 def send_email(subject: str, body: str, recipients: list) -> None:
     """Send a plain-text email via Microsoft Graph using the NOTIFY_FROM mailbox."""
     if not recipients or not NOTIFY_FROM:
@@ -330,16 +343,15 @@ def _all_pflicht_complete(fields: dict) -> bool:
 
 def send_completion_email(item_id: str) -> None:
     """Send notification when all Pflichtunterlagen (A + B Pflicht) are complete."""
-    recipients = _get_notify_recipients()
-    if not recipients or not NOTIFY_FROM:
+    if not NOTIFY_FROM:
         return
     try:
         fields = sp_get_item(item_id)
         if not _all_pflicht_complete(fields):
             return  # not yet fully complete
-        kundennummer   = fields.get("Kundennummer",   "")
-        firma          = fields.get("Firma",           "")
-        sachbearbeiter = fields.get("Sachbearbeiter", "")
+        recipients = _get_all_recipients(fields)
+        if not recipients:
+            return
         subject = f"✅ Onboarding: Alle Pflichtunterlagen vollständig – {kundennummer} {firma}".strip()
         body = (
             f"Alle Pflichtunterlagen (Vertragsunterlagen und Vorbereitungsunterlagen) "
@@ -359,7 +371,7 @@ def sp_list_all_customers() -> list:
     fields = (
         "id,Kundennummer,Firma,Email,Sachbearbeiter,Erstschulung,Optionen,SchulungDurchgefuehrt,"
         "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
-        "DocDatenubernahme,DocVorlagen,DocVerguetung,DocPreisliste"
+        "DocDatenubernahme,DocVorlagen,DocVerguetung,DocPreisliste,ZusatzEmails"
     )
     url = (
         f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
@@ -540,9 +552,9 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
 
 @app.timer_trigger(schedule="0 0 7 * * *", arg_name="timer", run_on_startup=False)
 def check_deadline_notifications(timer: func.TimerRequest) -> None:
-    recipients = _get_notify_recipients()
-    if not recipients or not NOTIFY_FROM:
+    if not NOTIFY_FROM:
         return
+    global_recipients = _get_notify_recipients()
 
     try:
         customers = sp_list_all_customers()
@@ -572,6 +584,9 @@ def check_deadline_notifications(timer: func.TimerRequest) -> None:
         kundennummer   = fields.get("Kundennummer",   "")
         firma          = fields.get("Firma",           "")
         sachbearbeiter = fields.get("Sachbearbeiter", "")
+        recipients = _get_all_recipients(fields) or global_recipients
+        if not recipients:
+            continue
 
         # Collect all missing Pflicht docs (Block A + Block B Pflicht)
         missing = []
