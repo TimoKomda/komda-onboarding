@@ -692,24 +692,30 @@
       .catch(function() { return null; });
   }
 
-  var firmaDec = kundeParam ? decodeURIComponent(kundeParam) : '';
+  // URL-Params nur als Fallback für ältere Links
+  var firmaDec  = kundeParam ? decodeURIComponent(kundeParam) : '';
   var anredeDec = decodeURIComponent(params.get('anrede') || '');
   var nameDec   = decodeURIComponent(params.get('name')   || '');
 
   function applyCustomerUI() {
-    if (kundeParam) {
-      document.title = 'Komda Onboarding - ' + firmaDec;
+    // API-Daten haben Vorrang vor URL-Parametern
+    var firma  = (apiConfig && apiConfig.firma)           || firmaDec;
+    var anrede = (apiConfig && apiConfig.anrede)          || anredeDec;
+    var name   = (apiConfig && apiConfig.ansprechpartner) || nameDec;
+
+    if (firma || token) {
+      document.title = 'Komda Onboarding - ' + (firma || 'Ihr Unternehmen');
       var introGreetEl = document.getElementById('intro-greeting');
       if (introGreetEl) {
         var formalGreet = '';
-        if (anredeDec === 'SGDH') {
+        if (anrede === 'SGDH') {
           formalGreet = 'Sehr geehrte Damen und Herren,';
-        } else if (anredeDec === 'Herr' && nameDec) {
-          formalGreet = 'Sehr geehrter Herr ' + nameDec + ',';
-        } else if (anredeDec && nameDec) {
-          formalGreet = 'Sehr geehrte ' + anredeDec + ' ' + nameDec + ',';
-        } else if (nameDec) {
-          formalGreet = 'Guten Tag ' + nameDec + ',';
+        } else if (anrede === 'Herr' && name) {
+          formalGreet = 'Sehr geehrter Herr ' + name + ',';
+        } else if (anrede && name) {
+          formalGreet = 'Sehr geehrte ' + anrede + ' ' + name + ',';
+        } else if (name) {
+          formalGreet = 'Guten Tag ' + name + ',';
         }
         introGreetEl.innerHTML = formalGreet
           ? formalGreet + '<br>herzlich willkommen zu Ihrem Komda&reg; Software Onboarding!'
@@ -721,10 +727,10 @@
         var logoSrc = (apiConfig && apiConfig.logoUrl) ? apiConfig.logoUrl : '';
         if (logoSrc) {
           var img = document.createElement('img');
-          img.src = logoSrc; img.className = 'intro-title-logo'; img.alt = firmaDec;
+          img.src = logoSrc; img.className = 'intro-title-logo'; img.alt = firma;
           introRight.appendChild(img);
-        } else {
-          introRight.textContent = firmaDec;
+        } else if (firma) {
+          introRight.textContent = firma;
           introRight.className = 'intro-title-right intro-title-firma';
         }
       }
