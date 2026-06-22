@@ -789,7 +789,18 @@
   ];
 
   // ── Vorbereitungsunterlagen ───────────────────────────────────────────
-  var BLOCK_B_BASE = [
+  // Pflicht-Vorbereitungsunterlagen: immer angezeigt
+  var BLOCK_B_PFLICHT_BASE = [
+    {
+      id: 'datenubernahme', name: 'Datenübernahme', icon: '&#128190;', upload: true, uploadFolder: 'Datenübernahme',
+      downloadFolder: 'Datenübernahme',
+      desc: 'Übergabe Ihrer bestehenden Daten in das Komda® System.',
+      steps: [
+        'Klicken Sie auf <strong>„Vorlagen herunterladen"</strong> und laden Sie beide Excel-Musterdateien herunter.',
+        'Befüllen Sie die Dateien vollständig mit Ihren bestehenden Daten gemäß den Vorgaben in den Dateien.',
+        'Laden Sie die ausgefüllten Dateien anschließend über <strong>„Hochladen"</strong> wieder hoch.',
+      ],
+    },
     {
       id: 'vorlagen', name: 'Vorlagen, Logos &amp; Briefbogen', icon: '&#128444;', upload: true, uploadFolder: 'Vorlagen, Logos etc',
       desc: 'Briefbogen als Word-Dokument, Logo(s) sowie eine Beispielrechnung hochladen, damit wir Ihre Vorlagen erstellen können.',
@@ -799,6 +810,10 @@
         'Eine <strong>Beispielrechnung</strong> hochladen (damit wir Ihr Rechnungslayout kennenlernen).',
       ],
     },
+  ];
+
+  // Optionale Vorbereitungsunterlagen: angezeigt wenn nicht deaktiviert
+  var BLOCK_B_OPTIONAL_BASE = [
     {
       id: 'debitoren', name: 'Liste der Debitoren-Nummern', icon: '&#128203;', upload: true, uploadFolder: 'Datenübernahme',
       desc: 'Liste Ihrer Kunden/Patienten und Kostenträger (Pflegekassen, Krankenkassen, Sozialämter) bzw. eine Vorgabe dafür.',
@@ -816,26 +831,17 @@
     },
   ];
 
+  // Aktivierbare Pflicht-Vorbereitungsunterlagen (je nach Kundenkonfiguration)
   var OPTIONAL_META = [
     {
-      id: 'verguetung', block: 'B', name: 'Vergütungsvereinbarung', icon: '&#128195;', upload: true, uploadFolder: 'Vergütungsvereinbarung und Preislisten',
+      id: 'verguetung', block: 'B', pflicht: true, name: 'Vergütungsvereinbarung', icon: '&#128195;', upload: true, uploadFolder: 'Vergütungsvereinbarung und Preislisten',
       desc: 'Bitte laden Sie Ihre Vergütungsvereinbarung in den Ordner hoch.',
       steps: ['Vergütungsvereinbarung hier hochladen.'],
     },
     {
-      id: 'preisliste', block: 'B', name: 'Preisliste', icon: '&#128200;', upload: true, uploadFolder: 'Vergütungsvereinbarung und Preislisten',
+      id: 'preisliste', block: 'B', pflicht: true, name: 'Preisliste', icon: '&#128200;', upload: true, uploadFolder: 'Vergütungsvereinbarung und Preislisten',
       desc: 'Bitte laden Sie Ihre aktuellen Preislisten hoch.',
       steps: ['Preisliste hier hochladen.'],
-    },
-    {
-      id: 'datenubernahme', block: 'B', name: 'Datenübernahme', icon: '&#128190;', upload: true, uploadFolder: 'Datenübernahme',
-      downloadFolder: 'Datenübernahme',
-      desc: 'Übergabe Ihrer bestehenden Daten in das Komda® System.',
-      steps: [
-        'Klicken Sie auf <strong>„Vorlagen herunterladen"</strong> und laden Sie beide Excel-Musterdateien herunter.',
-        'Befüllen Sie die Dateien vollständig mit Ihren bestehenden Daten gemäß den Vorgaben in den Dateien.',
-        'Laden Sie die ausgefüllten Dateien anschließend über <strong>„Hochladen"</strong> wieder hoch.',
-      ],
     },
   ];
 
@@ -845,14 +851,21 @@
     { id: 'zd_cloud',   icon: '&#9729;',   name: 'Komda® Cloud / Hosting Zugangsdaten',  hint: 'Ordner mit Ihren Cloud-Zugangsdaten',        param: 'spUrlCloud'   },
   ];
 
+  var BLOCK_B_PFLICHT = [];
+  var BLOCK_B_OPTIONAL = [];
   var BLOCK_B_ACTIVE = [];
   var ALL_DOCS = [];
   function buildDocList() {
     var allOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
     var activeOpts = allOpts.filter(function(o) { return !o.startsWith('!'); });
     var disabledIds = allOpts.filter(function(o) { return o.startsWith('!'); }).map(function(o) { return o.slice(1); });
-    BLOCK_B_ACTIVE = OPTIONAL_META.filter(function(o) { return o.block === 'B' && activeOpts.indexOf(o.id) !== -1; })
-      .concat(BLOCK_B_BASE.filter(function(o) { return disabledIds.indexOf(o.id) === -1; }));
+    // Pflicht-Vorbereitungsunterlagen: Basis + aktivierte Optional-Pflicht-Punkte (z.B. Vergütung/Preisliste)
+    BLOCK_B_PFLICHT = BLOCK_B_PFLICHT_BASE.concat(
+      OPTIONAL_META.filter(function(o) { return o.block === 'B' && o.pflicht && activeOpts.indexOf(o.id) !== -1; })
+    );
+    // Optionale Vorbereitungsunterlagen: nicht deaktivierte Basis-Optional-Punkte
+    BLOCK_B_OPTIONAL = BLOCK_B_OPTIONAL_BASE.filter(function(o) { return disabledIds.indexOf(o.id) === -1; });
+    BLOCK_B_ACTIVE = BLOCK_B_PFLICHT.concat(BLOCK_B_OPTIONAL);
     ALL_DOCS = BLOCK_A.concat(BLOCK_B_ACTIVE);
   }
   buildDocList();
@@ -1024,11 +1037,20 @@
       + '</div>';
     for (var d = 0; d < BLOCK_A.length; d++) { clHtml += renderItem(BLOCK_A[d], ''); }
 
-    clHtml += '<div class="section-bar">'
-      + '<div class="section-bar-title">Vorbereitungsunterlagen</div>'
-      + '<div class="section-bar-hint">Diese Unterlagen ermöglichen strukturierte, auf Sie abgestimmte Schulungen.</div>'
-      + '</div>';
-    for (var e = 0; e < BLOCK_B_ACTIVE.length; e++) { clHtml += renderItem(BLOCK_B_ACTIVE[e], 'b'); }
+    if (BLOCK_B_PFLICHT.length > 0) {
+      clHtml += '<div class="section-bar">'
+        + '<div class="section-bar-title">Pflicht-Vorbereitungsunterlagen</div>'
+        + '<div class="section-bar-hint">Diese Unterlagen benötigen wir spätestens 7 Werktage vor dem Schulungstermin.</div>'
+        + '</div>';
+      for (var e = 0; e < BLOCK_B_PFLICHT.length; e++) { clHtml += renderItem(BLOCK_B_PFLICHT[e], 'b'); }
+    }
+    if (BLOCK_B_OPTIONAL.length > 0) {
+      clHtml += '<div class="section-bar">'
+        + '<div class="section-bar-title">Optionale Vorbereitungsunterlagen</div>'
+        + '<div class="section-bar-hint">Diese Unterlagen unterstützen eine noch bessere Vorbereitung Ihrer Schulungen.</div>'
+        + '</div>';
+      for (var eo = 0; eo < BLOCK_B_OPTIONAL.length; eo++) { clHtml += renderItem(BLOCK_B_OPTIONAL[eo], 'b'); }
+    }
 
     document.getElementById('checklist-items').innerHTML = clHtml;
 
@@ -1045,14 +1067,25 @@
         + '<span class="file-badge ' + (fisDone ? 'done' : 'open') + '">' + (fisDone ? '✓ Erledigt' : '● Offen') + '</span>'
         + '</div>';
     }
-    if (BLOCK_B_ACTIVE.length > 0) {
-      flHtml += '<div class="file-section-label">Vorbereitungsunterlagen</div>';
-      for (var g = 0; g < BLOCK_B_ACTIVE.length; g++) {
-        var gb = BLOCK_B_ACTIVE[g]; var gbDone = !!status[gb.id];
+    if (BLOCK_B_PFLICHT.length > 0) {
+      flHtml += '<div class="file-section-label">Pflicht-Vorbereitungsunterlagen</div>';
+      for (var g = 0; g < BLOCK_B_PFLICHT.length; g++) {
+        var gb = BLOCK_B_PFLICHT[g]; var gbDone = !!status[gb.id];
         flHtml += '<div class="file-row' + (gbDone ? ' done-row' : '') + '">'
           + '<div class="file-icon-wrap">' + gb.icon + '</div>'
           + '<div class="file-info"><div class="file-name' + (gbDone ? ' done' : '') + '">' + gb.name + '</div></div>'
           + '<span class="file-badge ' + (gbDone ? 'done' : 'open') + '">' + (gbDone ? '✓ Erledigt' : '● Offen') + '</span>'
+          + '</div>';
+      }
+    }
+    if (BLOCK_B_OPTIONAL.length > 0) {
+      flHtml += '<div class="file-section-label">Optionale Vorbereitungsunterlagen</div>';
+      for (var go = 0; go < BLOCK_B_OPTIONAL.length; go++) {
+        var gob = BLOCK_B_OPTIONAL[go]; var gobDone = !!status[gob.id];
+        flHtml += '<div class="file-row' + (gobDone ? ' done-row' : '') + '">'
+          + '<div class="file-icon-wrap">' + gob.icon + '</div>'
+          + '<div class="file-info"><div class="file-name' + (gobDone ? ' done' : '') + '">' + gob.name + '</div></div>'
+          + '<span class="file-badge ' + (gobDone ? 'done' : 'open') + '">' + (gobDone ? '✓ Erledigt' : '● Offen') + '</span>'
           + '</div>';
       }
     }
