@@ -152,15 +152,25 @@ def sp_list_subfolder(sp_url: str, subfolder_name: str) -> list:
     else:
         parsed = urllib.parse.urlparse(sp_url)
         path = urllib.parse.unquote(parsed.path)
-        m = re.match(r"^/sites/[^/]+/[^/]+/(.+)$", path)
+        # Extract library name and relative folder path
+        m = re.match(r"^/sites/[^/]+/([^/]+)/(.+)$", path)
         if m:
-            folder_path = m.group(1)
+            library_name = m.group(1)
+            folder_path  = m.group(2)
         else:
             m2 = re.match(r"^/[^/]+/[^/]+/(.+)$", path)
-            folder_path = m2.group(1) if m2 else path.lstrip("/")
+            folder_path  = m2.group(1) if m2 else path.lstrip("/")
+            library_name = "Shared Documents"
+        # Use correct drive (named library vs. default)
+        default_names = {"shared documents", "freigegebene dokumente", "documents", "dokumente"}
+        if library_name.lower() in default_names:
+            drive_segment = f"sites/{SITE_ID}/drive"
+        else:
+            drive_id = _get_drive_id_by_name(library_name, app_token)
+            drive_segment = f"drives/{drive_id}"
         children_url = (
-            f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
-            f"/drive/root:/{urllib.parse.quote(folder_path, safe='/')}"
+            f"https://graph.microsoft.com/v1.0/{drive_segment}"
+            f"/root:/{urllib.parse.quote(folder_path, safe='/')}"
             f"/{urllib.parse.quote(subfolder_name, safe='')}:/children"
             f"?$select=name,size,file,@microsoft.graph.downloadUrl"
         )
