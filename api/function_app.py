@@ -44,7 +44,7 @@ GET_SELECT_FIELDS = (
     "DocVerguetung,DocDatenubernahme,DocPreisliste,LogoUrl"
 )
 
-# Block A = mandatory documents
+# Block A = Pflichtunterlagen (Vertragsunterlagen)
 BLOCK_A_FIELDS = ["DocSepa", "DocEmailRechnung", "DocFernwartung", "DocAvv"]
 BLOCK_A_IDS    = {"sepa", "email_rechnung", "fernwartung", "avv"}
 BLOCK_A_LABELS = {
@@ -52,6 +52,22 @@ BLOCK_A_LABELS = {
     "DocEmailRechnung":  "E-Mail Rechnung",
     "DocFernwartung":    "Fernwartungsvereinbarung",
     "DocAvv":            "AVV",
+}
+
+# Block B Pflicht = Pflicht-Vorbereitungsunterlagen
+# Always required: datenubernahme + vorlagen
+# Conditionally required based on Optionen field: verguetung, preisliste
+BLOCK_B_PFLICHT_ALWAYS = ["DocDatenubernahme", "DocVorlagen"]
+BLOCK_B_PFLICHT_OPTIONAL_MAP = {
+    "verguetung": "DocVerguetung",
+    "preisliste":  "DocPreisliste",
+}
+BLOCK_B_PFLICHT_IDS = {"datenubernahme", "vorlagen", "verguetung", "preisliste"}
+BLOCK_B_PFLICHT_LABELS = {
+    "DocDatenubernahme": "Datenübernahme",
+    "DocVorlagen":       "Vorlagen, Logos & Briefbogen",
+    "DocVerguetung":     "Vergütungsvereinbarung",
+    "DocPreisliste":     "Preisliste",
 }
 
 CORS_HEADERS = {
@@ -294,21 +310,40 @@ def send_email(subject: str, body: str, recipients: list) -> None:
         pass  # Don't let notification failure break the main request
 
 
+def _block_b_pflicht_fields(optionen: str) -> list:
+    """Return the Block-B-Pflicht SP field names relevant for this customer."""
+    opts = [o.strip() for o in optionen.split(",") if o.strip() and not o.startswith("!")]
+    fields = list(BLOCK_B_PFLICHT_ALWAYS)
+    for opt_id, sp_field in BLOCK_B_PFLICHT_OPTIONAL_MAP.items():
+        if opt_id in opts:
+            fields.append(sp_field)
+    return fields
+
+
+def _all_pflicht_complete(fields: dict) -> bool:
+    """Return True when Block A AND Block B Pflicht are all done."""
+    if not all(fields.get(f, False) for f in BLOCK_A_FIELDS):
+        return False
+    b_fields = _block_b_pflicht_fields(fields.get("Optionen", ""))
+    return all(fields.get(f, False) for f in b_fields)
+
+
 def send_completion_email(item_id: str) -> None:
-    """Send notification when all Block A docs are complete for a customer."""
+    """Send notification when all Pflichtunterlagen (A + B Pflicht) are complete."""
     recipients = _get_notify_recipients()
     if not recipients or not NOTIFY_FROM:
         return
     try:
         fields = sp_get_item(item_id)
-        if not all(fields.get(f, False) for f in BLOCK_A_FIELDS):
-            return  # not yet complete
+        if not _all_pflicht_complete(fields):
+            return  # not yet fully complete
         kundennummer   = fields.get("Kundennummer",   "")
         firma          = fields.get("Firma",           "")
         sachbearbeiter = fields.get("Sachbearbeiter", "")
-        subject = f"✅ Onboarding: Pflichtunterlagen vollständig – {kundennummer} {firma}".strip()
+        subject = f"✅ Onboarding: Alle Pflichtunterlagen vollständig – {kundennummer} {firma}".strip()
         body = (
-            f"Alle Pflichtunterlagen für den Kunden {firma} (Kundennummer: {kundennummer}) "
+            f"Alle Pflichtunterlagen (Vertragsunterlagen und Vorbereitungsunterlagen) "
+            f"für den Kunden {firma} (Kundennummer: {kundennummer}) "
             f"wurden vollständig hochgeladen und stehen im Portal bereit.\n\n"
             f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
             f"Bitte prüfen Sie das Onboarding-Portal für weitere Details."
@@ -466,8 +501,8 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     # Always update the boolean status field
     try:
         sp_patch(cust_id, field, value)
-        # If a Block A doc was just marked complete, check if all are now done → notify
-        if value and doc_id in BLOCK_A_IDS:
+        # If a Pflicht doc was just marked complete, check if everything is now done → notify
+        if value and doc_id in (BLOCK_A_IDS | BLOCK_B_PFLICHT_IDS):
             send_completion_email(cust_id)
         return func.HttpResponse(
             json.dumps({"ok": True, "uploaded": uploaded, "uploadError": upload_error}),
@@ -502,8 +537,8 @@ def check_deadline_notifications(timer: func.TimerRequest) -> None:
         if not erstschulung_str:
             continue
 
-        # Skip if Block A is already complete
-        if all(fields.get(f, False) for f in BLOCK_A_FIELDS):
+        # Skip if all Pflichtunterlagen (A + B Pflicht) are already complete
+        if _all_pflicht_complete(fields):
             continue
 
         # Parse the training date (SharePoint returns ISO date or datetime)
@@ -519,11 +554,16 @@ def check_deadline_notifications(timer: func.TimerRequest) -> None:
         kundennummer   = fields.get("Kundennummer",   "")
         firma          = fields.get("Firma",           "")
         sachbearbeiter = fields.get("Sachbearbeiter", "")
-        missing = [
-            BLOCK_A_LABELS[f]
-            for f in BLOCK_A_FIELDS
-            if not fields.get(f, False)
-        ]
+
+        # Collect all missing Pflicht docs (Block A + Block B Pflicht)
+        missing = []
+        for f in BLOCK_A_FIELDS:
+            if not fields.get(f, False):
+                missing.append(BLOCK_A_LABELS[f])
+        for f in _block_b_pflicht_fields(fields.get("Optionen", "")):
+            if not fields.get(f, False):
+                missing.append(BLOCK_B_PFLICHT_LABELS.get(f, f))
+
         days_label = f"{bdays} Werktag{'e' if bdays != 1 else ''}"
         subject = (
             f"⚠️ Onboarding: Pflichtunterlagen fehlen – "
@@ -532,9 +572,9 @@ def check_deadline_notifications(timer: func.TimerRequest) -> None:
         body = (
             f"Der Schulungstermin für {firma} (Kundennummer: {kundennummer}) "
             f"ist am {schulung_date.strftime('%d.%m.%Y')} – noch {days_label}.\n\n"
-            f"Folgende Pflichtunterlagen wurden noch nicht hochgeladen:\n"
-            + "".join(f"  • {m}\n" for m in missing)
-            + f"\nZuständiger Betreuer: {sachbearbeiter}\n\n"
-            f"Bitte nehmen Sie Kontakt mit dem Kunden auf."
+            "Folgende Pflichtunterlagen wurden noch nicht hochgeladen:\n"
+            + "".join(f"  \u2022 {m}\n" for m in missing)
+            + f"\nZuständig: {sachbearbeiter}\n\n"
+            "Bitte nehmen Sie Kontakt mit dem Kunden auf."
         )
         send_email(subject, body, recipients)
