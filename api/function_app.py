@@ -225,30 +225,66 @@ def sp_upload_via_sharing_link(sp_url: str, filename: str, file_bytes: bytes, su
     return True, f"driveId={drive_id} item={item_id} sub={subfolder} file={safe_name}"
 
 
+_drive_id_cache: dict = {}  # library_name → drive_id
+
+
+def _get_drive_id_by_name(library_name: str, token: str) -> str:
+    """Return the drive ID for a named document library, with caching."""
+    key = library_name.lower()
+    if key in _drive_id_cache:
+        return _drive_id_cache[key]
+    url = f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}/drives?$select=id,name"
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
+    with urllib.request.urlopen(req) as resp:
+        drives = json.loads(resp.read()).get("value", [])
+    for d in drives:
+        _drive_id_cache[d["name"].lower()] = d["id"]
+    if key in _drive_id_cache:
+        return _drive_id_cache[key]
+    # Fallback: default drive
+    url2 = f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}/drive?$select=id"
+    req2 = urllib.request.Request(url2, headers={"Authorization": f"Bearer {token}"})
+    with urllib.request.urlopen(req2) as resp2:
+        default_id = json.loads(resp2.read())["id"]
+    _drive_id_cache[key] = default_id
+    return default_id
+
+
 def sp_upload_via_path(sp_url: str, filename: str, file_bytes: bytes, subfolder: str = "") -> tuple:
     """
     Upload to a SharePoint folder identified by a direct URL.
-    e.g. https://tenant.sharepoint.com/sites/ZSH/Shared Documents/Onboarding/Kunde
+    Supports both default drive (Shared Documents) and named document libraries (e.g. 'Kunden').
     """
     safe_name = re.sub(r'[<>:"/\\|?*]', '_', filename)
     parsed    = urllib.parse.urlparse(sp_url)
     path      = urllib.parse.unquote(parsed.path)
 
-    # Strip /sites/{site}/{library}/ prefix → relative folder path
-    m = re.match(r'^/sites/[^/]+/[^/]+/(.+)$', path)
+    # Extract: /sites/{site}/{library}/{...folder_path...}
+    m = re.match(r'^/sites/[^/]+/([^/]+)/(.+)$', path)
     if m:
-        folder_path = m.group(1)
+        library_name = m.group(1)
+        folder_path  = m.group(2)
     else:
         m2 = re.match(r'^/[^/]+/[^/]+/(.+)$', path)
-        folder_path = m2.group(1) if m2 else path.lstrip('/')
+        folder_path  = m2.group(1) if m2 else path.lstrip('/')
+        library_name = "Shared Documents"
 
     if subfolder:
         folder_path = folder_path.rstrip('/') + '/' + subfolder
 
-    app_token  = get_app_token()
+    app_token = get_app_token()
+
+    # Determine drive: use named library drive if not the default
+    default_names = {"shared documents", "freigegebene dokumente", "documents", "dokumente"}
+    if library_name.lower() in default_names:
+        drive_segment = f"sites/{SITE_ID}/drive"
+    else:
+        drive_id = _get_drive_id_by_name(library_name, app_token)
+        drive_segment = f"drives/{drive_id}"
+
     upload_url = (
-        f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
-        f"/drive/root:/{urllib.parse.quote(folder_path, safe='/')}/{urllib.parse.quote(safe_name)}:/content"
+        f"https://graph.microsoft.com/v1.0/{drive_segment}"
+        f"/root:/{urllib.parse.quote(folder_path, safe='/')}/{urllib.parse.quote(safe_name)}:/content"
     )
     req = urllib.request.Request(
         upload_url, data=file_bytes, method="PUT",
@@ -256,7 +292,7 @@ def sp_upload_via_path(sp_url: str, filename: str, file_bytes: bytes, subfolder:
     )
     with urllib.request.urlopen(req) as resp:
         resp.read()
-    return True, f"path={folder_path}/{safe_name}"
+    return True, f"library={library_name} path={folder_path}/{safe_name}"
 
 
 def sp_upload_file(sp_url: str, filename: str, file_bytes: bytes, subfolder: str = "") -> tuple:
