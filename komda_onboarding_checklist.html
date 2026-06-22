@@ -864,7 +864,7 @@
       OPTIONAL_META.filter(function(o) { return o.block === 'B' && o.pflicht && activeOpts.indexOf(o.id) !== -1; })
     );
     // Optionale Vorbereitungsunterlagen: nicht deaktivierte Basis-Optional-Punkte
-    BLOCK_B_OPTIONAL = BLOCK_B_OPTIONAL_BASE.filter(function(o) { return disabledIds.indexOf(o.id) === -1; });
+    BLOCK_B_OPTIONAL = BLOCK_B_OPTIONAL_BASE.filter(function(o) { return activeOpts.indexOf(o.id) !== -1; });
     BLOCK_B_ACTIVE = BLOCK_B_PFLICHT.concat(BLOCK_B_OPTIONAL);
     ALL_DOCS = BLOCK_A.concat(BLOCK_B_ACTIVE);
   }
