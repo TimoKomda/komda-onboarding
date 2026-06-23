@@ -38,10 +38,12 @@ DOC_FIELD = {
 }
 
 GET_SELECT_FIELDS = (
-    "Kundennummer,Firma,Email,Sachbearbeiter,SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
+    "Kundennummer,Firma,Anrede,Ansprechpartner,Email,Sachbearbeiter,SachbearbeiterEmail,"
+    "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
-    "DocVerguetung,DocDatenubernahme,DocPreisliste,LogoUrl,SchulungDurchgefuehrt"
+    "DocVerguetung,DocDatenubernahme,DocPreisliste,LogoUrl,SchulungDurchgefuehrt,"
+    "ZusatzEmails,EmailCC"
 )
 
 # Block A = Pflichtunterlagen (Vertragsunterlagen)
@@ -332,13 +334,16 @@ def _get_notify_recipients() -> list:
 
 
 def _get_all_recipients(fields: dict) -> list:
-    """Merge global NOTIFY_EMAILS with per-customer ZusatzEmails (deduped)."""
+    """Merge global NOTIFY_EMAILS + SachbearbeiterEmail + ZusatzEmails (deduped).
+    The Sachbearbeiter (person who created the customer) always receives notifications."""
     base = _get_notify_recipients()
+    sachbearbeiter_email = fields.get("SachbearbeiterEmail", "").strip()
     extra = [e.strip() for e in fields.get("ZusatzEmails", "").split(",") if e.strip()]
+    candidates = base + ([sachbearbeiter_email] if sachbearbeiter_email else []) + extra
     seen = set()
     result = []
-    for addr in base + extra:
-        if addr.lower() not in seen:
+    for addr in candidates:
+        if addr and addr.lower() not in seen:
             seen.add(addr.lower())
             result.append(addr)
     return result
@@ -419,7 +424,7 @@ def sp_list_all_customers() -> list:
     """Fetch all customer items from the SharePoint list."""
     token = get_app_token()
     fields = (
-        "id,Kundennummer,Firma,Email,Sachbearbeiter,Erstschulung,Optionen,SchulungDurchgefuehrt,"
+        "id,Kundennummer,Firma,Email,Sachbearbeiter,SachbearbeiterEmail,Erstschulung,Optionen,SchulungDurchgefuehrt,"
         "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
         "DocDatenubernahme,DocVorlagen,DocVerguetung,DocPreisliste,ZusatzEmails,EmailCC"
     )
