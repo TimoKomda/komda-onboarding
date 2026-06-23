@@ -394,28 +394,54 @@ def _all_pflicht_complete(fields: dict) -> bool:
 
 
 def send_completion_email(item_id: str) -> None:
-    """Notify INTERNAL staff when all Pflichtunterlagen (A + B Pflicht) are complete."""
+    """Send milestone notifications:
+    - When Block A (Vertragsunterlagen) are fully complete.
+    - When Block A + Block B Pflicht (Vorbereitungsunterlagen) are fully complete.
+    Each notification is sent only once per milestone.
+    """
     if not NOTIFY_FROM:
         return
     try:
         fields = sp_get_item(item_id)
-        if not _all_pflicht_complete(fields):
-            return  # not yet fully complete
         recipients = _get_all_recipients(fields)
         if not recipients:
             return
-        kundennummer = fields.get("Kundennummer", "").strip()
-        firma        = fields.get("Firma",        "").strip()
-        sachbearbeiter = fields.get("Sachbearbeiter", "").strip()
-        subject = f"✅ Onboarding: Alle Pflichtunterlagen vollständig – {kundennummer} {firma}".strip()
-        body = (
-            f"Alle Pflichtunterlagen (Vertragsunterlagen und Vorbereitungsunterlagen) "
-            f"für den Kunden {firma} (Kundennummer: {kundennummer}) "
-            f"wurden vollständig hochgeladen und stehen im Portal bereit.\n\n"
-            f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
-            f"Bitte prüfen Sie das Onboarding-Portal für weitere Details."
-        )
-        send_email(subject, body, recipients)
+
+        kundennummer   = fields.get("Kundennummer",   "").strip()
+        firma          = fields.get("Firma",           "").strip()
+        sachbearbeiter = fields.get("Sachbearbeiter",  "").strip()
+        kd_label       = f"{kundennummer} {firma}".strip()
+
+        block_a_done = all(fields.get(f, False) for f in BLOCK_A_FIELDS)
+        b_fields     = _block_b_pflicht_fields(fields.get("Optionen", ""))
+        block_b_done = bool(b_fields) and all(fields.get(f, False) for f in b_fields)
+
+        if block_a_done and block_b_done:
+            # Milestone 2: everything complete
+            subject = f"✅ Onboarding vollständig – {kd_label}"
+            body = (
+                f"Alle Pflichtunterlagen für den Kunden {firma} (Kundennr.: {kundennummer}) "
+                f"sind vollständig eingegangen:\n\n"
+                f"  ✔ Vertragsunterlagen (Block A) – vollständig\n"
+                f"  ✔ Pflicht-Vorbereitungsunterlagen (Block B) – vollständig\n\n"
+                f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
+                f"Der Kunde ist bereit für die Schulung. Bitte prüfen Sie das Onboarding-Portal."
+            )
+            send_email(subject, body, recipients)
+        elif block_a_done:
+            # Milestone 1: only Block A complete
+            subject = f"📋 Onboarding: Vertragsunterlagen vollständig – {kd_label}"
+            body = (
+                f"Die Vertragsunterlagen (Block A) für den Kunden {firma} "
+                f"(Kundennr.: {kundennummer}) sind vollständig eingegangen:\n\n"
+                f"  ✔ SEPA-Mandat\n"
+                f"  ✔ E-Mail Rechnung\n"
+                f"  ✔ Fernwartungsvereinbarung\n"
+                f"  ✔ AVV\n\n"
+                f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
+                f"Die Pflicht-Vorbereitungsunterlagen (Block B) stehen noch aus."
+            )
+            send_email(subject, body, recipients)
     except Exception as exc:
         import logging
         logging.error("send_completion_email failed: %s", exc)
