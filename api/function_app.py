@@ -57,12 +57,13 @@ BLOCK_A_LABELS = {
 }
 
 # Block B Pflicht = Pflicht-Vorbereitungsunterlagen
-# Always required: datenubernahme + vorlagen
-# Conditionally required based on Optionen field: verguetung, preisliste
-BLOCK_B_PFLICHT_ALWAYS = ["DocDatenubernahme", "DocVorlagen"]
+# Always required: vorlagen
+# Conditionally required based on Optionen field: datenubernahme, verguetung, preisliste
+BLOCK_B_PFLICHT_ALWAYS = ["DocVorlagen"]
 BLOCK_B_PFLICHT_OPTIONAL_MAP = {
-    "verguetung": "DocVerguetung",
-    "preisliste":  "DocPreisliste",
+    "datenubernahme": "DocDatenubernahme",
+    "verguetung":     "DocVerguetung",
+    "preisliste":     "DocPreisliste",
 }
 BLOCK_B_PFLICHT_IDS = {"datenubernahme", "vorlagen", "verguetung", "preisliste"}
 BLOCK_B_PFLICHT_LABELS = {
