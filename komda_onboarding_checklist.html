@@ -798,16 +798,6 @@
   // Pflicht-Vorbereitungsunterlagen: immer angezeigt
   var BLOCK_B_PFLICHT_BASE = [
     {
-      id: 'datenubernahme', name: 'Datenübernahme', icon: '&#128190;', upload: true, uploadFolder: 'Datenübernahme',
-      downloadFolder: 'Datenübernahme',
-      desc: 'Übergabe Ihrer bestehenden Daten in das Komda® System.',
-      steps: [
-        'Klicken Sie auf <strong>„Vorlagen herunterladen"</strong> und laden Sie beide Excel-Musterdateien herunter.',
-        'Befüllen Sie die Dateien vollständig mit Ihren bestehenden Daten gemäß den Vorgaben in den Dateien.',
-        'Laden Sie die ausgefüllten Dateien anschließend über <strong>„Hochladen"</strong> wieder hoch.',
-      ],
-    },
-    {
       id: 'vorlagen', name: 'Vorlagen, Logos &amp; Briefbogen', icon: '&#128444;', upload: true, uploadFolder: 'Vorlagen, Logos etc',
       desc: 'Briefbogen als Word-Dokument, Logo(s) sowie eine Beispielrechnung hochladen, damit wir Ihre Vorlagen erstellen können.',
       steps: [
@@ -839,6 +829,16 @@
 
   // Aktivierbare Pflicht-Vorbereitungsunterlagen (je nach Kundenkonfiguration)
   var OPTIONAL_META = [
+    {
+      id: 'datenubernahme', block: 'B', pflicht: true, name: 'Datenübernahme', icon: '&#128190;', upload: true, uploadFolder: 'Datenübernahme',
+      downloadFolder: 'Datenübernahme',
+      desc: 'Übergabe Ihrer bestehenden Daten in das Komda® System.',
+      steps: [
+        'Klicken Sie auf <strong>„Vorlagen herunterladen"</strong> und laden Sie beide Excel-Musterdateien herunter.',
+        'Befüllen Sie die Dateien vollständig mit Ihren bestehenden Daten gemäß den Vorgaben in den Dateien.',
+        'Laden Sie die ausgefüllten Dateien anschließend über <strong>„Hochladen"</strong> wieder hoch.',
+      ],
+    },
     {
       id: 'verguetung', block: 'B', pflicht: true, name: 'Vergütungsvereinbarung', icon: '&#128195;', upload: true, uploadFolder: 'Vergütungsvereinbarung und Preislisten',
       desc: 'Bitte laden Sie Ihre Vergütungsvereinbarung in den Ordner hoch.',
