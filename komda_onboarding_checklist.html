@@ -515,6 +515,23 @@
         <button id="sig-upload-clear" class="sign-clear-btn" style="display:none" onclick="clearSigUpload()">&#10005; Entfernen</button>
       </div>
 
+      <!-- SEPA-Hinweis: nur für SEPA-Mandat sichtbar -->
+      <div id="sepa-bank-notice" style="display:none;margin:16px 0 4px;background:#fff8e1;border:2px solid #f59e0b;border-radius:10px;padding:14px 16px">
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <span style="font-size:22px;line-height:1.2">⚠️</span>
+          <div>
+            <div style="font-weight:700;font-size:14px;color:#92400e;margin-bottom:4px">Wichtiger Hinweis zum SEPA-Mandat</div>
+            <div style="font-size:13px;color:#78350f;line-height:1.6">
+              Bitte denken Sie unbedingt daran, das ausgefüllte und unterschriebene SEPA-Mandat im <strong>Original auch Ihrer Bank zu übergeben</strong>. Das hochgeladene Dokument ersetzt dies nicht.
+            </div>
+            <label style="display:flex;align-items:center;gap:8px;margin-top:10px;cursor:pointer;font-size:13px;font-weight:600;color:#92400e">
+              <input type="checkbox" id="sepa-bank-confirm" onchange="updateSepaConfirm()" style="width:17px;height:17px;accent-color:#f59e0b;flex-shrink:0">
+              Ich habe den Hinweis gelesen und werde das Original meiner Bank übergeben.
+            </label>
+          </div>
+        </div>
+      </div>
+
       <div class="sign-footer">
         <button class="sign-cancel-btn" onclick="closeSignModal()">Abbrechen</button>
         <button class="sign-confirm-btn" id="sign-confirm-btn" onclick="applySignature()">&#9729; Unterschreiben &amp; hochladen</button>
@@ -1210,6 +1227,18 @@
     confirmBtn.textContent = '☁ Unterschreiben & hochladen';
     confirmBtn.disabled = false;
 
+    // SEPA-Bankhinweis ein-/ausblenden
+    var sepaNotice = document.getElementById('sepa-bank-notice');
+    var sepaConfirm = document.getElementById('sepa-bank-confirm');
+    if (docId === 'sepa') {
+      sepaNotice.style.display = '';
+      sepaConfirm.checked = false;
+      confirmBtn.disabled = true;
+    } else {
+      sepaNotice.style.display = 'none';
+      sepaConfirm.checked = false;
+    }
+
     document.getElementById('sign-form-fields').innerHTML =
       '<div class="sign-loading">&#9203; Formular wird geladen&#8230;</div>';
     document.getElementById('sign-modal').classList.add('open');
@@ -1479,6 +1508,12 @@
     s3l.className = 'sign-step-label' + (hasSig ? ' active' : '');
   }
   window._updateSteps = _updateSteps;
+
+  window.updateSepaConfirm = function() {
+    var cb = document.getElementById('sepa-bank-confirm');
+    var btn = document.getElementById('sign-confirm-btn');
+    if (cb && btn) btn.disabled = !cb.checked;
+  };
 
   window.closeSignModal = function() {
     document.getElementById('sign-modal').classList.remove('open');
