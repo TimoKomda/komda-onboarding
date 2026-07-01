@@ -85,6 +85,17 @@
     .status-badge.done{background:var(--green-bg);color:var(--green)}
 
     /* Upload zone */
+    .selection-zone{border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;margin:8px 22px 14px 54px;background:var(--card)}
+    .selection-zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-bottom:12px}
+    .sel-option{display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer;padding:5px 8px;border-radius:6px;transition:background .15s}
+    .sel-option:hover{background:var(--bg)}
+    .sel-option input[type=checkbox]{width:15px;height:15px;accent-color:var(--red);flex-shrink:0}
+    .sel-freitext{width:100%;box-sizing:border-box;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;margin-bottom:10px;color:var(--text);background:var(--bg)}
+    .sel-freitext:focus{outline:none;border-color:var(--red)}
+    .sel-freitext-label{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+    .sel-submit-btn{background:var(--red);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}
+    .sel-submit-btn:disabled{opacity:.5;cursor:default}
+    .sel-done-display{font-size:13px;color:var(--green);background:var(--green-bg);border-radius:8px;padding:8px 12px;margin:8px 22px 14px 54px;line-height:1.5}
     .upload-zone{border:2px dashed var(--border);border-radius:10px;padding:14px 16px;text-align:center;margin:8px 22px 14px 54px;cursor:default;transition:border-color .2s,background .2s}
     .download-zone{background:#f0f7ff;border:1px solid #b8cef0;border-radius:10px;padding:14px 18px;margin:8px 22px 8px 54px}
     .download-zone-title{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:4px}
@@ -842,6 +853,23 @@
       desc: 'Liste der Lohnarten für Zuschläge, Stunden usw. aus der Personalabrechnung.',
       steps: ['Ihre Lohnarten-Liste hier hochladen.'],
     },
+    {
+      id: 'fibu', name: 'Finanzbuchhaltung-Schnittstelle', icon: '&#128178;', type: 'selection',
+      desc: 'Bitte teilen Sie uns mit, welche Finanzbuchhaltungs-Software Sie einsetzen, damit wir die passende Schnittstelle einrichten können.',
+      selectionOptions: [
+        'DATEV (DATEV-Format)', 'Diamant', 'FibuNet', 'INFOMA - newsystem kommunal',
+        'Komda® EURO FIBU', 'Lexware plus', 'Navision', 'RHV-Fibu',
+        'Sage 100 / Office Line', 'Simba',
+      ],
+    },
+    {
+      id: 'lohn', name: 'Lohnbuchhaltung-Schnittstelle', icon: '&#128181;', type: 'selection',
+      desc: 'Bitte teilen Sie uns mit, welche Lohnbuchhaltungs-Software Sie einsetzen, damit wir die passende Schnittstelle einrichten können.',
+      selectionOptions: [
+        'ADDISON', 'AGENDA', 'Fidelis', 'KIDICAP', 'Lexware',
+        'P&amp;I Loga', 'Paisy', 'SAP', 'Sage', 'SBS', 'SIEDA', 'TDS', 'universal',
+      ],
+    },
   ];
 
   // Aktivierbare Pflicht-Vorbereitungsunterlagen (je nach Kundenkonfiguration)
@@ -922,6 +950,57 @@
     var isDone     = !!status[doc.id];
     var hasSigning = !!SIGN_CONFIG[doc.id];
     var hasUpload  = !!doc.upload;
+    var isSelection = doc.type === 'selection';
+
+    // Selection-type: eigenes Rendering
+    if (isSelection) {
+      var savedSel = status[doc.id + '_auswahl'] || '';
+      var selHtml = '<div class="check-item">'
+        + '<span class="status-badge ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '✓ Erledigt' : '● Offen') + '</span>'
+        + '<div class="check-icon">' + doc.icon + '</div>'
+        + '<div class="check-text">'
+        + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
+        + '<div class="check-desc">' + doc.desc + '</div>'
+        + '</div>';
+      if (isDone) {
+        selHtml += '<button class="check-btn undo-btn" data-action="sel-undo" data-id="' + doc.id + '">↩ Rückgängig</button>';
+      } else {
+        selHtml += '<button class="check-btn upload-btn" data-action="toggle" data-id="' + doc.id + '">&#9998; Auswahl treffen</button>';
+      }
+      selHtml += '</div>';
+
+      if (isDone && savedSel) {
+        selHtml += '<div class="sel-done-display">&#10003; Ihre Angabe: <strong>' + savedSel + '</strong></div>';
+      }
+
+      if (!isDone) {
+        var optHtml = '<div class="selection-zone" id="selzone-' + doc.id + '" style="display:none">'
+          + '<div class="selection-zone-grid">';
+        for (var oi = 0; oi < doc.selectionOptions.length; oi++) {
+          var opt = doc.selectionOptions[oi];
+          optHtml += '<label class="sel-option"><input type="checkbox" class="sel-cb-' + doc.id + '" value="' + opt + '"> ' + opt + '</label>';
+        }
+        optHtml += '</div>'
+          + '<div class="sel-freitext-label">Sonstiges / Freitext</div>'
+          + '<input type="text" class="sel-freitext" id="sel-ft-' + doc.id + '" placeholder="z.B. anderes Programm oder Ergänzungen…">'
+          + '<button class="sel-submit-btn" onclick="submitSelection(\'' + doc.id + '\')">&#10003; Auswahl bestätigen</button>'
+          + '</div>';
+        selHtml += optHtml;
+      }
+
+      selHtml += '<div class="check-steps">'
+        + '<div class="steps-toggle" data-action="toggle" data-id="' + doc.id + '">'
+        + '<span class="steps-arrow" id="arrow-' + doc.id + '">▶</span> Mehr Informationen'
+        + '</div>'
+        + '<div class="steps-body" id="steps-' + doc.id + '">'
+        + '<ul class="step-list"><li class="step-item"><span class="step-num ' + blockClass + '">1</span>'
+        + '<span>Wählen Sie Ihr(e) eingesetztes Programm(e) aus der Liste oder tragen Sie es im Freitext-Feld ein.</span></li>'
+        + '<li class="step-item"><span class="step-num ' + blockClass + '">2</span>'
+        + '<span>Klicken Sie auf <strong>„Auswahl bestätigen"</strong>.</span></li></ul>'
+        + '</div></div>';
+
+      return '<div>' + selHtml + '</div>';
+    }
 
     var stepsHtml = '<ul class="step-list">';
     for (var s = 0; s < doc.steps.length; s++) {
@@ -1127,6 +1206,23 @@
     document.getElementById('zugangsdaten-list').innerHTML = zdHtml;
   }
 
+  window.submitSelection = function(docId) {
+    var cbs = document.querySelectorAll('.sel-cb-' + docId + ':checked');
+    var selected = [];
+    for (var i = 0; i < cbs.length; i++) selected.push(cbs[i].value);
+    var freitext = (document.getElementById('sel-ft-' + docId) || {}).value || '';
+    if (freitext.trim()) selected.push(freitext.trim());
+    if (selected.length === 0) { alert('Bitte wählen Sie mindestens eine Option aus oder tragen Sie einen Freitext ein.'); return; }
+    var auswahl = selected.join(', ');
+    status[docId] = true;
+    status[docId + '_auswahl'] = auswahl;
+    saveStatus(status);
+    syncSelectionToParent(docId, auswahl);
+    render();
+    var allDone = ALL_DOCS.every(function(d) { return !!status[d.id]; });
+    if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
   // ── Event-Delegation ─────────────────────────────────────────────────
   document.addEventListener('click', function(e) {
     var btn = e.target.closest('[data-action]');
@@ -1139,10 +1235,14 @@
       if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (action === 'undo') {
       status[id] = false; saveStatus(status); syncToParent(id, false); render();
+    } else if (action === 'sel-undo') {
+      status[id] = false; delete status[id + '_auswahl']; saveStatus(status); syncToParent(id, false); render();
     } else if (action === 'toggle') {
       var body = document.getElementById('steps-' + id);
       var arrow = document.getElementById('arrow-' + id);
+      var zone = document.getElementById('selzone-' + id);
       if (body && arrow) { var isOpen = body.classList.toggle('open'); arrow.classList.toggle('open', isOpen); }
+      if (zone) zone.style.display = zone.style.display === 'none' ? '' : 'none';
     } else if (action === 'sign') {
       openSignModal(id);
     }
@@ -1167,6 +1267,20 @@
       .then(function(r) { return r.json(); })
       .then(function(d) { if (!d.ok) console.warn('Sync-Fehler:', d); })
       .catch(function(e) { console.warn('Sync nicht erreichbar:', e); });
+    }
+  }
+
+  function syncSelectionToParent(docId, auswahl) {
+    var custId = '';
+    try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
+    if (custId && !isPreview) {
+      fetch(API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, selection: auswahl }),
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(d) { if (!d.ok) console.warn('Selection-Sync-Fehler:', d); })
+      .catch(function(e) { console.warn('Selection-Sync nicht erreichbar:', e); });
     }
   }
 
