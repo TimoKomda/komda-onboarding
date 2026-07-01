@@ -626,9 +626,9 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     # Always update the boolean status field
     try:
         sp_patch(cust_id, field, value)
-        # For selection-type items: also save the text selection
+        # For selection-type items: save or clear the text selection
         sel_field = SELECTION_FIELD.get(doc_id)
-        if sel_field and selection:
+        if sel_field and (selection or not value):
             app_token = get_app_token()
             patch_url = (
                 f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
