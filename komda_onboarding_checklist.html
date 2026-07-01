@@ -855,7 +855,7 @@
     },
     {
       id: 'fibu', name: 'Finanzbuchhaltung-Schnittstelle', icon: '&#128178;', type: 'selection',
-      desc: 'Bitte teilen Sie uns mit, welche Finanzbuchhaltungs-Software Sie einsetzen, damit wir die passende Schnittstelle einrichten können.',
+      desc: 'Bitte geben Sie an, welche Schnittstelle zur Finanzbuchhaltung benötigt wird. Falls Sie sich nicht sicher sind, wenden Sie sich an Ihren Steuerberater oder Ihre Buchhaltungsabteilung.',
       selectionOptions: [
         'DATEV (DATEV-Format)', 'Diamant', 'FibuNet', 'INFOMA - newsystem kommunal',
         'Komda® EURO FIBU', 'Lexware plus', 'Navision', 'RHV-Fibu',
@@ -864,10 +864,10 @@
     },
     {
       id: 'lohn', name: 'Lohnbuchhaltung-Schnittstelle', icon: '&#128181;', type: 'selection',
-      desc: 'Bitte teilen Sie uns mit, welche Lohnbuchhaltungs-Software Sie einsetzen, damit wir die passende Schnittstelle einrichten können.',
+      desc: 'Bitte geben Sie an, welche Schnittstelle zur Lohnbuchhaltung benötigt wird. Falls Sie sich nicht sicher sind, wenden Sie sich an Ihr Lohnbüro oder Ihren Steuerberater.',
       selectionOptions: [
-        'ADDISON', 'AGENDA', 'Fidelis', 'KIDICAP', 'Lexware',
-        'P&amp;I Loga', 'Paisy', 'SAP', 'Sage', 'SBS', 'SIEDA', 'TDS', 'universal',
+        'ADDISON', 'AGENDA', 'DATEV', 'Fidelis', 'GDI', 'KIDICAP', 'Lexware',
+        'P&amp;I Loga', 'Paisy', 'Sage', 'SAP', 'SBS', 'SIEDA', 'TDS', 'universal',
       ],
     },
   ];
@@ -965,7 +965,10 @@
       if (isDone) {
         selHtml += '<button class="check-btn undo-btn" data-action="sel-undo" data-id="' + doc.id + '">↩ Rückgängig</button>';
       } else {
-        selHtml += '<button class="check-btn upload-btn" data-action="toggle" data-id="' + doc.id + '">&#9998; Auswahl treffen</button>';
+        selHtml += '<div class="check-btn-wrap">'
+          + '<button class="check-btn upload-btn" data-action="toggle" data-id="' + doc.id + '">&#9998; Auswahl treffen</button>'
+          + '<button class="check-btn manual-btn" data-action="done" data-id="' + doc.id + '">&#10007; Nicht vorhanden</button>'
+          + '</div>';
       }
       selHtml += '</div>';
 
@@ -1236,7 +1239,7 @@
     } else if (action === 'undo') {
       status[id] = false; saveStatus(status); syncToParent(id, false); render();
     } else if (action === 'sel-undo') {
-      status[id] = false; delete status[id + '_auswahl']; saveStatus(status); syncToParent(id, false); render();
+      status[id] = false; delete status[id + '_auswahl']; saveStatus(status); syncToParent(id, false); syncSelectionToParent(id, ''); render();
     } else if (action === 'toggle') {
       var body = document.getElementById('steps-' + id);
       var arrow = document.getElementById('arrow-' + id);
