@@ -35,6 +35,14 @@ DOC_FIELD = {
     "verguetung":     "DocVerguetung",
     "datenubernahme": "DocDatenubernahme",
     "preisliste":     "DocPreisliste",
+    "fibu":           "DocFibu",
+    "lohn":           "DocLohn",
+}
+
+# Maps docId → SP text field for selection-type items
+SELECTION_FIELD = {
+    "fibu": "FibuAuswahl",
+    "lohn": "LohnAuswahl",
 }
 
 GET_SELECT_FIELDS = (
@@ -42,7 +50,8 @@ GET_SELECT_FIELDS = (
     "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
-    "DocVerguetung,DocDatenubernahme,DocPreisliste,LogoUrl,SchulungDurchgefuehrt,"
+    "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,"
+    "FibuAuswahl,LohnAuswahl,LogoUrl,SchulungDurchgefuehrt,"
     "ZusatzEmails,EmailCC"
 )
 
@@ -591,6 +600,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
 
     doc_id    = str(body.get("docId",     "")).strip()
     value     = bool(body.get("value",    False))
+    selection = str(body.get("selection", "")).strip()
     file_b64  = str(body.get("file",      "")).strip()
     filename  = str(body.get("filename",  "")).strip()
     sp_url    = str(body.get("spUrl",     "")).strip()
@@ -616,6 +626,21 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     # Always update the boolean status field
     try:
         sp_patch(cust_id, field, value)
+        # For selection-type items: also save the text selection
+        sel_field = SELECTION_FIELD.get(doc_id)
+        if sel_field and selection:
+            app_token = get_app_token()
+            patch_url = (
+                f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
+                f"/lists/{LIST_ID}/items/{cust_id}/fields"
+            )
+            payload = json.dumps({sel_field: selection}).encode()
+            sel_req = urllib.request.Request(patch_url, data=payload, method="PATCH", headers={
+                "Authorization": f"Bearer {app_token}",
+                "Content-Type":  "application/json",
+            })
+            with urllib.request.urlopen(sel_req) as resp:
+                resp.read()
         # If a Pflicht doc was just marked complete, check if everything is now done → notify
         if value and doc_id in (BLOCK_A_IDS | BLOCK_B_PFLICHT_IDS):
             send_completion_email(cust_id)
