@@ -68,7 +68,7 @@
 
     .progress-v-bars{position:absolute;left:0;top:0;bottom:0;display:flex;gap:0;z-index:1;pointer-events:none}
     .progress-v-track{position:relative;width:5px;height:100%;background:var(--border-lt)}
-    .progress-v-fill{position:absolute;bottom:0;left:0;width:100%;height:0%;transition:height .6s ease}
+    .progress-v-fill{position:absolute;bottom:0;left:0;width:100%;height:0%;transition:height .6s ease;will-change:height}
     .progress-v-fill.col-a{background:var(--red)}
     .progress-v-fill.col-a.partial{background:var(--orange)}
     .progress-v-fill.col-a.done-full{background:var(--green)}
@@ -1091,29 +1091,43 @@
       + '</div>';
   }
 
+  // ── DOM-Ref-Cache (einmalig, keine wiederholten getElementById-Aufrufe in render) ─
+  var _elCache = {};
+  function _el(id) { return _elCache[id] || (_elCache[id] = document.getElementById(id)); }
+
+  // ── spUrl-Cache (nur nach API-Antwort neu berechnen, nicht jedes Render) ──────
+  var _urlCache = null;
+  function getUrls() {
+    if (_urlCache) return _urlCache;
+    var spUrl        = (apiConfig && apiConfig.spUrl)        || (parentCustomer && parentCustomer.spUrl)        || params.get('spUrl')        || '';
+    var spUrlCloud   = (apiConfig && apiConfig.spUrlCloud)   || (parentCustomer && parentCustomer.spUrlCloud)   || params.get('spUrlCloud')   || '';
+    var spUrlMobile  = (apiConfig && apiConfig.spUrlMobile)  || (parentCustomer && parentCustomer.spUrlMobile)  || params.get('spUrlMobile')  || '';
+    var spUrlAuftrag = (apiConfig && apiConfig.spUrlAuftrag) || (parentCustomer && parentCustomer.spUrlAuftrag) || params.get('spUrlAuftrag') || '';
+    _urlCache = { spUrl: spUrl, spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag, folderUrls: { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag } };
+    return _urlCache;
+  }
+
   // ── render ────────────────────────────────────────────────────────────
   function render() {
     var done = 0;
     for (var i = 0; i < ALL_DOCS.length; i++) { if (status[ALL_DOCS[i].id]) done++; }
 
-    var spUrl        = (apiConfig && apiConfig.spUrl)        || (parentCustomer && parentCustomer.spUrl)        || params.get('spUrl')        || '';
-    var spUrlCloud   = (apiConfig && apiConfig.spUrlCloud)   || (parentCustomer && parentCustomer.spUrlCloud)   || params.get('spUrlCloud')   || '';
-    var spUrlMobile  = (apiConfig && apiConfig.spUrlMobile)  || (parentCustomer && parentCustomer.spUrlMobile)  || params.get('spUrlMobile')  || '';
-    var spUrlAuftrag = (apiConfig && apiConfig.spUrlAuftrag) || (parentCustomer && parentCustomer.spUrlAuftrag) || params.get('spUrlAuftrag') || '';
-    var folderUrls   = { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag };
+    var urls       = getUrls();
+    var spUrl      = urls.spUrl;
+    var folderUrls = urls.folderUrls;
 
     var doneA = 0; for (var ai = 0; ai < BLOCK_A.length; ai++) { if (status[BLOCK_A[ai].id]) doneA++; }
     var doneB = 0; for (var bi = 0; bi < BLOCK_B_ACTIVE.length; bi++) { if (status[BLOCK_B_ACTIVE[bi].id]) doneB++; }
 
     // Pflicht-Balken (Block A)
-    var fillA = document.getElementById('progress-side-fill-a');
+    var fillA = _el('progress-side-fill-a');
     if (fillA) {
       var pctA = BLOCK_A.length > 0 ? Math.round((doneA / BLOCK_A.length) * 100) : 0;
       fillA.style.height = pctA + '%';
       fillA.className = 'progress-v-fill col-a' + (doneA === BLOCK_A.length && BLOCK_A.length > 0 ? ' done-full' : pctA > 0 ? ' partial' : '');
     }
     // Vorbereitung-Balken (Block B)
-    var fillB = document.getElementById('progress-side-fill-b');
+    var fillB = _el('progress-side-fill-b');
     if (fillB) {
       var pctB = BLOCK_B_ACTIVE.length > 0 ? Math.round((doneB / BLOCK_B_ACTIVE.length) * 100) : 0;
       fillB.style.height = pctB + '%';
@@ -1121,8 +1135,8 @@
     }
 
     // Counter-Badges
-    var countElA = document.getElementById('check-count-a');
-    var countElB = document.getElementById('check-count-b');
+    var countElA = _el('check-count-a');
+    var countElB = _el('check-count-b');
     if (countElA) {
       countElA.textContent = 'Pflicht ' + doneA + '/' + BLOCK_A.length;
       if (doneA === BLOCK_A.length && BLOCK_A.length > 0) {
@@ -1134,7 +1148,7 @@
     if (countElB) {
       countElB.textContent = 'Vorbereitung ' + doneB + '/' + BLOCK_B_ACTIVE.length;
     }
-    document.getElementById('done-card').classList.toggle('visible', done === ALL_DOCS.length && ALL_DOCS.length > 0);
+    _el('done-card').classList.toggle('visible', done === ALL_DOCS.length && ALL_DOCS.length > 0);
 
     var clHtml = '<div class="section-bar">'
       + '<div class="section-bar-title">Pflichtunterlagen</div>'
@@ -1157,9 +1171,9 @@
       for (var eo = 0; eo < BLOCK_B_OPTIONAL.length; eo++) { clHtml += renderItem(BLOCK_B_OPTIONAL[eo], 'b'); }
     }
 
-    document.getElementById('checklist-items').innerHTML = clHtml;
+    _el('checklist-items').innerHTML = clHtml;
 
-    document.getElementById('folder-btn-wrap').innerHTML = spUrl
+    _el('folder-btn-wrap').innerHTML = spUrl
       ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">&#128193; Dokumenten-Ordner öffnen</a>'
       : '<span class="folder-btn-big disabled">&#128193; Dokumenten-Ordner öffnen</span>';
 
@@ -1194,7 +1208,7 @@
           + '</div>';
       }
     }
-    document.getElementById('files-list').innerHTML = flHtml;
+    _el('files-list').innerHTML = flHtml;
 
     var zdHtml = '';
     for (var z = 0; z < FOLDER_LINKS.length; z++) {
@@ -1206,7 +1220,7 @@
                  : '<span class="zd-btn disabled">&#8595; Öffnen</span>')
         + '</div>';
     }
-    document.getElementById('zugangsdaten-list').innerHTML = zdHtml;
+    _el('zugangsdaten-list').innerHTML = zdHtml;
   }
 
   window.submitSelection = function(docId) {
@@ -2062,6 +2076,7 @@
     _apiFetchPromise.then(function(apiData) {
       if (!apiData || !apiData.ok) return;
       apiConfig = apiData;
+      _urlCache = null; // URL-Cache nach API-Antwort invalidieren
       // Status aus API mit lokalem mergen (API hat Vorrang)
       if (apiConfig.docs) Object.assign(status, apiConfig.docs);
       saveStatus(status);
@@ -2070,6 +2085,13 @@
       render();
     });
   }
+
+  // pdf-lib im Hintergrund vorladen, damit der erste Klick auf "Unterzeichnen" sofort reagiert
+  setTimeout(function() {
+    if (!window.PDFLib && ALL_DOCS.some(function(d) { return !!SIGN_CONFIG[d.id]; })) {
+      ensurePdfLib().catch(function() {});
+    }
+  }, 2000);
 })();
 </script>
 </body>
