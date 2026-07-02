@@ -75,6 +75,18 @@ BLOCK_B_PFLICHT_OPTIONAL_MAP = {
     "preisliste":     "DocPreisliste",
 }
 BLOCK_B_PFLICHT_IDS = {"datenubernahme", "vorlagen", "verguetung", "preisliste"}
+
+# All optional Block B item IDs → SP field (for "all B active done" check)
+BLOCK_B_ALL_OPTIONAL_MAP = {
+    "datenubernahme": "DocDatenubernahme",
+    "verguetung":     "DocVerguetung",
+    "preisliste":     "DocPreisliste",
+    "fibu":           "DocFibu",
+    "lohn":           "DocLohn",
+    "debitoren":      "DocDebitoren",
+    "mitarbeiter":    "DocMitarbeiter",
+    "lohnarten":      "DocLohnarten",
+}
 BLOCK_B_PFLICHT_LABELS = {
     "DocDatenubernahme": "Datenübernahme",
     "DocVorlagen":       "Vorlagen, Logos & Briefbogen",
@@ -394,6 +406,16 @@ def _block_b_pflicht_fields(optionen: str) -> list:
     return fields
 
 
+def _block_b_all_active_fields(optionen: str) -> list:
+    """Return ALL active Block B SP fields: DocVorlagen + every activated optional item."""
+    opts = [o.strip() for o in optionen.split(",") if o.strip() and not o.startswith("!")]
+    result = list(BLOCK_B_PFLICHT_ALWAYS)
+    for opt_id, sp_field in BLOCK_B_ALL_OPTIONAL_MAP.items():
+        if opt_id in opts:
+            result.append(sp_field)
+    return result
+
+
 def _all_pflicht_complete(fields: dict) -> bool:
     """Return True when Block A AND Block B Pflicht are all done."""
     if not all(fields.get(f, False) for f in BLOCK_A_FIELDS):
@@ -420,25 +442,47 @@ def send_completion_email(item_id: str) -> None:
         firma          = fields.get("Firma",           "").strip()
         sachbearbeiter = fields.get("Sachbearbeiter",  "").strip()
         kd_label       = f"{kundennummer} {firma}".strip()
+        fibu_auswahl   = fields.get("FibuAuswahl",    "").strip()
+        lohn_auswahl   = fields.get("LohnAuswahl",    "").strip()
 
         block_a_done = all(fields.get(f, False) for f in BLOCK_A_FIELDS)
-        b_fields     = _block_b_pflicht_fields(fields.get("Optionen", ""))
-        block_b_done = bool(b_fields) and all(fields.get(f, False) for f in b_fields)
+        b_all_fields = _block_b_all_active_fields(fields.get("Optionen", ""))
+        block_b_done = bool(b_all_fields) and all(fields.get(f, False) for f in b_all_fields)
+
+        # Optional: Schnittstellen-Hinweis für Mail-Body aufbauen
+        schnitt_lines = ""
+        if fibu_auswahl:
+            schnitt_lines += f"  💶 Finanzbuchhaltung-Schnittstelle: {fibu_auswahl}\n"
+        if lohn_auswahl:
+            schnitt_lines += f"  💵 Lohnbuchhaltung-Schnittstelle:   {lohn_auswahl}\n"
+        schnitt_block = f"\nGewählte Schnittstellen:\n{schnitt_lines}" if schnitt_lines else ""
 
         if block_a_done and block_b_done:
-            # Milestone 2: everything complete
+            # Milestone: alles vollständig
             subject = f"✅ Onboarding vollständig – {kd_label}"
             body = (
-                f"Alle Pflichtunterlagen für den Kunden {firma} (Kundennr.: {kundennummer}) "
+                f"Alle Unterlagen für den Kunden {firma} (Kundennr.: {kundennummer}) "
                 f"sind vollständig eingegangen:\n\n"
                 f"  ✔ Vertragsunterlagen (Block A) – vollständig\n"
-                f"  ✔ Pflicht-Vorbereitungsunterlagen (Block B) – vollständig\n\n"
+                f"  ✔ Vorbereitungsunterlagen (Block B) – vollständig\n"
+                f"{schnitt_block}\n"
                 f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
                 f"Der Kunde ist bereit für die Schulung. Bitte prüfen Sie das Onboarding-Portal."
             )
             send_email(subject, body, recipients)
+        elif block_b_done:
+            # Milestone: nur Block B vollständig (Block A noch ausstehend)
+            subject = f"📋 Onboarding: Vorbereitungsunterlagen vollständig – {kd_label}"
+            body = (
+                f"Die Vorbereitungsunterlagen (Block B) für den Kunden {firma} "
+                f"(Kundennr.: {kundennummer}) sind vollständig eingegangen."
+                f"{schnitt_block}\n"
+                f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
+                f"Die Vertragsunterlagen (Block A) stehen noch aus."
+            )
+            send_email(subject, body, recipients)
         elif block_a_done:
-            # Milestone 1: only Block A complete
+            # Milestone: nur Block A vollständig
             subject = f"📋 Onboarding: Vertragsunterlagen vollständig – {kd_label}"
             body = (
                 f"Die Vertragsunterlagen (Block A) für den Kunden {firma} "
@@ -448,7 +492,7 @@ def send_completion_email(item_id: str) -> None:
                 f"  ✔ Fernwartungsvereinbarung\n"
                 f"  ✔ AVV\n\n"
                 f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
-                f"Die Pflicht-Vorbereitungsunterlagen (Block B) stehen noch aus."
+                f"Die Vorbereitungsunterlagen (Block B) stehen noch aus."
             )
             send_email(subject, body, recipients)
     except Exception as exc:
@@ -641,8 +685,8 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
             })
             with urllib.request.urlopen(sel_req) as resp:
                 resp.read()
-        # If a Pflicht doc was just marked complete, check if everything is now done → notify
-        if value and doc_id in (BLOCK_A_IDS | BLOCK_B_PFLICHT_IDS):
+        # Jeder Abschluss kann einen Meilenstein auslösen → immer prüfen
+        if value:
             send_completion_email(cust_id)
         return func.HttpResponse(
             json.dumps({"ok": True, "uploaded": uploaded, "uploadError": upload_error}),
