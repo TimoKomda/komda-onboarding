@@ -465,11 +465,16 @@ def send_completion_email(item_id: str) -> None:
         b_all_fields = _block_b_all_active_fields(fields.get("Optionen", ""))
         block_b_done = bool(b_all_fields) and all(fields.get(f, False) for f in b_all_fields)
 
-        # Deduplizierung: MailMilestone (Text-Feld, braucht SP-Spalte via "Liste initialisieren")
-        mail_milestone = fields.get("MailMilestone", "") or ""
+        # Deduplizierung: MailMilestone (Text-Feld)
+        # fields.get("MailMilestone") liefert None wenn Spalte fehlt, "" wenn Spalte existiert aber leer ist
+        mail_milestone_raw = fields.get("MailMilestone")
+        milestone_column_exists = mail_milestone_raw is not None
+        mail_milestone = mail_milestone_raw or ""
         sent = [m for m in mail_milestone.split(",") if m]
-        # Fallback: MailGesendet (Boolean) existiert bereits im SP → verhindert Block-A-Wiederholung
-        mail_gesendet = bool(fields.get("MailGesendet", False))
+        # MailGesendet (Boolean) nur als Fallback wenn MailMilestone-Spalte noch nicht existiert.
+        # Existiert die Spalte bereits, ignorieren wir MailGesendet damit alte True-Werte
+        # aus früheren Test-Mails keine neuen Mails blockieren.
+        mail_gesendet = bool(fields.get("MailGesendet", False)) if not milestone_column_exists else False
 
         # Optional: Schnittstellen-Hinweis für Mail-Body aufbauen
         schnitt_lines = ""
