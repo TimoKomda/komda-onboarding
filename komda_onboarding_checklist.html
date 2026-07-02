@@ -658,7 +658,7 @@
         'Datum': function() { return new Date().toISOString().slice(0, 10); },
       },
       fieldLabels: {
-        'Kunde': 'Kunde / Firmenstempel',
+        'Kunde': 'Kunde',
         'Datum': 'Datum',
       },
     },
@@ -1744,6 +1744,24 @@
   }
 
   window.applySignature = async function() {
+    // Pflichtfelder prüfen
+    var emptyRequired = [];
+    document.querySelectorAll('.sign-field-input[data-required="1"]').forEach(function(inp) {
+      if (!inp.value.trim()) {
+        var fn = inp.getAttribute('data-field') || '';
+        var cfg0 = SIGN_CONFIG[currentSignDocId] || {};
+        var label = (cfg0.fieldLabels && cfg0.fieldLabels[fn]) ? cfg0.fieldLabels[fn] : fn.replace(/_/g,' ');
+        emptyRequired.push(label);
+        inp.style.borderColor = 'var(--red)';
+      } else {
+        inp.style.borderColor = '';
+      }
+    });
+    if (emptyRequired.length > 0) {
+      alert('Bitte füllen Sie alle Pflichtfelder aus:\n• ' + emptyRequired.join('\n• '));
+      return;
+    }
+
     var canvas = document.getElementById('sign-pad');
     var ctx = canvas.getContext('2d');
     var data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
