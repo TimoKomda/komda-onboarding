@@ -52,7 +52,7 @@ GET_SELECT_FIELDS = (
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,"
     "FibuAuswahl,LohnAuswahl,LogoUrl,SchulungDurchgefuehrt,"
-    "ZusatzEmails,EmailCC,MailMilestone"
+    "ZusatzEmails,EmailCC,MailGesendet,MailMilestone"
 )
 
 # Block A = Pflichtunterlagen (Vertragsunterlagen)
@@ -465,9 +465,11 @@ def send_completion_email(item_id: str) -> None:
         b_all_fields = _block_b_all_active_fields(fields.get("Optionen", ""))
         block_b_done = bool(b_all_fields) and all(fields.get(f, False) for f in b_all_fields)
 
-        # Deduplizierung: welche Meilenstein-Mails wurden bereits gesendet?
+        # Deduplizierung: MailMilestone (Text-Feld, braucht SP-Spalte via "Liste initialisieren")
         mail_milestone = fields.get("MailMilestone", "") or ""
         sent = [m for m in mail_milestone.split(",") if m]
+        # Fallback: MailGesendet (Boolean) existiert bereits im SP → verhindert Block-A-Wiederholung
+        mail_gesendet = bool(fields.get("MailGesendet", False))
 
         # Optional: Schnittstellen-Hinweis für Mail-Body aufbauen
         schnitt_lines = ""
@@ -507,8 +509,8 @@ def send_completion_email(item_id: str) -> None:
             )
         elif block_a_done:
             milestone_key = "block_a"
-            # Bereits gesendet (oder "complete" bereits gesendet)?
-            if milestone_key in sent or "complete" in sent:
+            # Bereits gesendet? — MailMilestone ODER MailGesendet (Fallback ohne SP-Spalte)
+            if milestone_key in sent or "complete" in sent or mail_gesendet:
                 return
             subject = f"📋 Onboarding: Vertragsunterlagen vollständig – {kd_label}"
             body = (
@@ -524,10 +526,22 @@ def send_completion_email(item_id: str) -> None:
         else:
             return  # Kein Meilenstein erreicht
 
-        # Mail senden und Meilenstein in SP speichern (Deduplizierung)
+        # Mail senden
         send_email(subject, body, recipients)
-        new_milestones = ",".join(sent + [milestone_key])
-        sp_patch_text(item_id, "MailMilestone", new_milestones)
+
+        # Meilenstein in SP speichern (Deduplizierung)
+        # MailGesendet (boolean) — existiert immer, sofort als Fallback setzen
+        try:
+            sp_patch(item_id, "MailGesendet", True)
+        except Exception:
+            pass
+        # MailMilestone (text) — braucht SP-Spalte via "Liste initialisieren"
+        try:
+            new_milestones = ",".join(sent + [milestone_key])
+            sp_patch_text(item_id, "MailMilestone", new_milestones)
+        except Exception:
+            pass  # Spalte fehlt noch → MailGesendet greift als Fallback
+
     except Exception as exc:
         import logging
         logging.error("send_completion_email failed: %s", exc)
