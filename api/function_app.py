@@ -52,7 +52,7 @@ GET_SELECT_FIELDS = (
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,"
     "FibuAuswahl,LohnAuswahl,LogoUrl,SchulungDurchgefuehrt,"
-    "ZusatzEmails,EmailCC"
+    "ZusatzEmails,EmailCC,MailMilestone"
 )
 
 # Block A = Pflichtunterlagen (Vertragsunterlagen)
@@ -130,6 +130,22 @@ def sp_get_item(item_id: str) -> dict:
 
 
 def sp_patch(item_id: str, field: str, value: bool):
+    token = get_app_token()
+    url = (
+        f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
+        f"/lists/{LIST_ID}/items/{item_id}/fields"
+    )
+    payload = json.dumps({field: value}).encode()
+    req = urllib.request.Request(url, data=payload, method="PATCH", headers={
+        "Authorization": f"Bearer {token}",
+        "Content-Type":  "application/json",
+    })
+    with urllib.request.urlopen(req) as resp:
+        resp.read()
+
+
+def sp_patch_text(item_id: str, field: str, value: str):
+    """PATCH a single text field on a SharePoint list item."""
     token = get_app_token()
     url = (
         f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}"
@@ -449,6 +465,10 @@ def send_completion_email(item_id: str) -> None:
         b_all_fields = _block_b_all_active_fields(fields.get("Optionen", ""))
         block_b_done = bool(b_all_fields) and all(fields.get(f, False) for f in b_all_fields)
 
+        # Deduplizierung: welche Meilenstein-Mails wurden bereits gesendet?
+        mail_milestone = fields.get("MailMilestone", "") or ""
+        sent = [m for m in mail_milestone.split(",") if m]
+
         # Optional: Schnittstellen-Hinweis für Mail-Body aufbauen
         schnitt_lines = ""
         if fibu_auswahl:
@@ -458,7 +478,10 @@ def send_completion_email(item_id: str) -> None:
         schnitt_block = f"\nGewählte Schnittstellen:\n{schnitt_lines}" if schnitt_lines else ""
 
         if block_a_done and block_b_done:
-            # Milestone: alles vollständig
+            milestone_key = "complete"
+            # Bereits gesendet?
+            if milestone_key in sent:
+                return
             subject = f"✅ Onboarding vollständig – {kd_label}"
             body = (
                 f"Alle Unterlagen für den Kunden {firma} (Kundennr.: {kundennummer}) "
@@ -469,9 +492,11 @@ def send_completion_email(item_id: str) -> None:
                 f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
                 f"Der Kunde ist bereit für die Schulung. Bitte prüfen Sie das Onboarding-Portal."
             )
-            send_email(subject, body, recipients)
         elif block_b_done:
-            # Milestone: nur Block B vollständig (Block A noch ausstehend)
+            milestone_key = "block_b"
+            # Bereits gesendet (oder "complete" bereits gesendet)?
+            if milestone_key in sent or "complete" in sent:
+                return
             subject = f"📋 Onboarding: Vorbereitungsunterlagen vollständig – {kd_label}"
             body = (
                 f"Die Vorbereitungsunterlagen (Block B) für den Kunden {firma} "
@@ -480,9 +505,11 @@ def send_completion_email(item_id: str) -> None:
                 f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
                 f"Die Vertragsunterlagen (Block A) stehen noch aus."
             )
-            send_email(subject, body, recipients)
         elif block_a_done:
-            # Milestone: nur Block A vollständig
+            milestone_key = "block_a"
+            # Bereits gesendet (oder "complete" bereits gesendet)?
+            if milestone_key in sent or "complete" in sent:
+                return
             subject = f"📋 Onboarding: Vertragsunterlagen vollständig – {kd_label}"
             body = (
                 f"Die Vertragsunterlagen (Block A) für den Kunden {firma} "
@@ -494,7 +521,13 @@ def send_completion_email(item_id: str) -> None:
                 f"Zuständiger Betreuer: {sachbearbeiter}\n\n"
                 f"Die Vorbereitungsunterlagen (Block B) stehen noch aus."
             )
-            send_email(subject, body, recipients)
+        else:
+            return  # Kein Meilenstein erreicht
+
+        # Mail senden und Meilenstein in SP speichern (Deduplizierung)
+        send_email(subject, body, recipients)
+        new_milestones = ",".join(sent + [milestone_key])
+        sp_patch_text(item_id, "MailMilestone", new_milestones)
     except Exception as exc:
         import logging
         logging.error("send_completion_email failed: %s", exc)
