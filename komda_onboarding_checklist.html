@@ -1253,7 +1253,7 @@
     } else if (action === 'undo') {
       status[id] = false; saveStatus(status); syncToParent(id, false); render();
     } else if (action === 'sel-undo') {
-      status[id] = false; delete status[id + '_auswahl']; saveStatus(status); syncToParent(id, false); syncSelectionToParent(id, ''); render();
+      status[id] = false; delete status[id + '_auswahl']; saveStatus(status); syncToParent(id, false); render();
     } else if (action === 'toggle') {
       var body = document.getElementById('steps-' + id);
       var arrow = document.getElementById('arrow-' + id);
