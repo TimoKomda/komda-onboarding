@@ -613,22 +613,23 @@
       // wbGroups: [] triggers the custom layout path (no WB section rendered)
       wbGroups: [],
       // coreFieldOrder: virtual fields Strasse_v + PlzOrt_v are combined into dxFormField15
-      coreFieldOrder: ['Firma_v', 'Name_v', 'Strasse_v', 'PlzOrt_v', 'dxFormField1', 'dxFormField2', 'dxFormField3', 'dxFormField4', 'dxFormField5'],
+      coreFieldOrder: ['Name_v', 'Strasse_v', 'PlzOrt_v', 'dxFormField1', 'dxFormField2', 'dxFormField3', 'dxFormField4', 'dxFormField5'],
       // dxFormField13 = Mandatsreferenz → auto-filled with Kundennummer, hidden from user
       hiddenFields: ['dxFormField13'],
+      dateFields: ['dxFormField5'],
       autoFill: {
         'dxFormField13': function() {
           return (typeof apiConfig !== 'undefined' && apiConfig && apiConfig.kundennummer) ? String(apiConfig.kundennummer) : '';
         },
+        'dxFormField5': function() { return new Date().toISOString().slice(0, 10); },
       },
       // Combine virtual inputs into multiline PDF fields
       combineFields: {
-        'dxFormField14': ['Firma_v', 'Name_v'],
+        'dxFormField14': ['Name_v'],
         'dxFormField15': ['Strasse_v', 'PlzOrt_v'],
       },
       fieldLabels: {
         'dxFormField13': 'Mandatsreferenz (Kundennummer)',
-        'Firma_v':       'Firma',
         'Name_v':        'Name des Zahlungspflichtigen (Kontoinhaber)',
         'Strasse_v':     'Straße, Hausnummer',
         'PlzOrt_v':      'PLZ, Ort',
@@ -652,6 +653,10 @@
       pdfUrl: 'formulare/fernwartung.pdf',
       signatures: [],
       showDate: false,
+      dateFields: ['Datum'],
+      autoFill: {
+        'Datum': function() { return new Date().toISOString().slice(0, 10); },
+      },
       fieldLabels: {
         'Kunde': 'Kunde / Firmenstempel',
         'Datum': 'Datum',
@@ -1455,10 +1460,13 @@
               var label = cfgLabels[name] || name.replace(/_/g, ' ');
               var req = required !== false ? ' data-required="1"' : '';
               var star = required !== false ? ' <span style="color:var(--red)">*</span>' : '';
+              var isDate = cfg && cfg.dateFields && cfg.dateFields.indexOf(name) !== -1;
+              var inputType = isDate ? 'date' : 'text';
+              var placeholder = isDate ? '' : (' placeholder="' + label + '"');
               return '<div class="sign-field-item">'
                 + '<label class="sign-field-label">' + label + star + '</label>'
-                + '<input type="text" class="sign-field-input" data-field="' + name + '"'
-                + req + ' value="' + val + '" placeholder="' + label + '" /></div>';
+                + '<input type="' + inputType + '" class="sign-field-input" data-field="' + name + '"'
+                + req + ' value="' + val + '"' + placeholder + ' /></div>';
             }
 
             fieldsHtml = '<div class="sign-fields-label">Formularfelder ausfüllen:</div>';
@@ -1513,11 +1521,14 @@
                 if (!label || /^\d+$/.test(label)) label = 'Feld ' + (idx + 1);
                 else label = label.charAt(0).toUpperCase() + label.slice(1);
               }
+              var isDate = cfg && cfg.dateFields && cfg.dateFields.indexOf(rawName) !== -1;
+              var inputType = isDate ? 'date' : 'text';
+              var placeholder = isDate ? '' : (' placeholder="' + label + '"');
               fieldsHtml += '<div class="sign-field-item">'
                 + '<label class="sign-field-label">' + label + ' <span style="color:var(--red)">*</span></label>'
-                + '<input type="text" class="sign-field-input" data-field="' + rawName + '"'
+                + '<input type="' + inputType + '" class="sign-field-input" data-field="' + rawName + '"'
                 + ' data-required="1" value="' + tf.val.replace(/"/g, '&quot;') + '"'
-                + ' placeholder="' + label + '" /></div>';
+                + placeholder + ' /></div>';
             });
             fieldsHtml += '</div>';
           }
@@ -1760,6 +1771,10 @@
         document.querySelectorAll('.sign-field-input').forEach(function(inp) {
           var fn = inp.getAttribute('data-field');
           var val = inp.value.trim();
+          // Date inputs (YYYY-MM-DD) → German format DD.MM.YYYY for the PDF
+          if (fn && val && cfg2.dateFields && cfg2.dateFields.indexOf(fn) !== -1 && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+            val = val.slice(8, 10) + '.' + val.slice(5, 7) + '.' + val.slice(0, 4);
+          }
           if (fn && val) inputVals[fn] = val;
         });
         // Build set of virtual fields used by combineFields
