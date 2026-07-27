@@ -919,8 +919,8 @@
     var allOpts = apiConfig ? (apiConfig.optionen || '').split(',').filter(Boolean) : [];
     var activeOpts = allOpts.filter(function(o) { return !o.startsWith('!'); });
     var disabledIds = allOpts.filter(function(o) { return o.startsWith('!'); }).map(function(o) { return o.slice(1); });
-    // Pflicht-Vorbereitungsunterlagen: Basis + aktivierte Optional-Pflicht-Punkte (z.B. Vergütung/Preisliste)
-    BLOCK_B_PFLICHT = BLOCK_B_PFLICHT_BASE.concat(
+    // Pflicht-Vorbereitungsunterlagen: Basis (gefiltert um deaktivierte Punkte) + aktivierte Optional-Pflicht-Punkte
+    BLOCK_B_PFLICHT = BLOCK_B_PFLICHT_BASE.filter(function(o) { return disabledIds.indexOf(o.id) === -1; }).concat(
       OPTIONAL_META.filter(function(o) { return o.block === 'B' && o.pflicht && activeOpts.indexOf(o.id) !== -1; })
     );
     // Optionale Vorbereitungsunterlagen: nicht deaktivierte Basis-Optional-Punkte
@@ -947,36 +947,50 @@
 
   var parentCustomer = loadFromParent();
   var status = (parentCustomer && parentCustomer.docs) ? Object.assign({}, parentCustomer.docs) : loadStatus();
+  var naStatus = {}; // doc IDs marked as "nicht vorhanden"
 
   // SharePoint ist Source of Truth → Cross-Device-Sync
   if (apiConfig && apiConfig.docs) {
     Object.assign(status, apiConfig.docs);
     saveStatus(status);
   }
+  if (apiConfig && apiConfig.docNA) {
+    apiConfig.docNA.forEach(function(id) { naStatus[id] = true; });
+  }
 
   // ── renderItem ────────────────────────────────────────────────────────
   function renderItem(doc, blockClass) {
     var isDone     = !!status[doc.id];
+    var isNA       = !!naStatus[doc.id];
+    var isComplete = isDone || isNA;
     var hasSigning = !!SIGN_CONFIG[doc.id];
     var hasUpload  = !!doc.upload;
     var isSelection = doc.type === 'selection';
+
+    function statusBadge() {
+      if (isDone)  return '<span class="status-badge done">✓ Erledigt</span>';
+      if (isNA)    return '<span class="status-badge" style="background:var(--gray-bg);color:var(--muted);border:1px solid var(--border)">– Nicht vorhanden</span>';
+      return '<span class="status-badge open">● Offen</span>';
+    }
 
     // Selection-type: eigenes Rendering
     if (isSelection) {
       var savedSel = status[doc.id + '_auswahl'] || '';
       var selHtml = '<div class="check-item">'
-        + '<span class="status-badge ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '✓ Erledigt' : '● Offen') + '</span>'
+        + statusBadge()
         + '<div class="check-icon">' + doc.icon + '</div>'
         + '<div class="check-text">'
-        + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
+        + '<div class="check-name' + (isComplete ? ' done' : '') + '">' + doc.name + '</div>'
         + '<div class="check-desc">' + doc.desc + '</div>'
         + '</div>';
       if (isDone) {
         selHtml += '<button class="check-btn undo-btn" data-action="sel-undo" data-id="' + doc.id + '">↩ Rückgängig</button>';
+      } else if (isNA) {
+        selHtml += '<button class="check-btn undo-btn" data-action="na" data-id="' + doc.id + '" title="Klicken um zurückzusetzen">↩ Rückgängig</button>';
       } else {
         selHtml += '<div class="check-btn-wrap">'
           + '<button class="check-btn upload-btn" data-action="toggle" data-id="' + doc.id + '">&#9998; Auswahl treffen</button>'
-          + '<button class="check-btn manual-btn" data-action="done" data-id="' + doc.id + '">&#10007; Nicht vorhanden</button>'
+          + '<button class="check-btn manual-btn" data-action="na" data-id="' + doc.id + '">&#10007; Nicht vorhanden</button>'
           + '</div>';
       }
       selHtml += '</div>';
@@ -1022,7 +1036,7 @@
 
     // Download-Zone (für Datenübernahme-Templates)
     var downloadZoneHtml = '';
-    if (doc.downloadFolder && !isDone) {
+    if (doc.downloadFolder && !isComplete) {
       downloadZoneHtml = '<div class="download-zone">'
         + '<div class="download-zone-title">&#8681; Vorlagen herunterladen</div>'
         + '<div class="download-zone-sub">Laden Sie die Excel-Musterdateien herunter, befüllen Sie diese und laden Sie sie anschließend hoch.</div>'
@@ -1036,7 +1050,7 @@
 
     // Upload-Zone (nur wenn aufgeklappt und noch nicht erledigt)
     var uploadZoneHtml = '';
-    if (hasUpload && !isDone) {
+    if (hasUpload && !isComplete) {
       uploadZoneHtml = '<div class="upload-zone" id="uz-' + doc.id + '"'
         + ' ondragover="event.preventDefault();this.classList.add(\'drag-over\')"'
         + ' ondragleave="this.classList.remove(\'drag-over\')"'
@@ -1063,14 +1077,17 @@
     var actionHtml;
     if (isDone) {
       actionHtml = '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rückgängig</button>';
+    } else if (isNA) {
+      actionHtml = '<button class="check-btn undo-btn" data-action="na" data-id="' + doc.id + '" title="Klicken um zurückzusetzen">↩ Rückgängig</button>';
     } else if (hasSigning) {
       actionHtml = '<div class="check-btn-wrap">'
         + '<button class="check-btn sign-btn" data-action="sign" data-id="' + doc.id + '">&#128221; Ausfüllen &amp; Unterschreiben</button>'
+        + (isBlockB ? '<button class="check-btn manual-btn" data-action="na" data-id="' + doc.id + '">✗ Nicht vorhanden</button>' : '')
         + '</div>';
     } else if (hasUpload) {
       actionHtml = '<div class="check-btn-wrap">'
         + '<button class="check-btn upload-btn" data-action="toggle" data-id="' + doc.id + '">&#8679; Hochladen</button>'
-        + (isBlockB ? '<button class="check-btn manual-btn" data-action="done" data-id="' + doc.id + '">✗ Nicht vorhanden</button>' : '')
+        + (isBlockB ? '<button class="check-btn manual-btn" data-action="na" data-id="' + doc.id + '">✗ Nicht vorhanden</button>' : '')
         + '</div>';
     } else {
       actionHtml = '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Abhaken</button>';
@@ -1078,10 +1095,10 @@
 
     return '<div>'
       + '<div class="check-item">'
-      + '<span class="status-badge ' + (isDone ? 'done' : 'open') + '">' + (isDone ? '✓ Erledigt' : '● Offen') + '</span>'
+      + statusBadge()
       + '<div class="check-icon">' + doc.icon + '</div>'
       + '<div class="check-text">'
-      + '<div class="check-name' + (isDone ? ' done' : '') + '">' + doc.name + '</div>'
+      + '<div class="check-name' + (isComplete ? ' done' : '') + '">' + doc.name + '</div>'
       + '<div class="check-desc">' + doc.desc + '</div>'
       + '</div>'
       + actionHtml
@@ -1119,14 +1136,15 @@
   // ── render ────────────────────────────────────────────────────────────
   function render() {
     var done = 0;
-    for (var i = 0; i < ALL_DOCS.length; i++) { if (status[ALL_DOCS[i].id]) done++; }
+    for (var i = 0; i < ALL_DOCS.length; i++) { if (status[ALL_DOCS[i].id] || naStatus[ALL_DOCS[i].id]) done++; }
 
     var urls       = getUrls();
     var spUrl      = urls.spUrl;
     var folderUrls = urls.folderUrls;
 
-    var doneA = 0; for (var ai = 0; ai < BLOCK_A.length; ai++) { if (status[BLOCK_A[ai].id]) doneA++; }
-    var doneB = 0; for (var bi = 0; bi < BLOCK_B_ACTIVE.length; bi++) { if (status[BLOCK_B_ACTIVE[bi].id]) doneB++; }
+    function isDone(id) { return !!(status[id] || naStatus[id]); }
+    var doneA = 0; for (var ai = 0; ai < BLOCK_A.length; ai++) { if (isDone(BLOCK_A[ai].id)) doneA++; }
+    var doneB = 0; for (var bi = 0; bi < BLOCK_B_ACTIVE.length; bi++) { if (isDone(BLOCK_B_ACTIVE[bi].id)) doneB++; }
 
     // Pflicht-Balken (Block A)
     var fillA = _el('progress-side-fill-a');
@@ -1187,33 +1205,38 @@
       : '<span class="folder-btn-big disabled">&#128193; Dokumenten-Ordner öffnen</span>';
 
     var flHtml = '<div class="file-section-label">Pflichtunterlagen</div>';
+    function fileBadge(id) {
+      if (status[id]) return '<span class="file-badge done">✓ Erledigt</span>';
+      if (naStatus[id]) return '<span class="file-badge" style="background:var(--gray-bg);color:var(--muted);border:1px solid var(--border)">– N/A</span>';
+      return '<span class="file-badge open">● Offen</span>';
+    }
     for (var f = 0; f < BLOCK_A.length; f++) {
-      var fd = BLOCK_A[f]; var fisDone = !!status[fd.id];
+      var fd = BLOCK_A[f]; var fisDone = isDone(fd.id);
       flHtml += '<div class="file-row' + (fisDone ? ' done-row' : '') + '">'
         + '<div class="file-icon-wrap">' + fd.icon + '</div>'
         + '<div class="file-info"><div class="file-name' + (fisDone ? ' done' : '') + '">' + fd.name + '</div></div>'
-        + '<span class="file-badge ' + (fisDone ? 'done' : 'open') + '">' + (fisDone ? '✓ Erledigt' : '● Offen') + '</span>'
+        + fileBadge(fd.id)
         + '</div>';
     }
     if (BLOCK_B_PFLICHT.length > 0) {
       flHtml += '<div class="file-section-label">Pflicht-Vorbereitungsunterlagen</div>';
       for (var g = 0; g < BLOCK_B_PFLICHT.length; g++) {
-        var gb = BLOCK_B_PFLICHT[g]; var gbDone = !!status[gb.id];
+        var gb = BLOCK_B_PFLICHT[g]; var gbDone = isDone(gb.id);
         flHtml += '<div class="file-row' + (gbDone ? ' done-row' : '') + '">'
           + '<div class="file-icon-wrap">' + gb.icon + '</div>'
           + '<div class="file-info"><div class="file-name' + (gbDone ? ' done' : '') + '">' + gb.name + '</div></div>'
-          + '<span class="file-badge ' + (gbDone ? 'done' : 'open') + '">' + (gbDone ? '✓ Erledigt' : '● Offen') + '</span>'
+          + fileBadge(gb.id)
           + '</div>';
       }
     }
     if (BLOCK_B_OPTIONAL.length > 0) {
       flHtml += '<div class="file-section-label">Optionale Vorbereitungsunterlagen</div>';
       for (var go = 0; go < BLOCK_B_OPTIONAL.length; go++) {
-        var gob = BLOCK_B_OPTIONAL[go]; var gobDone = !!status[gob.id];
+        var gob = BLOCK_B_OPTIONAL[go]; var gobDone = isDone(gob.id);
         flHtml += '<div class="file-row' + (gobDone ? ' done-row' : '') + '">'
           + '<div class="file-icon-wrap">' + gob.icon + '</div>'
           + '<div class="file-info"><div class="file-name' + (gobDone ? ' done' : '') + '">' + gob.name + '</div></div>'
-          + '<span class="file-badge ' + (gobDone ? 'done' : 'open') + '">' + (gobDone ? '✓ Erledigt' : '● Offen') + '</span>'
+          + fileBadge(gob.id)
           + '</div>';
       }
     }
@@ -1245,7 +1268,7 @@
     saveStatus(status);
     syncSelectionToParent(docId, auswahl);
     render();
-    var allDone = ALL_DOCS.every(function(d) { return !!status[d.id]; });
+    var allDone = ALL_DOCS.every(function(d) { return !!(status[d.id] || naStatus[d.id]); });
     if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
@@ -1257,8 +1280,15 @@
     var id     = btn.getAttribute('data-id');
     if (action === 'done') {
       status[id] = true; saveStatus(status); syncToParent(id, true); render();
-      var allDone = ALL_DOCS.every(function(d) { return !!status[d.id]; });
+      var allDone = ALL_DOCS.every(function(d) { return !!(status[d.id] || naStatus[d.id]); });
       if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else if (action === 'na') {
+      // Toggle "Nicht vorhanden" — optimistic UI, confirmed by server response
+      naStatus[id] = !naStatus[id];
+      render();
+      syncNAToParent(id);
+      var allDone2 = ALL_DOCS.every(function(d) { return !!(status[d.id] || naStatus[d.id]); });
+      if (allDone2) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (action === 'undo') {
       status[id] = false; saveStatus(status); syncToParent(id, false); render();
     } else if (action === 'sel-undo') {
@@ -1293,6 +1323,23 @@
       .then(function(r) { return r.json(); })
       .then(function(d) { if (!d.ok) console.warn('Sync-Fehler:', d); })
       .catch(function(e) { console.warn('Sync nicht erreichbar:', e); });
+    }
+  }
+
+  function syncNAToParent(docId) {
+    var custId = '';
+    try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
+    if (custId && !isPreview) {
+      fetch(API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, na: true }),
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        if (d.ok) { naStatus[docId] = !!d.na; render(); }
+        else console.warn('NA-Sync-Fehler:', d);
+      })
+      .catch(function(e) { console.warn('NA-Sync nicht erreichbar:', e); });
     }
   }
 
@@ -2117,6 +2164,8 @@
       // Status aus API mit lokalem mergen (API hat Vorrang)
       if (apiConfig.docs) Object.assign(status, apiConfig.docs);
       saveStatus(status);
+      naStatus = {};
+      if (apiConfig.docNA) apiConfig.docNA.forEach(function(id) { naStatus[id] = true; });
       buildDocList();
       applyCustomerUI();
       render();
