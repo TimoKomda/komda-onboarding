@@ -1048,9 +1048,9 @@
         + '</div>';
     }
 
-    // Upload-Zone (nur wenn aufgeklappt und noch nicht erledigt)
+    // Upload-Zone (immer wenn Upload möglich und nicht N/A — auch nach Erledigung)
     var uploadZoneHtml = '';
-    if (hasUpload && !isComplete) {
+    if (hasUpload && !isNA) {
       uploadZoneHtml = '<div class="upload-zone" id="uz-' + doc.id + '"'
         + ' ondragover="event.preventDefault();this.classList.add(\'drag-over\')"'
         + ' ondragleave="this.classList.remove(\'drag-over\')"'
@@ -1076,7 +1076,12 @@
     var isBlockB = blockClass === 'b';
     var actionHtml;
     if (isDone) {
-      actionHtml = '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rückgängig</button>';
+      actionHtml = hasUpload
+        ? '<div class="check-btn-wrap">'
+          + '<button class="check-btn upload-btn" data-action="toggle" data-id="' + doc.id + '">&#8679; Weitere hochladen</button>'
+          + '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Zurücksetzen</button>'
+          + '</div>'
+        : '<button class="check-btn undo-btn" data-action="undo" data-id="' + doc.id + '">↩ Rückgängig</button>';
     } else if (isNA) {
       actionHtml = '<button class="check-btn undo-btn" data-action="na" data-id="' + doc.id + '" title="Klicken um zurückzusetzen">↩ Rückgängig</button>';
     } else if (hasSigning) {
