@@ -1330,6 +1330,7 @@
     var custId = '';
     try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
     if (custId && !isPreview) {
+      var prevNA = naStatus[docId]; // snapshot before optimistic update
       fetch(API_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, na: true }),
@@ -1337,9 +1338,9 @@
       .then(function(r) { return r.json(); })
       .then(function(d) {
         if (d.ok) { naStatus[docId] = !!d.na; render(); }
-        else console.warn('NA-Sync-Fehler:', d);
+        else { naStatus[docId] = prevNA; render(); console.warn('NA-Sync-Fehler:', d); }
       })
-      .catch(function(e) { console.warn('NA-Sync nicht erreichbar:', e); });
+      .catch(function(e) { naStatus[docId] = prevNA; render(); console.warn('NA-Sync nicht erreichbar:', e); });
     }
   }
 
