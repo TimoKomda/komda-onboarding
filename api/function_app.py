@@ -52,7 +52,7 @@ GET_SELECT_FIELDS = (
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,"
     "FibuAuswahl,LohnAuswahl,LogoUrl,SchulungDurchgefuehrt,"
-    "ZusatzEmails,EmailCC,MailGesendet,MailMilestone"
+    "ZusatzEmails,EmailCC,MailGesendet,MailMilestone,DocNichtVorhanden"
 )
 
 # Block A = Pflichtunterlagen (Vertragsunterlagen)
@@ -414,8 +414,11 @@ def send_email(subject: str, body: str, recipients: list) -> None:
 
 def _block_b_pflicht_fields(optionen: str) -> list:
     """Return the Block-B-Pflicht SP field names relevant for this customer."""
-    opts = [o.strip() for o in optionen.split(",") if o.strip() and not o.startswith("!")]
-    fields = list(BLOCK_B_PFLICHT_ALWAYS)
+    parts = [o.strip() for o in optionen.split(",") if o.strip()]
+    opts = [o for o in parts if not o.startswith("!")]
+    disabled = {o[1:] for o in parts if o.startswith("!")}
+    # DocVorlagen can be deactivated via !vorlagen in Optionen
+    fields = [f for f in BLOCK_B_PFLICHT_ALWAYS if not (f == "DocVorlagen" and "vorlagen" in disabled)]
     for opt_id, sp_field in BLOCK_B_PFLICHT_OPTIONAL_MAP.items():
         if opt_id in opts:
             fields.append(sp_field)
@@ -424,8 +427,10 @@ def _block_b_pflicht_fields(optionen: str) -> list:
 
 def _block_b_all_active_fields(optionen: str) -> list:
     """Return ALL active Block B SP fields: DocVorlagen + every activated optional item."""
-    opts = [o.strip() for o in optionen.split(",") if o.strip() and not o.startswith("!")]
-    result = list(BLOCK_B_PFLICHT_ALWAYS)
+    parts = [o.strip() for o in optionen.split(",") if o.strip()]
+    opts = [o for o in parts if not o.startswith("!")]
+    disabled = {o[1:] for o in parts if o.startswith("!")}
+    result = [f for f in BLOCK_B_PFLICHT_ALWAYS if not (f == "DocVorlagen" and "vorlagen" in disabled)]
     for opt_id, sp_field in BLOCK_B_ALL_OPTIONAL_MAP.items():
         if opt_id in opts:
             result.append(sp_field)
@@ -433,11 +438,20 @@ def _block_b_all_active_fields(optionen: str) -> list:
 
 
 def _all_pflicht_complete(fields: dict) -> bool:
-    """Return True when Block A AND Block B Pflicht are all done."""
-    if not all(fields.get(f, False) for f in BLOCK_A_FIELDS):
+    """Return True when Block A AND Block B Pflicht are all done (uploaded or NA)."""
+    doc_na_ids = set(
+        x.strip() for x in (fields.get("DocNichtVorhanden") or "").split(",") if x.strip()
+    )
+    def _done(sp_field: str) -> bool:
+        if fields.get(sp_field, False):
+            return True
+        doc_id = next((k for k, v in DOC_FIELD.items() if v == sp_field), None)
+        return doc_id in doc_na_ids
+
+    if not all(_done(f) for f in BLOCK_A_FIELDS):
         return False
     b_fields = _block_b_pflicht_fields(fields.get("Optionen", ""))
-    return all(fields.get(f, False) for f in b_fields)
+    return all(_done(f) for f in b_fields)
 
 
 def send_completion_email(item_id: str) -> None:
@@ -461,9 +475,19 @@ def send_completion_email(item_id: str) -> None:
         fibu_auswahl   = fields.get("FibuAuswahl",    "").strip()
         lohn_auswahl   = fields.get("LohnAuswahl",    "").strip()
 
-        block_a_done = all(fields.get(f, False) for f in BLOCK_A_FIELDS)
+        # Docs marked as "nicht vorhanden" (N/A) count as completed
+        doc_na_ids = set(
+            x.strip() for x in (fields.get("DocNichtVorhanden") or "").split(",") if x.strip()
+        )
+        def doc_done(sp_field: str) -> bool:
+            if fields.get(sp_field, False):
+                return True
+            doc_id = next((k for k, v in DOC_FIELD.items() if v == sp_field), None)
+            return doc_id in doc_na_ids
+
+        block_a_done = all(doc_done(f) for f in BLOCK_A_FIELDS)
         b_all_fields = _block_b_all_active_fields(fields.get("Optionen", ""))
-        block_b_done = bool(b_all_fields) and all(fields.get(f, False) for f in b_all_fields)
+        block_b_done = bool(b_all_fields) and all(doc_done(f) for f in b_all_fields)
 
         # Deduplizierung: ausschließlich MailMilestone (Text-Feld in SP).
         # SP lässt leere Textfelder aus dem Response weg → get() liefert None, nicht "".
@@ -631,6 +655,8 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
             # Build doc-status map so the client can sync across devices
             docs = {doc_id: bool(fields.get(sp_field, False))
                     for doc_id, sp_field in DOC_FIELD.items()}
+            doc_na_raw = fields.get("DocNichtVorhanden") or ""
+            doc_na = [x.strip() for x in doc_na_raw.split(",") if x.strip()]
             return func.HttpResponse(
                 json.dumps({
                     "ok":             True,
@@ -645,7 +671,8 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "spUrlAuftrag":   fields.get("SPUrlAuftrag",     ""),
                     "optionen":       fields.get("Optionen",         ""),
                     "erstschulung":   fields.get("Erstschulung",     ""),
-                    "docs":                docs,
+                    "docs":           docs,
+                    "docNA":          doc_na,
                     "logoUrl":             fields.get("LogoUrl", ""),
                     "schulungDurchgefuehrt": bool(fields.get("SchulungDurchgefuehrt", False)),
                 }),
@@ -691,6 +718,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
 
     doc_id    = str(body.get("docId",     "")).strip()
     value     = bool(body.get("value",    False))
+    na_flag   = bool(body.get("na",       False))
     selection = str(body.get("selection", "")).strip()
     file_b64  = str(body.get("file",      "")).strip()
     filename  = str(body.get("filename",  "")).strip()
@@ -698,9 +726,39 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     subfolder = str(body.get("subfolder", "")).strip()
     field     = DOC_FIELD.get(doc_id)
 
-    if not field or not cust_id:
+    if not doc_id or not cust_id:
         return func.HttpResponse(
             json.dumps({"error": "Ungültige Parameter"}),
+            status_code=400, headers=CORS_HEADERS
+        )
+
+    # ── NA (Nicht vorhanden) action ───────────────────────────────────────
+    if na_flag:
+        try:
+            current = sp_get_item(cust_id)
+            na_str  = current.get("DocNichtVorhanden") or ""
+            na_set  = {x.strip() for x in na_str.split(",") if x.strip()}
+            if doc_id in na_set:
+                na_set.discard(doc_id)   # undo: Klick wenn bereits NA
+                is_na = False
+            else:
+                na_set.add(doc_id)
+                is_na = True
+            sp_patch_text(cust_id, "DocNichtVorhanden", ",".join(sorted(na_set)))
+            send_completion_email(cust_id)
+            return func.HttpResponse(
+                json.dumps({"ok": True, "na": is_na}),
+                status_code=200, headers=CORS_HEADERS
+            )
+        except Exception as exc:
+            return func.HttpResponse(
+                json.dumps({"error": str(exc)}),
+                status_code=500, headers=CORS_HEADERS
+            )
+
+    if not field:
+        return func.HttpResponse(
+            json.dumps({"error": "Ungültiges docId"}),
             status_code=400, headers=CORS_HEADERS
         )
 
@@ -717,6 +775,17 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     # Always update the boolean status field
     try:
         sp_patch(cust_id, field, value)
+        # When doc is completed: remove it from DocNichtVorhanden list (if it was there)
+        if value:
+            try:
+                current = sp_get_item(cust_id)
+                na_str  = current.get("DocNichtVorhanden") or ""
+                na_set  = {x.strip() for x in na_str.split(",") if x.strip()}
+                if doc_id in na_set:
+                    na_set.discard(doc_id)
+                    sp_patch_text(cust_id, "DocNichtVorhanden", ",".join(sorted(na_set)))
+            except Exception:
+                pass
         # For selection-type items: save or clear the text selection
         sel_field = SELECTION_FIELD.get(doc_id)
         if sel_field and (selection or not value):
