@@ -1131,10 +1131,11 @@
   function getUrls() {
     if (_urlCache) return _urlCache;
     var spUrl        = (apiConfig && apiConfig.spUrl)        || (parentCustomer && parentCustomer.spUrl)        || params.get('spUrl')        || '';
+    var spUrlShare   = (apiConfig && apiConfig.spUrlShare)   || (parentCustomer && parentCustomer.spUrlShare)   || params.get('spUrlShare')   || '';
     var spUrlCloud   = (apiConfig && apiConfig.spUrlCloud)   || (parentCustomer && parentCustomer.spUrlCloud)   || params.get('spUrlCloud')   || '';
     var spUrlMobile  = (apiConfig && apiConfig.spUrlMobile)  || (parentCustomer && parentCustomer.spUrlMobile)  || params.get('spUrlMobile')  || '';
     var spUrlAuftrag = (apiConfig && apiConfig.spUrlAuftrag) || (parentCustomer && parentCustomer.spUrlAuftrag) || params.get('spUrlAuftrag') || '';
-    _urlCache = { spUrl: spUrl, spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag, folderUrls: { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag } };
+    _urlCache = { spUrl: spUrl, spUrlShare: spUrlShare, spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag, folderUrls: { spUrlCloud: spUrlCloud, spUrlMobile: spUrlMobile, spUrlAuftrag: spUrlAuftrag } };
     return _urlCache;
   }
 
@@ -1205,8 +1206,9 @@
 
     _el('checklist-items').innerHTML = clHtml;
 
-    _el('folder-btn-wrap').innerHTML = spUrl
-      ? '<a class="folder-btn-big" href="' + spUrl + '" target="_blank">&#128193; Dokumenten-Ordner öffnen</a>'
+    var folderHref = urls.spUrlShare || spUrl;
+    _el('folder-btn-wrap').innerHTML = folderHref
+      ? '<a class="folder-btn-big" href="' + folderHref + '" target="_blank">&#128193; Dokumenten-Ordner öffnen</a>'
       : '<span class="folder-btn-big disabled">&#128193; Dokumenten-Ordner öffnen</span>';
 
     var flHtml = '<div class="file-section-label">Pflichtunterlagen</div>';
