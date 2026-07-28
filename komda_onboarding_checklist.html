@@ -1126,11 +1126,22 @@
   var _elCache = {};
   function _el(id) { return _elCache[id] || (_elCache[id] = document.getElementById(id)); }
 
+  // Bereinigt AllItems.aspx?id=... URLs → saubere SharePoint-Ordner-URL
+  function _cleanFolderUrl(u) {
+    if (!u || !/AllItems\.aspx/i.test(u)) return u;
+    try {
+      var parsed = new URL(u);
+      var idParam = parsed.searchParams.get('id') || parsed.searchParams.get('RootFolder') || '';
+      if (idParam) return parsed.origin + idParam;
+    } catch(e) {}
+    return u;
+  }
+
   // ── spUrl-Cache (nur nach API-Antwort neu berechnen, nicht jedes Render) ──────
   var _urlCache = null;
   function getUrls() {
     if (_urlCache) return _urlCache;
-    var spUrl        = (apiConfig && apiConfig.spUrl)        || (parentCustomer && parentCustomer.spUrl)        || params.get('spUrl')        || '';
+    var spUrl        = _cleanFolderUrl((apiConfig && apiConfig.spUrl)        || (parentCustomer && parentCustomer.spUrl)        || params.get('spUrl')        || '');
     var spUrlShare   = (apiConfig && apiConfig.spUrlShare)   || (parentCustomer && parentCustomer.spUrlShare)   || params.get('spUrlShare')   || '';
     var spUrlCloud   = (apiConfig && apiConfig.spUrlCloud)   || (parentCustomer && parentCustomer.spUrlCloud)   || params.get('spUrlCloud')   || '';
     var spUrlMobile  = (apiConfig && apiConfig.spUrlMobile)  || (parentCustomer && parentCustomer.spUrlMobile)  || params.get('spUrlMobile')  || '';
