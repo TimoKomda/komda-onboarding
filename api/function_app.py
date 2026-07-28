@@ -47,7 +47,7 @@ SELECTION_FIELD = {
 
 GET_SELECT_FIELDS = (
     "Kundennummer,Firma,Anrede,Ansprechpartner,Email,Sachbearbeiter,SachbearbeiterEmail,"
-    "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,Optionen,Erstschulung,"
+    "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,SPUrlShare,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,"
@@ -669,6 +669,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "spUrlCloud":     fields.get("SPUrlCloud",       ""),
                     "spUrlMobile":    fields.get("SPUrlMobile",      ""),
                     "spUrlAuftrag":   fields.get("SPUrlAuftrag",     ""),
+                    "spUrlShare":     fields.get("SPUrlShare",       ""),
                     "optionen":       fields.get("Optionen",         ""),
                     "erstschulung":   fields.get("Erstschulung",     ""),
                     "docs":           docs,
