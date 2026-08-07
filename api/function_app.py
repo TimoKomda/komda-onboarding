@@ -37,12 +37,14 @@ DOC_FIELD = {
     "preisliste":     "DocPreisliste",
     "fibu":           "DocFibu",
     "lohn":           "DocLohn",
+    "ti_anbieter":    "DocTiAnbieter",
 }
 
 # Maps docId → SP text field for selection-type items
 SELECTION_FIELD = {
     "fibu": "FibuAuswahl",
     "lohn": "LohnAuswahl",
+    "ti_anbieter": "TiAnbieterAuswahl",
 }
 
 GET_SELECT_FIELDS = (
@@ -50,8 +52,8 @@ GET_SELECT_FIELDS = (
     "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,SPUrlShare,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
-    "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,"
-    "FibuAuswahl,LohnAuswahl,LogoUrl,SchulungDurchgefuehrt,"
+    "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,DocTiAnbieter,"
+    "FibuAuswahl,LohnAuswahl,TiAnbieterAuswahl,LogoUrl,SchulungDurchgefuehrt,"
     "ZusatzEmails,EmailCC,MailGesendet,MailMilestone,DocNichtVorhanden"
 )
 
@@ -83,6 +85,7 @@ BLOCK_B_ALL_OPTIONAL_MAP = {
     "preisliste":     "DocPreisliste",
     "fibu":           "DocFibu",
     "lohn":           "DocLohn",
+    "ti_anbieter":    "DocTiAnbieter",
     "debitoren":      "DocDebitoren",
     "mitarbeiter":    "DocMitarbeiter",
     "lohnarten":      "DocLohnarten",
@@ -474,6 +477,7 @@ def send_completion_email(item_id: str) -> None:
         kd_label       = f"{kundennummer} {firma}".strip()
         fibu_auswahl   = fields.get("FibuAuswahl",    "").strip()
         lohn_auswahl   = fields.get("LohnAuswahl",    "").strip()
+        ti_auswahl     = fields.get("TiAnbieterAuswahl", "").strip()
 
         # Docs marked as "nicht vorhanden" (N/A) count as completed
         doc_na_ids = set(
@@ -502,6 +506,8 @@ def send_completion_email(item_id: str) -> None:
             schnitt_lines += f"  💶 Finanzbuchhaltung-Schnittstelle: {fibu_auswahl}\n"
         if lohn_auswahl:
             schnitt_lines += f"  💵 Lohnbuchhaltung-Schnittstelle:   {lohn_auswahl}\n"
+        if ti_auswahl:
+            schnitt_lines += f"  📡 TI-Anbieter:                     {ti_auswahl}\n"
         schnitt_block = f"\nGewählte Schnittstellen:\n{schnitt_lines}" if schnitt_lines else ""
 
         if block_a_done and block_b_done:
