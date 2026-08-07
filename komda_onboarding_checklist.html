@@ -96,6 +96,10 @@
     .sel-submit-btn{background:var(--red);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer}
     .sel-submit-btn:disabled{opacity:.5;cursor:default}
     .sel-done-display{font-size:13px;color:var(--green);background:var(--green-bg);border-radius:8px;padding:8px 12px;margin:8px 22px 14px 54px;line-height:1.5}
+    .sel-option-notice{font-size:13px;color:var(--text);background:var(--red-pale, #fdeaea);border:1px solid var(--red);border-radius:8px;padding:10px 14px;line-height:1.5}
+    .sel-option-notice a{color:var(--red);font-weight:700;text-decoration:none}
+    .sel-option-notice a:hover{text-decoration:underline}
+    .sel-option-notice-done{margin:8px 22px 4px 54px}
     .upload-zone{border:2px dashed var(--border);border-radius:10px;padding:14px 16px;text-align:center;margin:8px 22px 14px 54px;cursor:default;transition:border-color .2s,background .2s}
     .download-zone{background:#f0f7ff;border:1px solid #b8cef0;border-radius:10px;padding:14px 18px;margin:8px 22px 8px 54px}
     .download-zone-title{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:4px}
@@ -882,9 +886,12 @@
     {
       id: 'ti_anbieter', name: 'TI-Anbieter', icon: '&#128225;', type: 'selection', singleSelect: true,
       desc: 'Bitte geben Sie an, welchen TI-Anbieter (Telematikinfrastruktur) Sie nutzen.',
-      selectionOptions: ['Curenect', 'Visioncare', 'Medkonnekt'],
+      selectionOptions: ['Curenect', 'Visioncare', 'Medkonnekt', 'Kein'],
       selectionHelpText: 'Wählen Sie Ihren TI-Anbieter aus der Liste oder tragen Sie ihn im Freitext-Feld ein, falls er nicht aufgeführt ist.',
       freitextPlaceholder: 'z.B. anderer TI-Anbieter',
+      optionNotices: {
+        'Kein': '<div class="sel-option-notice">Sie haben noch keinen TI-Anbieter? Bestellen Sie hier unser <strong>Komda® TI Komplettpaket</strong>: <a href="https://form.jotform.com/243252338989368" target="_blank" rel="noopener">Jetzt bestellen →</a></div>'
+      },
     },
   ];
 
@@ -1004,19 +1011,26 @@
 
       if (isDone && savedSel) {
         selHtml += '<div class="sel-done-display">&#10003; Ihre Angabe: <strong>' + savedSel + '</strong></div>';
+        if (doc.optionNotices && doc.optionNotices[savedSel]) {
+          selHtml += '<div class="sel-option-notice-done">' + doc.optionNotices[savedSel] + '</div>';
+        }
       }
 
       if (!isDone) {
         var optHtml = '<div class="selection-zone" id="selzone-' + doc.id + '" style="display:none">'
           + '<div class="selection-zone-grid">';
         var _selInputType = doc.singleSelect ? 'radio' : 'checkbox';
+        var _selOnChange = doc.optionNotices ? ' onchange="updateSelNotice(\'' + doc.id + '\')"' : '';
         for (var oi = 0; oi < doc.selectionOptions.length; oi++) {
           var opt = doc.selectionOptions[oi];
           var _selNameAttr = doc.singleSelect ? ' name="sel-radio-' + doc.id + '"' : '';
-          optHtml += '<label class="sel-option"><input type="' + _selInputType + '" class="sel-cb-' + doc.id + '"' + _selNameAttr + ' value="' + opt + '"> ' + opt + '</label>';
+          optHtml += '<label class="sel-option"><input type="' + _selInputType + '" class="sel-cb-' + doc.id + '"' + _selNameAttr + _selOnChange + ' value="' + opt + '"> ' + opt + '</label>';
         }
-        optHtml += '</div>'
-          + '<div class="sel-freitext-label">Sonstiges / Freitext</div>'
+        optHtml += '</div>';
+        if (doc.optionNotices) {
+          optHtml += '<div id="selnotice-' + doc.id + '" style="display:none;margin-top:10px"></div>';
+        }
+        optHtml += '<div class="sel-freitext-label">Sonstiges / Freitext</div>'
           + '<input type="text" class="sel-freitext" id="sel-ft-' + doc.id + '" placeholder="' + (doc.freitextPlaceholder || 'z.B. anderes Programm oder Ergänzungen…') + '">'
           + '<button class="sel-submit-btn" onclick="submitSelection(\'' + doc.id + '\')">&#10003; Auswahl bestätigen</button>'
           + '</div>';
@@ -1281,6 +1295,21 @@
     }
     _el('zugangsdaten-list').innerHTML = zdHtml;
   }
+
+  window.updateSelNotice = function(docId) {
+    var doc = ALL_DOCS.filter(function(d) { return d.id === docId; })[0];
+    var el = document.getElementById('selnotice-' + docId);
+    if (!doc || !el || !doc.optionNotices) return;
+    var checked = document.querySelector('.sel-cb-' + docId + ':checked');
+    var val = checked ? checked.value : '';
+    if (doc.optionNotices[val]) {
+      el.innerHTML = doc.optionNotices[val];
+      el.style.display = '';
+    } else {
+      el.innerHTML = '';
+      el.style.display = 'none';
+    }
+  };
 
   window.submitSelection = function(docId) {
     var doc = ALL_DOCS.filter(function(d) { return d.id === docId; })[0] || {};
