@@ -879,6 +879,13 @@
         'P&amp;I Loga', 'Paisy', 'Sage', 'SAP', 'SBS', 'SIEDA', 'TDS', 'universal',
       ],
     },
+    {
+      id: 'ti_anbieter', name: 'TI-Anbieter', icon: '&#128225;', type: 'selection', singleSelect: true,
+      desc: 'Bitte geben Sie an, welchen TI-Anbieter (Telematikinfrastruktur) Sie nutzen.',
+      selectionOptions: ['Curenect', 'Visioncare', 'Medkonnekt'],
+      selectionHelpText: 'Wählen Sie Ihren TI-Anbieter aus der Liste oder tragen Sie ihn im Freitext-Feld ein, falls er nicht aufgeführt ist.',
+      freitextPlaceholder: 'z.B. anderer TI-Anbieter',
+    },
   ];
 
   // Aktivierbare Pflicht-Vorbereitungsunterlagen (je nach Kundenkonfiguration)
@@ -1002,13 +1009,15 @@
       if (!isDone) {
         var optHtml = '<div class="selection-zone" id="selzone-' + doc.id + '" style="display:none">'
           + '<div class="selection-zone-grid">';
+        var _selInputType = doc.singleSelect ? 'radio' : 'checkbox';
         for (var oi = 0; oi < doc.selectionOptions.length; oi++) {
           var opt = doc.selectionOptions[oi];
-          optHtml += '<label class="sel-option"><input type="checkbox" class="sel-cb-' + doc.id + '" value="' + opt + '"> ' + opt + '</label>';
+          var _selNameAttr = doc.singleSelect ? ' name="sel-radio-' + doc.id + '"' : '';
+          optHtml += '<label class="sel-option"><input type="' + _selInputType + '" class="sel-cb-' + doc.id + '"' + _selNameAttr + ' value="' + opt + '"> ' + opt + '</label>';
         }
         optHtml += '</div>'
           + '<div class="sel-freitext-label">Sonstiges / Freitext</div>'
-          + '<input type="text" class="sel-freitext" id="sel-ft-' + doc.id + '" placeholder="z.B. anderes Programm oder Ergänzungen…">'
+          + '<input type="text" class="sel-freitext" id="sel-ft-' + doc.id + '" placeholder="' + (doc.freitextPlaceholder || 'z.B. anderes Programm oder Ergänzungen…') + '">'
           + '<button class="sel-submit-btn" onclick="submitSelection(\'' + doc.id + '\')">&#10003; Auswahl bestätigen</button>'
           + '</div>';
         selHtml += optHtml;
@@ -1020,7 +1029,7 @@
         + '</div>'
         + '<div class="steps-body" id="steps-' + doc.id + '">'
         + '<ul class="step-list"><li class="step-item"><span class="step-num ' + blockClass + '">1</span>'
-        + '<span>Wählen Sie Ihr(e) eingesetztes Programm(e) aus der Liste oder tragen Sie es im Freitext-Feld ein.</span></li>'
+        + '<span>' + (doc.selectionHelpText || 'Wählen Sie Ihr(e) eingesetztes Programm(e) aus der Liste oder tragen Sie es im Freitext-Feld ein.') + '</span></li>'
         + '<li class="step-item"><span class="step-num ' + blockClass + '">2</span>'
         + '<span>Klicken Sie auf <strong>„Auswahl bestätigen"</strong>.</span></li></ul>'
         + '</div></div>';
@@ -1274,11 +1283,22 @@
   }
 
   window.submitSelection = function(docId) {
-    var cbs = document.querySelectorAll('.sel-cb-' + docId + ':checked');
-    var selected = [];
-    for (var i = 0; i < cbs.length; i++) selected.push(cbs[i].value);
+    var doc = ALL_DOCS.filter(function(d) { return d.id === docId; })[0] || {};
     var freitext = (document.getElementById('sel-ft-' + docId) || {}).value || '';
-    if (freitext.trim()) selected.push(freitext.trim());
+    var selected = [];
+    if (doc.singleSelect) {
+      // Freitext hat Vorrang vor der Listenauswahl (genau ein Anbieter/Wert)
+      if (freitext.trim()) {
+        selected = [freitext.trim()];
+      } else {
+        var checkedRadio = document.querySelector('.sel-cb-' + docId + ':checked');
+        if (checkedRadio) selected = [checkedRadio.value];
+      }
+    } else {
+      var cbs = document.querySelectorAll('.sel-cb-' + docId + ':checked');
+      for (var i = 0; i < cbs.length; i++) selected.push(cbs[i].value);
+      if (freitext.trim()) selected.push(freitext.trim());
+    }
     if (selected.length === 0) { alert('Bitte wählen Sie mindestens eine Option aus oder tragen Sie einen Freitext ein.'); return; }
     var auswahl = selected.join(', ');
     status[docId] = true;
