@@ -202,6 +202,8 @@
     .erstschulung-time-pill{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #b8cef0;border-radius:20px;padding:4px 13px;font-size:13px;font-weight:600;color:var(--blue)}
     .zd-info{flex:1;min-width:0}
     .zd-name{font-size:13px;font-weight:600;color:var(--text)}
+    .zd-extra-link{display:inline-block;margin-top:4px;font-size:12px;font-weight:600;color:var(--red);text-decoration:none}
+    .zd-extra-link:hover{text-decoration:underline}
     .zd-hint{font-size:11px;color:var(--muted);margin-top:2px}
     .zd-btn{flex-shrink:0;display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;background:#f0f0ff;color:#4a4ab8;border:1.5px solid #d0d0f0;white-space:nowrap;transition:all .15s}
     .zd-btn:hover{background:#e0e0ff}
@@ -920,7 +922,8 @@
   ];
 
   var FOLDER_LINKS = [
-    { id: 'zd_auftrag', icon: '&#128196;', name: 'Auftragsbetätigung',                   hint: 'Ordner mit Ihren Auftragsbetätigungen',   param: 'spUrlAuftrag' },
+    { id: 'zd_auftrag', icon: '&#128196;', name: 'Auftragsbestätigung',                   hint: 'Ordner mit Ihren Auftragsbestätigungen',   param: 'spUrlAuftrag',
+      extraLink: { text: '&#128196; Unsere AGB einsehen', url: 'AGB-KSS.pdf' } },
     { id: 'zd_mobile',  icon: '&#128242;', name: 'Komda® Mobile Zugangsdaten',            hint: 'Ordner mit Ihren Mobile-Zugangsdaten',       param: 'spUrlMobile'  },
     { id: 'zd_cloud',   icon: '&#9729;',   name: 'Komda® Cloud / Hosting Zugangsdaten',  hint: 'Ordner mit Ihren Cloud-Zugangsdaten',        param: 'spUrlCloud'   },
   ];
@@ -1288,7 +1291,9 @@
       var zd = FOLDER_LINKS[z]; var zdUrl = folderUrls[zd.param] || '';
       zdHtml += '<div class="zd-row">'
         + '<div class="zd-icon">' + zd.icon + '</div>'
-        + '<div class="zd-info"><div class="zd-name">' + zd.name + '</div><div class="zd-hint">' + zd.hint + '</div></div>'
+        + '<div class="zd-info"><div class="zd-name">' + zd.name + '</div><div class="zd-hint">' + zd.hint + '</div>'
+        + (zd.extraLink ? '<a class="zd-extra-link" href="' + zd.extraLink.url + '" target="_blank" rel="noopener">' + zd.extraLink.text + '</a>' : '')
+        + '</div>'
         + (zdUrl ? '<a class="zd-btn" href="' + zdUrl + '" target="_blank">&#8595; Öffnen</a>'
                  : '<span class="zd-btn disabled">&#8595; Öffnen</span>')
         + '</div>';
