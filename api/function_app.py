@@ -47,13 +47,19 @@ SELECTION_FIELD = {
     "ti_anbieter": "TiAnbieterAuswahl",
 }
 
+# Maps docId → { extraFieldId (aus dem Frontend) : SP text field }
+# Zusätzliche Angaben, die zusammen mit der Selection-Auswahl erfasst werden.
+EXTRA_FIELDS = {
+    "fibu": {"beraterNr": "FibuBeraterNr", "mandantenNr": "FibuMandantenNr"},
+}
+
 GET_SELECT_FIELDS = (
-    "Kundennummer,Firma,Anrede,Ansprechpartner,Email,Sachbearbeiter,SachbearbeiterEmail,"
+    "Kundennummer,Firma,Anrede,Ansprechpartner,Email,Sachbearbeiter,SachbearbeiterEmail,SachbearbeiterTelefon,"
     "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,SPUrlShare,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,DocTiAnbieter,"
-    "FibuAuswahl,LohnAuswahl,TiAnbieterAuswahl,LogoUrl,SchulungDurchgefuehrt,"
+    "FibuAuswahl,LohnAuswahl,TiAnbieterAuswahl,FibuBeraterNr,FibuMandantenNr,LogoUrl,SchulungDurchgefuehrt,"
     "ZusatzEmails,EmailCC,MailGesendet,MailMilestone,DocNichtVorhanden"
 )
 
@@ -671,6 +677,8 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "anrede":         fields.get("Anrede",           ""),
                     "ansprechpartner": fields.get("Ansprechpartner", ""),
                     "sachbearbeiter": fields.get("Sachbearbeiter",   ""),
+                    "sachbearbeiterEmail":   fields.get("SachbearbeiterEmail",   ""),
+                    "sachbearbeiterTelefon": fields.get("SachbearbeiterTelefon", ""),
                     "spUrl":          fields.get("SPUrl",            ""),
                     "spUrlCloud":     fields.get("SPUrlCloud",       ""),
                     "spUrlMobile":    fields.get("SPUrlMobile",      ""),
@@ -727,6 +735,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
     value     = bool(body.get("value",    False))
     na_flag   = bool(body.get("na",       False))
     selection = str(body.get("selection", "")).strip()
+    extra     = body.get("extra") or {}
     file_b64  = str(body.get("file",      "")).strip()
     filename  = str(body.get("filename",  "")).strip()
     sp_url    = str(body.get("spUrl",     "")).strip()
@@ -808,6 +817,11 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
             })
             with urllib.request.urlopen(sel_req) as resp:
                 resp.read()
+        # Zusätzliche Angaben zur Selection (z. B. Berater-Nr/Mandanten-Nr bei FiBu)
+        extra_map = EXTRA_FIELDS.get(doc_id, {})
+        for extra_key, sp_field_name in extra_map.items():
+            if extra_key in extra:
+                sp_patch_text(cust_id, sp_field_name, str(extra[extra_key]).strip())
         # Jeder Abschluss kann einen Meilenstein auslösen → immer prüfen
         if value:
             send_completion_email(cust_id)
