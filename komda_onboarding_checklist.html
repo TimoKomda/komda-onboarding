@@ -456,10 +456,10 @@
     <div class="contact-icon">&#128172;</div>
     <div>
       <div class="contact-title">Fragen zum Onboarding?</div>
-      <div class="contact-sub">Unser Support-Team hilft Ihnen gerne weiter.</div>
-      <div class="contact-links">
-        <a class="contact-link phone" href="tel:+494419358901">&#128222; +49 441 935890</a>
-        <a class="contact-link mail" href="mailto:support@komda-software.de">&#9993; support@komda-software.de</a>
+      <div class="contact-sub" id="contact-sub">Unser Support-Team hilft Ihnen gerne weiter.</div>
+      <div class="contact-links" id="contact-links">
+        <a class="contact-link phone" id="contact-phone" href="tel:+494419358901">&#128222; +49 441 935890</a>
+        <a class="contact-link mail" id="contact-mail" href="mailto:support@komda-software.de">&#9993; support@komda-software.de</a>
       </div>
     </div>
   </div>
@@ -774,6 +774,26 @@
         }
       }
     }
+    // Kontaktblock "Fragen zum Onboarding?": zeigt den zuständigen Sachbearbeiter,
+    // falls hinterlegt (Name + Telefon/E-Mail) — sonst Fallback auf allgemeinen Support.
+    var sbName    = apiConfig && apiConfig.sachbearbeiter ? apiConfig.sachbearbeiter.trim() : '';
+    var sbEmail   = apiConfig && apiConfig.sachbearbeiterEmail ? apiConfig.sachbearbeiterEmail.trim() : '';
+    var sbTelefon = apiConfig && apiConfig.sachbearbeiterTelefon ? apiConfig.sachbearbeiterTelefon.trim() : '';
+    var contactSubEl = document.getElementById('contact-sub');
+    var contactPhoneEl = document.getElementById('contact-phone');
+    var contactMailEl = document.getElementById('contact-mail');
+    if (sbName && contactSubEl) {
+      contactSubEl.textContent = sbName + ' hilft Ihnen gerne weiter.';
+    }
+    if (sbTelefon && contactPhoneEl) {
+      var telHref = 'tel:+49' + sbTelefon.replace(/[^0-9]/g, '').replace(/^0/, '');
+      contactPhoneEl.href = telHref;
+      contactPhoneEl.innerHTML = '&#128222; ' + sbTelefon;
+    }
+    if (sbEmail && contactMailEl) {
+      contactMailEl.href = 'mailto:' + sbEmail;
+      contactMailEl.innerHTML = '&#9993; ' + sbEmail;
+    }
     // Erstschulung
     if (apiConfig && apiConfig.erstschulung) {
       try {
@@ -875,6 +895,10 @@
         'Lexware buchhalter / plus', 'Lexware buchhalter / pro',
         'Navision', 'RHV-Fibu',
         'Sage 100 / Office Line', 'SageKHK Classic Line', 'SageKHK PC Kaufmann', 'SAP', 'Simba',
+      ],
+      extraFields: [
+        { id: 'beraterNr', label: 'Berater-Nr', placeholder: 'z.B. 12345' },
+        { id: 'mandantenNr', label: 'Mandanten-Nr', placeholder: 'z.B. 6789' },
       ],
     },
     {
@@ -1017,6 +1041,17 @@
         if (doc.optionNotices && doc.optionNotices[savedSel]) {
           selHtml += '<div class="sel-option-notice-done">' + doc.optionNotices[savedSel] + '</div>';
         }
+        if (doc.extraFields) {
+          var extraDoneParts = [];
+          for (var edi = 0; edi < doc.extraFields.length; edi++) {
+            var edf = doc.extraFields[edi];
+            var edVal = status[doc.id + '_extra_' + edf.id] || '';
+            if (edVal) extraDoneParts.push(edf.label + ': <strong>' + edVal + '</strong>');
+          }
+          if (extraDoneParts.length) {
+            selHtml += '<div class="sel-done-display">' + extraDoneParts.join(' &middot; ') + '</div>';
+          }
+        }
       }
 
       if (!isDone) {
@@ -1032,6 +1067,16 @@
         optHtml += '</div>';
         if (doc.optionNotices) {
           optHtml += '<div id="selnotice-' + doc.id + '" style="display:none;margin-top:10px"></div>';
+        }
+        if (doc.extraFields) {
+          optHtml += '<div class="selection-zone-grid" style="margin-top:2px">';
+          for (var efi = 0; efi < doc.extraFields.length; efi++) {
+            var ef = doc.extraFields[efi];
+            var efSaved = status[doc.id + '_extra_' + ef.id] || '';
+            optHtml += '<div><div class="sel-freitext-label">' + ef.label + '</div>'
+              + '<input type="text" class="sel-freitext" id="sel-extra-' + doc.id + '-' + ef.id + '" placeholder="' + ef.placeholder + '" value="' + efSaved + '"></div>';
+          }
+          optHtml += '</div>';
         }
         optHtml += '<div class="sel-freitext-label">Sonstiges / Freitext</div>'
           + '<input type="text" class="sel-freitext" id="sel-ft-' + doc.id + '" placeholder="' + (doc.freitextPlaceholder || 'z.B. anderes Programm oder Ergänzungen…') + '">'
@@ -1337,8 +1382,18 @@
     var auswahl = selected.join(', ');
     status[docId] = true;
     status[docId + '_auswahl'] = auswahl;
+    var extra = {};
+    if (doc.extraFields) {
+      for (var exi = 0; exi < doc.extraFields.length; exi++) {
+        var exf = doc.extraFields[exi];
+        var exVal = (document.getElementById('sel-extra-' + docId + '-' + exf.id) || {}).value || '';
+        exVal = exVal.trim();
+        status[docId + '_extra_' + exf.id] = exVal;
+        extra[exf.id] = exVal;
+      }
+    }
     saveStatus(status);
-    syncSelectionToParent(docId, auswahl);
+    syncSelectionToParent(docId, auswahl, extra);
     render();
     var allDone = ALL_DOCS.every(function(d) { return !!(status[d.id] || naStatus[d.id]); });
     if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1416,13 +1471,13 @@
     }
   }
 
-  function syncSelectionToParent(docId, auswahl) {
+  function syncSelectionToParent(docId, auswahl, extra) {
     var custId = '';
     try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
     if (custId && !isPreview) {
       fetch(API_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, selection: auswahl }),
+        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, value: true, selection: auswahl, extra: extra || {} }),
       })
       .then(function(r) { return r.json(); })
       .then(function(d) { if (!d.ok) console.warn('Selection-Sync-Fehler:', d); })
