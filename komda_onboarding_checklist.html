@@ -456,7 +456,7 @@
     <div class="contact-icon">&#128172;</div>
     <div>
       <div class="contact-title">Fragen zum Onboarding?</div>
-      <div class="contact-sub" id="contact-sub">Unser Support-Team hilft Ihnen gerne weiter.</div>
+      <div class="contact-sub" id="contact-sub">Ihr zuständiger Sachbearbeiter hilft Ihnen gerne weiter.</div>
       <div class="contact-links" id="contact-links">
         <a class="contact-link phone" id="contact-phone" href="tel:+494419358901">&#128222; +49 441 935890</a>
         <a class="contact-link mail" id="contact-mail" href="mailto:support@komda-software.de">&#9993; support@komda-software.de</a>
@@ -774,21 +774,17 @@
         }
       }
     }
-    // Kontaktblock "Fragen zum Onboarding?": zeigt den zuständigen Sachbearbeiter,
-    // falls hinterlegt (Name + Telefon/E-Mail) — sonst Fallback auf allgemeinen Support.
-    var sbName    = apiConfig && apiConfig.sachbearbeiter ? apiConfig.sachbearbeiter.trim() : '';
-    var sbEmail   = apiConfig && apiConfig.sachbearbeiterEmail ? apiConfig.sachbearbeiterEmail.trim() : '';
-    var sbTelefon = apiConfig && apiConfig.sachbearbeiterTelefon ? apiConfig.sachbearbeiterTelefon.trim() : '';
+    // Kontaktblock "Fragen zum Onboarding?": verweist auf den zuständigen
+    // Sachbearbeiter (Name + E-Mail aus dem Kundendatensatz) statt auf den
+    // allgemeinen Support.
+    var sbName  = apiConfig && apiConfig.sachbearbeiter ? apiConfig.sachbearbeiter.trim() : '';
+    var sbEmail = apiConfig && apiConfig.sachbearbeiterEmail ? apiConfig.sachbearbeiterEmail.trim() : '';
     var contactSubEl = document.getElementById('contact-sub');
-    var contactPhoneEl = document.getElementById('contact-phone');
     var contactMailEl = document.getElementById('contact-mail');
-    if (sbName && contactSubEl) {
-      contactSubEl.textContent = sbName + ' hilft Ihnen gerne weiter.';
-    }
-    if (sbTelefon && contactPhoneEl) {
-      var telHref = 'tel:+49' + sbTelefon.replace(/[^0-9]/g, '').replace(/^0/, '');
-      contactPhoneEl.href = telHref;
-      contactPhoneEl.innerHTML = '&#128222; ' + sbTelefon;
+    if (contactSubEl) {
+      contactSubEl.textContent = sbName
+        ? 'Ihr Sachbearbeiter ' + sbName + ' hilft Ihnen gerne weiter.'
+        : 'Ihr zuständiger Sachbearbeiter hilft Ihnen gerne weiter.';
     }
     if (sbEmail && contactMailEl) {
       contactMailEl.href = 'mailto:' + sbEmail;
