@@ -54,7 +54,7 @@ EXTRA_FIELDS = {
 }
 
 GET_SELECT_FIELDS = (
-    "Kundennummer,Firma,Anrede,Ansprechpartner,Email,Sachbearbeiter,SachbearbeiterEmail,SachbearbeiterTelefon,"
+    "Kundennummer,Firma,Anrede,Ansprechpartner,Email,Sachbearbeiter,SachbearbeiterEmail,"
     "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,SPUrlShare,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
@@ -677,8 +677,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "anrede":         fields.get("Anrede",           ""),
                     "ansprechpartner": fields.get("Ansprechpartner", ""),
                     "sachbearbeiter": fields.get("Sachbearbeiter",   ""),
-                    "sachbearbeiterEmail":   fields.get("SachbearbeiterEmail",   ""),
-                    "sachbearbeiterTelefon": fields.get("SachbearbeiterTelefon", ""),
+                    "sachbearbeiterEmail":   fields.get("SachbearbeiterEmail", ""),
                     "spUrl":          fields.get("SPUrl",            ""),
                     "spUrlCloud":     fields.get("SPUrlCloud",       ""),
                     "spUrlMobile":    fields.get("SPUrlMobile",      ""),
