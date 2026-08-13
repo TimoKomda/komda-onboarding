@@ -871,7 +871,15 @@
       steps: ['Ihre Debitoren-Liste hier hochladen.'],
       // Neugründer haben oft noch keine Debitoren-Liste — beim Klick auf "Nicht vorhanden"
       // kann stattdessen optional ein Nummernkreis für die Neuvergabe hinterlegt werden.
-      naHint: 'Falls Sie neu gegründet haben und noch keine Debitoren-Nummern vergeben sind, können Sie hier optional einen Nummernkreis für die Neuvergabe hinterlegen. Sprechen Sie sich im Zweifel mit Ihrem Steuerberater ab.',
+      naHint: 'Falls Sie neu gegründet haben und noch keine Debitoren-Nummern vergeben sind, können Sie hier optional einen Nummernkreis für die Neuvergabe hinterlegen. Sprechen Sie sich im Zweifel mit Ihrem Steuerberater ab.'
+        + '<table style="width:100%;border-collapse:collapse;margin-top:10px;font-size:12px">'
+        + '<tr><th style="text-align:left;padding:4px 10px 4px 0;border-bottom:1px solid var(--red)">Debitoren</th><th style="text-align:left;padding:4px 0;border-bottom:1px solid var(--red)">Kostenträgerart</th></tr>'
+        + '<tr><td style="padding:4px 10px 4px 0;white-space:nowrap;vertical-align:top">10001&nbsp;&ndash;&nbsp;19999</td><td style="padding:4px 0">Pflegekassen</td></tr>'
+        + '<tr><td style="padding:4px 10px 4px 0;white-space:nowrap;vertical-align:top">20001&nbsp;&ndash;&nbsp;29999</td><td style="padding:4px 0">Bewohner, Kunden, Patienten</td></tr>'
+        + '<tr><td style="padding:4px 10px 4px 0;white-space:nowrap;vertical-align:top">30001&nbsp;&ndash;&nbsp;39999</td><td style="padding:4px 0">Krankenkassen</td></tr>'
+        + '<tr><td style="padding:4px 10px 4px 0;white-space:nowrap;vertical-align:top">40001&nbsp;&ndash;&nbsp;49999</td><td style="padding:4px 0">Sozialhilfeträger</td></tr>'
+        + '<tr><td style="padding:4px 10px 4px 0;white-space:nowrap;vertical-align:top">60001&nbsp;&ndash;&nbsp;69999</td><td style="padding:4px 0">Übrige Kostenträger</td></tr>'
+        + '</table>',
       naExtraFields: [
         { id: 'kundenAb', label: 'Kunden/Patienten ab Nummer', placeholder: '10000' },
         { id: 'kostentraegerAb', label: 'Kostenträger (Kranken- und Pflegekasse) ab Nummer', placeholder: '21000' },
