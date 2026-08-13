@@ -4,6 +4,7 @@ import datetime
 import json
 import os
 import re
+import time
 import urllib.request
 import urllib.parse
 import urllib.error
@@ -121,7 +122,18 @@ CORS_HEADERS = {
 }
 
 
+# Modul-weiter Token-Cache: vermeidet, dass jeder einzelne Graph-Call
+# (sp_get_item, sp_patch, sp_patch_text, ...) ein eigenes neues Token holt.
+# Ohne Cache lösten z. B. die 5 Debitoren-Zusatzfelder + DocNichtVorhanden-Patch
+# + Kunde-Lesen 7 Token-Anfragen in Millisekunden aus → Azure-AD-Throttling,
+# wodurch der Patch-Loop nach den ersten Feldern abbrach (nur 2 von 5 Werten kamen an).
+_token_cache = {"access_token": None, "expires_at": 0}
+
+
 def get_app_token() -> str:
+    now = time.time()
+    if _token_cache["access_token"] and now < _token_cache["expires_at"]:
+        return _token_cache["access_token"]
     data = urllib.parse.urlencode({
         "grant_type":    "client_credentials",
         "client_id":     CLIENT_ID,
@@ -133,7 +145,11 @@ def get_app_token() -> str:
         data=data, method="POST"
     )
     with urllib.request.urlopen(req) as resp:
-        return json.loads(resp.read())["access_token"]
+        result = json.loads(resp.read())
+    _token_cache["access_token"] = result["access_token"]
+    # 60s Sicherheitspuffer vor tatsächlichem Ablauf
+    _token_cache["expires_at"] = now + int(result.get("expires_in", 3600)) - 60
+    return _token_cache["access_token"]
 
 
 def sp_get_item(item_id: str) -> dict:
