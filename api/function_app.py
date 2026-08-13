@@ -51,8 +51,14 @@ SELECTION_FIELD = {
 # Zusätzliche Angaben, die zusammen mit der Selection-Auswahl (oder bei
 # "Nicht vorhanden", s.u.) erfasst werden.
 EXTRA_FIELDS = {
-    "fibu":       {"beraterNr": "FibuBeraterNr", "mandantenNr": "FibuMandantenNr"},
-    "debitoren":  {"kundenAb": "DebitorenKundenAb", "kostentraegerAb": "DebitorenKostentraegerAb"},
+    "fibu": {"beraterNr": "FibuBeraterNr", "mandantenNr": "FibuMandantenNr"},
+    "debitoren": {
+        "pflegekassen":            "DebitorenPflegekassen",
+        "bewohnerKundenPatienten": "DebitorenBewohnerKundenPatienten",
+        "krankenkassen":           "DebitorenKrankenkassen",
+        "sozialhilfetraeger":      "DebitorenSozialhilfetraeger",
+        "uebrigeKostentraeger":    "DebitorenUebrigeKostentraeger",
+    },
 }
 
 GET_SELECT_FIELDS = (
@@ -62,7 +68,8 @@ GET_SELECT_FIELDS = (
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,DocTiAnbieter,"
     "FibuAuswahl,LohnAuswahl,TiAnbieterAuswahl,FibuBeraterNr,FibuMandantenNr,"
-    "DebitorenKundenAb,DebitorenKostentraegerAb,LogoUrl,SchulungDurchgefuehrt,"
+    "DebitorenPflegekassen,DebitorenBewohnerKundenPatienten,DebitorenKrankenkassen,"
+    "DebitorenSozialhilfetraeger,DebitorenUebrigeKostentraeger,LogoUrl,SchulungDurchgefuehrt,"
     "ZusatzEmails,EmailCC,MailGesendet,MailMilestone,DocNichtVorhanden"
 )
 
