@@ -869,6 +869,13 @@
       id: 'debitoren', name: 'Liste der Debitoren-Nummern', icon: '&#128203;', upload: true, uploadFolder: 'Datenübernahme',
       desc: 'Liste Ihrer Kunden/Patienten und Kostenträger (Pflegekassen, Krankenkassen, Sozialämter) bzw. eine Vorgabe dafür.',
       steps: ['Ihre Debitoren-Liste hier hochladen.'],
+      // Neugründer haben oft noch keine Debitoren-Liste — beim Klick auf "Nicht vorhanden"
+      // kann stattdessen optional ein Nummernkreis für die Neuvergabe hinterlegt werden.
+      naHint: 'Falls Sie neu gegründet haben und noch keine Debitoren-Nummern vergeben sind, können Sie hier optional einen Nummernkreis für die Neuvergabe hinterlegen. Sprechen Sie sich im Zweifel mit Ihrem Steuerberater ab.',
+      naExtraFields: [
+        { id: 'kundenAb', label: 'Kunden/Patienten ab Nummer', placeholder: '10000' },
+        { id: 'kostentraegerAb', label: 'Kostenträger (Kranken- und Pflegekasse) ab Nummer', placeholder: '21000' },
+      ],
     },
     {
       id: 'mitarbeiter', name: 'Liste der Mitarbeiter-Nummern', icon: '&#128101;', upload: true, uploadFolder: 'Datenübernahme',
@@ -1141,6 +1148,10 @@
     }
 
     var isBlockB = blockClass === 'b';
+    var hasNaExtra = !!doc.naExtraFields;
+    var naBtnHtml = hasNaExtra
+      ? '<button class="check-btn manual-btn" data-action="toggle-na-extra" data-id="' + doc.id + '">✗ Nicht vorhanden</button>'
+      : '<button class="check-btn manual-btn" data-action="na" data-id="' + doc.id + '">✗ Nicht vorhanden</button>';
     var actionHtml;
     if (isDone) {
       actionHtml = hasUpload
@@ -1154,15 +1165,50 @@
     } else if (hasSigning) {
       actionHtml = '<div class="check-btn-wrap">'
         + '<button class="check-btn sign-btn" data-action="sign" data-id="' + doc.id + '">&#128221; Ausfüllen &amp; Unterschreiben</button>'
-        + (isBlockB ? '<button class="check-btn manual-btn" data-action="na" data-id="' + doc.id + '">✗ Nicht vorhanden</button>' : '')
+        + (isBlockB ? naBtnHtml : '')
         + '</div>';
     } else if (hasUpload) {
       actionHtml = '<div class="check-btn-wrap">'
         + '<button class="check-btn upload-btn" data-action="toggle" data-id="' + doc.id + '">&#8679; Hochladen</button>'
-        + (isBlockB ? '<button class="check-btn manual-btn" data-action="na" data-id="' + doc.id + '">✗ Nicht vorhanden</button>' : '')
+        + (isBlockB ? naBtnHtml : '')
         + '</div>';
     } else {
       actionHtml = '<button class="check-btn done-btn" data-action="done" data-id="' + doc.id + '">✓ Abhaken</button>';
+    }
+
+    // Panel mit den Nummernkreis-Feldern, öffnet sich beim Klick auf "Nicht vorhanden"
+    // (nur für Punkte mit naExtraFields, z. B. Debitoren-Nummernkreis für Neugründer)
+    var naExtraZoneHtml = '';
+    if (hasNaExtra && !isComplete) {
+      naExtraZoneHtml = '<div class="selection-zone" id="na-extra-zone-' + doc.id + '" style="display:none">';
+      if (doc.naHint) naExtraZoneHtml += '<div class="sel-freitext-label" style="margin-bottom:8px">' + doc.naHint + '</div>';
+      naExtraZoneHtml += '<div class="selection-zone-grid">';
+      for (var nfi = 0; nfi < doc.naExtraFields.length; nfi++) {
+        var nf = doc.naExtraFields[nfi];
+        var nfSaved = status[doc.id + '_extra_' + nf.id] || '';
+        naExtraZoneHtml += '<div><div class="sel-freitext-label">' + nf.label + '</div>'
+          + '<input type="text" class="sel-freitext" id="na-extra-' + doc.id + '-' + nf.id + '" placeholder="' + nf.placeholder + '" value="' + (nfSaved || nf.placeholder) + '"></div>';
+      }
+      naExtraZoneHtml += '</div>'
+        + '<div class="check-btn-wrap" style="margin-top:10px">'
+        + '<button class="sel-submit-btn" onclick="confirmNaWithExtra(\'' + doc.id + '\')">&#10003; Angaben speichern</button>'
+        + '<button class="check-btn manual-btn" onclick="confirmNaPlain(\'' + doc.id + '\')">&#10007; Nicht vorhanden (ohne Angaben)</button>'
+        + '</div>'
+        + '</div>';
+    }
+
+    // Anzeige der gespeicherten Nummernkreis-Angaben, wenn "Nicht vorhanden" mit Werten bestätigt wurde
+    var naExtraDoneHtml = '';
+    if (hasNaExtra && isNA) {
+      var naExtraDoneParts = [];
+      for (var ndi = 0; ndi < doc.naExtraFields.length; ndi++) {
+        var ndf = doc.naExtraFields[ndi];
+        var ndVal = status[doc.id + '_extra_' + ndf.id] || '';
+        if (ndVal) naExtraDoneParts.push(ndf.label + ': <strong>' + ndVal + '</strong>');
+      }
+      if (naExtraDoneParts.length) {
+        naExtraDoneHtml = '<div class="sel-done-display">' + naExtraDoneParts.join(' &middot; ') + '</div>';
+      }
     }
 
     return '<div>'
@@ -1175,6 +1221,8 @@
       + '</div>'
       + actionHtml
       + '</div>'
+      + naExtraDoneHtml
+      + naExtraZoneHtml
       + '<div class="check-steps">'
       + '<div class="steps-toggle" data-action="toggle" data-id="' + doc.id + '">'
       + '<span class="steps-arrow" id="arrow-' + doc.id + '">▶</span>'
@@ -1408,8 +1456,18 @@
     } else if (action === 'na') {
       // Toggle "Nicht vorhanden" — optimistic UI, confirmed by server response
       naStatus[id] = !naStatus[id];
+      var naExtraClear = null;
+      if (!naStatus[id]) {
+        // Rückgängig: ggf. gespeicherte Zusatzangaben (z. B. Debitoren-Nummernkreis) verwerfen
+        var docForUndo = ALL_DOCS.filter(function(d) { return d.id === id; })[0];
+        if (docForUndo && docForUndo.naExtraFields) {
+          naExtraClear = {};
+          docForUndo.naExtraFields.forEach(function(f) { delete status[id + '_extra_' + f.id]; naExtraClear[f.id] = ''; });
+          saveStatus(status);
+        }
+      }
       render();
-      syncNAToParent(id);
+      syncNAToParent(id, naExtraClear);
       var allDone2 = ALL_DOCS.every(function(d) { return !!(status[d.id] || naStatus[d.id]); });
       if (allDone2) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else if (action === 'undo') {
@@ -1422,10 +1480,49 @@
       var zone = document.getElementById('selzone-' + id);
       if (body && arrow) { var isOpen = body.classList.toggle('open'); arrow.classList.toggle('open', isOpen); }
       if (zone) zone.style.display = zone.style.display === 'none' ? '' : 'none';
+    } else if (action === 'toggle-na-extra') {
+      var naZone = document.getElementById('na-extra-zone-' + id);
+      if (naZone) naZone.style.display = naZone.style.display === 'none' ? '' : 'none';
     } else if (action === 'sign') {
       openSignModal(id);
     }
   });
+
+  // Bestätigt "Nicht vorhanden" ohne Angaben (z. B. Debitoren-Nummernkreis-Panel)
+  window.confirmNaPlain = function(docId) {
+    var doc = ALL_DOCS.filter(function(d) { return d.id === docId; })[0];
+    var extraClear = null;
+    if (doc && doc.naExtraFields) {
+      extraClear = {};
+      doc.naExtraFields.forEach(function(f) { delete status[docId + '_extra_' + f.id]; extraClear[f.id] = ''; });
+      saveStatus(status);
+    }
+    naStatus[docId] = true;
+    render();
+    syncNAToParent(docId, extraClear);
+    var allDone = ALL_DOCS.every(function(d) { return !!(status[d.id] || naStatus[d.id]); });
+    if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  // Bestätigt "Nicht vorhanden" MIT Angaben (z. B. Debitoren-Nummernkreis für Neugründer)
+  window.confirmNaWithExtra = function(docId) {
+    var doc = ALL_DOCS.filter(function(d) { return d.id === docId; })[0];
+    if (!doc || !doc.naExtraFields) return;
+    var extra = {};
+    for (var i = 0; i < doc.naExtraFields.length; i++) {
+      var f = doc.naExtraFields[i];
+      var val = (document.getElementById('na-extra-' + docId + '-' + f.id) || {}).value || '';
+      val = val.trim();
+      extra[f.id] = val;
+      status[docId + '_extra_' + f.id] = val;
+    }
+    saveStatus(status);
+    naStatus[docId] = true;
+    render();
+    syncNAToParent(docId, extra);
+    var allDone = ALL_DOCS.every(function(d) { return !!(status[d.id] || naStatus[d.id]); });
+    if (allDone) document.getElementById('done-card').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
 
   // ── SP-Sync ──────────────────────────────────────────────────────────
   function syncToParent(docId, value) {
@@ -1449,14 +1546,16 @@
     }
   }
 
-  function syncNAToParent(docId) {
+  function syncNAToParent(docId, extra) {
     var custId = '';
     try { custId = atob(token.padEnd(token.length + (4 - token.length % 4) % 4, '=')); } catch(e) {}
     if (custId && !isPreview) {
       var prevNA = naStatus[docId]; // snapshot before optimistic update
+      var payload = { secret: UPDATE_SECRET, custId: custId, docId: docId, na: true };
+      if (extra) payload.extra = extra;
       fetch(API_URL, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret: UPDATE_SECRET, custId: custId, docId: docId, na: true }),
+        body: JSON.stringify(payload),
       })
       .then(function(r) { return r.json(); })
       .then(function(d) {
