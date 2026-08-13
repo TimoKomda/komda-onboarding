@@ -1181,12 +1181,13 @@
     var naExtraZoneHtml = '';
     if (hasNaExtra && !isComplete) {
       naExtraZoneHtml = '<div class="selection-zone" id="na-extra-zone-' + doc.id + '" style="display:none">';
-      if (doc.naHint) naExtraZoneHtml += '<div class="sel-freitext-label" style="margin-bottom:8px">' + doc.naHint + '</div>';
+      if (doc.naHint) naExtraZoneHtml += '<div class="sel-option-notice" style="margin-bottom:14px">' + doc.naHint + '</div>';
       naExtraZoneHtml += '<div class="selection-zone-grid">';
       for (var nfi = 0; nfi < doc.naExtraFields.length; nfi++) {
         var nf = doc.naExtraFields[nfi];
         var nfSaved = status[doc.id + '_extra_' + nf.id] || '';
-        naExtraZoneHtml += '<div><div class="sel-freitext-label">' + nf.label + '</div>'
+        naExtraZoneHtml += '<div style="display:flex;flex-direction:column;justify-content:flex-end">'
+          + '<div class="sel-freitext-label">' + nf.label + '</div>'
           + '<input type="text" class="sel-freitext" id="na-extra-' + doc.id + '-' + nf.id + '" placeholder="' + nf.placeholder + '" value="' + (nfSaved || nf.placeholder) + '"></div>';
       }
       naExtraZoneHtml += '</div>'
