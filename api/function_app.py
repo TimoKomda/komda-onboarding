@@ -48,9 +48,11 @@ SELECTION_FIELD = {
 }
 
 # Maps docId → { extraFieldId (aus dem Frontend) : SP text field }
-# Zusätzliche Angaben, die zusammen mit der Selection-Auswahl erfasst werden.
+# Zusätzliche Angaben, die zusammen mit der Selection-Auswahl (oder bei
+# "Nicht vorhanden", s.u.) erfasst werden.
 EXTRA_FIELDS = {
-    "fibu": {"beraterNr": "FibuBeraterNr", "mandantenNr": "FibuMandantenNr"},
+    "fibu":       {"beraterNr": "FibuBeraterNr", "mandantenNr": "FibuMandantenNr"},
+    "debitoren":  {"kundenAb": "DebitorenKundenAb", "kostentraegerAb": "DebitorenKostentraegerAb"},
 }
 
 GET_SELECT_FIELDS = (
@@ -59,7 +61,8 @@ GET_SELECT_FIELDS = (
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
     "DocVerguetung,DocDatenubernahme,DocPreisliste,DocFibu,DocLohn,DocTiAnbieter,"
-    "FibuAuswahl,LohnAuswahl,TiAnbieterAuswahl,FibuBeraterNr,FibuMandantenNr,LogoUrl,SchulungDurchgefuehrt,"
+    "FibuAuswahl,LohnAuswahl,TiAnbieterAuswahl,FibuBeraterNr,FibuMandantenNr,"
+    "DebitorenKundenAb,DebitorenKostentraegerAb,LogoUrl,SchulungDurchgefuehrt,"
     "ZusatzEmails,EmailCC,MailGesendet,MailMilestone,DocNichtVorhanden"
 )
 
@@ -760,6 +763,12 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                 na_set.add(doc_id)
                 is_na = True
             sp_patch_text(cust_id, "DocNichtVorhanden", ",".join(sorted(na_set)))
+            # Zusätzliche Angaben zu "Nicht vorhanden" (z. B. Debitoren-Nummernkreis
+            # für Neugründer, oder Löschen der Werte bei "Rückgängig")
+            extra_map = EXTRA_FIELDS.get(doc_id, {})
+            for extra_key, sp_field_name in extra_map.items():
+                if extra_key in extra:
+                    sp_patch_text(cust_id, sp_field_name, str(extra[extra_key]).strip())
             send_completion_email(cust_id)
             return func.HttpResponse(
                 json.dumps({"ok": True, "na": is_na}),
