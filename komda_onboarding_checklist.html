@@ -776,15 +776,25 @@
     }
     // Kontaktblock "Fragen zum Onboarding?": verweist auf den zuständigen
     // Sachbearbeiter (Name + E-Mail aus dem Kundendatensatz) statt auf den
-    // allgemeinen Support.
-    var sbName  = apiConfig && apiConfig.sachbearbeiter ? apiConfig.sachbearbeiter.trim() : '';
-    var sbEmail = apiConfig && apiConfig.sachbearbeiterEmail ? apiConfig.sachbearbeiterEmail.trim() : '';
+    // allgemeinen Support. Telefonnummer stammt aus "Meine E-Mail-Signatur"
+    // des Sachbearbeiters (SachbearbeiterTelefon, wird beim Speichern der
+    // Signatur im Portal automatisch in die zugeordneten Kunden geschrieben) —
+    // Fallback bleibt die allgemeine Bürorufnummer, falls nichts hinterlegt ist.
+    var sbName    = apiConfig && apiConfig.sachbearbeiter ? apiConfig.sachbearbeiter.trim() : '';
+    var sbEmail   = apiConfig && apiConfig.sachbearbeiterEmail ? apiConfig.sachbearbeiterEmail.trim() : '';
+    var sbTelefon = apiConfig && apiConfig.sachbearbeiterTelefon ? apiConfig.sachbearbeiterTelefon.trim() : '';
     var contactSubEl = document.getElementById('contact-sub');
+    var contactPhoneEl = document.getElementById('contact-phone');
     var contactMailEl = document.getElementById('contact-mail');
     if (contactSubEl) {
       contactSubEl.textContent = sbName
         ? 'Ihr Sachbearbeiter ' + sbName + ' hilft Ihnen gerne weiter.'
         : 'Ihr zuständiger Sachbearbeiter hilft Ihnen gerne weiter.';
+    }
+    if (sbTelefon && contactPhoneEl) {
+      var telHref = 'tel:+49' + sbTelefon.replace(/[^0-9]/g, '').replace(/^0/, '');
+      contactPhoneEl.href = telHref;
+      contactPhoneEl.innerHTML = '&#128222; ' + sbTelefon;
     }
     if (sbEmail && contactMailEl) {
       contactMailEl.href = 'mailto:' + sbEmail;
