@@ -63,7 +63,7 @@ EXTRA_FIELDS = {
 }
 
 GET_SELECT_FIELDS = (
-    "Kundennummer,Firma,Anrede,Ansprechpartner,Email,Sachbearbeiter,SachbearbeiterEmail,"
+    "Kundennummer,Firma,Anrede,Ansprechpartner,Email,Sachbearbeiter,SachbearbeiterEmail,SachbearbeiterTelefon,"
     "SPUrl,SPUrlCloud,SPUrlMobile,SPUrlAuftrag,SPUrlShare,Optionen,Erstschulung,"
     "DocSepa,DocEmailRechnung,DocFernwartung,DocAvv,"
     "DocVorlagen,DocDebitoren,DocMitarbeiter,DocLohnarten,"
@@ -510,6 +510,22 @@ def send_completion_email(item_id: str) -> None:
         fibu_auswahl   = fields.get("FibuAuswahl",    "").strip()
         lohn_auswahl   = fields.get("LohnAuswahl",    "").strip()
         ti_auswahl     = fields.get("TiAnbieterAuswahl", "").strip()
+        fibu_berater   = fields.get("FibuBeraterNr",   "").strip()
+        fibu_mandant   = fields.get("FibuMandantenNr", "").strip()
+
+        # Debitoren-Nummernkreise: nur die vom Kunden tatsächlich ausgefüllten
+        # Kategorien werden in der Mail aufgeführt
+        debitoren_teile = []
+        for label, sp_field in [
+            ("Pflegekassen",              "DebitorenPflegekassen"),
+            ("Bewohner/Kunden/Patienten", "DebitorenBewohnerKundenPatienten"),
+            ("Krankenkassen",             "DebitorenKrankenkassen"),
+            ("Sozialhilfeträger",         "DebitorenSozialhilfetraeger"),
+            ("Übrige Kostenträger",       "DebitorenUebrigeKostentraeger"),
+        ]:
+            val = fields.get(sp_field, "").strip()
+            if val:
+                debitoren_teile.append(f"{label} {val}")
 
         # Docs marked as "nicht vorhanden" (N/A) count as completed
         doc_na_ids = set(
@@ -536,10 +552,14 @@ def send_completion_email(item_id: str) -> None:
         schnitt_lines = ""
         if fibu_auswahl:
             schnitt_lines += f"  💶 Finanzbuchhaltung-Schnittstelle: {fibu_auswahl}\n"
+            if fibu_berater or fibu_mandant:
+                schnitt_lines += f"      Berater-Nr: {fibu_berater or '–'} · Mandanten-Nr: {fibu_mandant or '–'}\n"
         if lohn_auswahl:
             schnitt_lines += f"  💵 Lohnbuchhaltung-Schnittstelle:   {lohn_auswahl}\n"
         if ti_auswahl:
             schnitt_lines += f"  📡 TI-Anbieter:                     {ti_auswahl}\n"
+        if debitoren_teile:
+            schnitt_lines += f"  📋 Debitoren-Nummernkreis: {' · '.join(debitoren_teile)}\n"
         schnitt_block = f"\nGewählte Schnittstellen:\n{schnitt_lines}" if schnitt_lines else ""
 
         if block_a_done and block_b_done:
@@ -704,6 +724,7 @@ def update_status(req: func.HttpRequest) -> func.HttpResponse:
                     "ansprechpartner": fields.get("Ansprechpartner", ""),
                     "sachbearbeiter": fields.get("Sachbearbeiter",   ""),
                     "sachbearbeiterEmail":   fields.get("SachbearbeiterEmail", ""),
+                    "sachbearbeiterTelefon": fields.get("SachbearbeiterTelefon", ""),
                     "spUrl":          fields.get("SPUrl",            ""),
                     "spUrlCloud":     fields.get("SPUrlCloud",       ""),
                     "spUrlMobile":    fields.get("SPUrlMobile",      ""),
